@@ -456,5 +456,17 @@ function _civigeometry_civix_civicrm_alterSettingsFolders(&$metaDataFolders = NU
 
 function _civigeometry_civix_civicrm_entityTypes(&$entityTypes) {
   $entityTypes = array_merge($entityTypes, array (
+    'CRM_CiviGeometry_DAO_GeometryCollection' => 
+    array (
+      'name' => 'GeometryCollection',
+      'class' => 'CRM_CiviGeometry_DAO_GeometryCollection',
+      'table' => 'civigeometry_geometry_collection',
+    ),
+    'CRM_CiviGeometry_DAO_GeometryCollectionType' => 
+    array (
+      'name' => 'GeometryCollectionType',
+      'class' => 'CRM_CiviGeometry_DAO_GeometryCollectionType',
+      'table' => 'civigeometry_geometry_collection_type',
+    ),
   ));
 }

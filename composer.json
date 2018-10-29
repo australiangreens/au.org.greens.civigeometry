@@ -1,0 +1,19 @@
+{
+  "name": "australian_greens/au.org.greens.civigeometry",
+  "description": "Australian Greens CiviCRM Extension to support creation and handling of Geometries and Geometry Collections",
+  "type": "drupal-module",
+  "authors": [
+    {
+      "name": "Seamus Lee",
+      "email": "seamus.lee@greens.org.au"
+    },
+    {
+      "name": "John Twyman",
+      "email": "john.twyman@greens.org.au"
+    }
+  ],
+  "require": {
+    "australian_greens/civicrm": "*",
+    "composer/installers": "~1.0"
+  }
+}

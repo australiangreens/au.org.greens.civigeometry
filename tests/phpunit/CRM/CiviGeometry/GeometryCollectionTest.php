@@ -63,4 +63,38 @@ class CRM_CiviGeometry_GeometryCollectionTest extends \PHPUnit_Framework_TestCas
     $this->callAPIAndDocument('GeometryCollection', 'create', $params, __FUNCTION__, __FILE__);
   }
 
+  /**
+   * Test that we can create multiple geometry collections of the same type.
+   */
+  public function testMultipleGeometryCollectionsSameType() {
+    $params1 = [
+      'label' => 'NSW State LH',
+      'description' => 'NSW State Lower House Elecroates',
+      'origin' => 'NSW Electoral Commission',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $params2 = [
+      'label' => 'VIC State LH',
+      'description' => 'VIC State Lower House Elecroates',
+      'origin' => 'VIC Electoral Commission',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $this->callAPISuccess('GeometryCollection', 'create', $params1);
+    $this->callAPISuccess('GeometryCollection', 'create', $params2);
+  }
+
+  /**
+   * Test that no duplicate Collections can be created
+   */
+  public function testNoDuplicateGeometryCollections() {
+    $params = [
+      'label' => 'NSW State LH',
+      'description' => 'NSW State Lower House Elecroates',
+      'origin' => 'NSW Electoral Commission',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $this->callAPISuccess('GeometryCollection', 'create', $params);
+    $this->callAPIFailure('GeometryCollection', 'create', $params);
+  }
+
 }

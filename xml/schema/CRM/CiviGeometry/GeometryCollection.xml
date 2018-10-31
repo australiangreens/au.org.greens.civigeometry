@@ -22,6 +22,7 @@
     <name>geometry_collection_type_id</name>
     <type>int unsigned</type>
     <comment>FK to civigeomety_geometry_collection_type</comment>
+    <required>true</required>
     <pseudoconstant>
       <table>civigeometry_geometry_collection_type</table>
       <keyColumn>id</keyColumn>
@@ -47,6 +48,12 @@
       <type>Text</type>
     </html>
   </field>
+  <index>
+    <name>index_type_id_label</name>
+    <fieldName>geometry_collection_type_id</fieldName>
+    <fieldName>label</fieldName>
+    <unique>true</unique>
+  </index>
   <field>
     <name>description</name>
     <type>varchar</type>

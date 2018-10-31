@@ -28,6 +28,11 @@
       <type>Text</type>
     </html>
   </field>
+  <index>
+    <name>UI_label</name>
+    <fieldName>label</fieldName>
+    <unique>true</unique>
+  </index>
   <field>
     <name>description</name>
     <type>varchar</type>

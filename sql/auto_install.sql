@@ -88,10 +88,14 @@ CREATE TABLE `civigeometry_geometry_collection_type` (
 ,
         PRIMARY KEY (`id`)
  
- 
+    ,     UNIQUE INDEX `UI_label`(
+        label
+  )
+  
  
 )    ;
 
+ 
 -- /*******************************************************
 -- *
 -- * civigeometry_geometry_collection
@@ -103,7 +107,7 @@ CREATE TABLE `civigeometry_geometry_collection` (
 
 
      `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique GeometryCollection ID',
-     `geometry_collection_type_id` int unsigned    COMMENT 'FK to civigeomety_geometry_collection_type',
+     `geometry_collection_type_id` int unsigned NOT NULL   COMMENT 'FK to civigeomety_geometry_collection_type',
      `label` varchar(255) NOT NULL   COMMENT 'Title of the Geometry Collection',
      `description` varchar(255)   DEFAULT NULL COMMENT 'Description of the Geometry Collection',
      `source` varchar(255)   DEFAULT NULL COMMENT 'Source of the Geometry Collection',
@@ -112,7 +116,12 @@ CREATE TABLE `civigeometry_geometry_collection` (
 ,
         PRIMARY KEY (`id`)
  
- 
+    ,     UNIQUE INDEX `index_type_id_label`(
+        geometry_collection_type_id
+      , label
+  )
+  
 ,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_type_id FOREIGN KEY (`geometry_collection_type_id`) REFERENCES `civigeometry_geometry_collection_type`(`id`) ON DELETE CASCADE  
 )    ;
 
+ 

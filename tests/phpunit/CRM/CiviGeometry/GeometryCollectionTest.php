@@ -23,8 +23,8 @@ class CRM_CiviGeometry_GeometryCollectionTest extends \PHPUnit_Framework_TestCas
 
   use Civi\Test\Api3DocTrait;
 
-  private $nswElecorateCollectionType;
-  private $nswBranchesCollectionType;
+  private $internalCollectionType;
+  private $externalCollectionType;
 
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
@@ -36,15 +36,14 @@ class CRM_CiviGeometry_GeometryCollectionTest extends \PHPUnit_Framework_TestCas
 
   public function setUp() {
     parent::setUp();
-    $nswElectorateCollectionTypeParams = [
-      'label' => 'NSW Electorates',
-      'description' => 'NSW Lower House Elecroates',
+    $internalCollectionTypeParams = [
+      'label' => 'Internal',
     ];
-    $this->nswElecorateCollectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $nswElectorateCollectionTypeParams);
-    $nswBranchesCollectionTypeParams = [
-      'label' => 'NSW Branches',
+    $this->internalCollectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $internalCollectionTypeParams);
+    $externalCollectionTypeParams = [
+      'label' => 'External',
     ];
-    $this->nswElecorateCollectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $nswBranchesCollectionTypeParams);
+    $this->externalCollectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $externalCollectionTypeParams);
   }
 
   public function tearDown() {
@@ -59,7 +58,7 @@ class CRM_CiviGeometry_GeometryCollectionTest extends \PHPUnit_Framework_TestCas
       'label' => 'NSW State LH',
       'description' => 'NSW State Lower House Elecroates',
       'origin' => 'NSW Electoral Commission',
-      'geometry_collection_type' => $this->nswElecorateCollectionType['id'],
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
     ];
     $this->callAPIAndDocument('GeometryCollection', 'create', $params, __FUNCTION__, __FILE__);
   }

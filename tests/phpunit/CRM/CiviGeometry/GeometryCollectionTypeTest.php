@@ -44,8 +44,8 @@ class CRM_CiviGeometry_GeometryCollectionTypeTest extends \PHPUnit_Framework_Tes
    */
   public function testCreateGeometryCollectionType() {
     $params = [
-      'label' => 'NSW Lower',
-      'description' => 'NSW Lower House electorates',
+      'label' => 'External',
+      'description' => 'Externally created Geometry Collection',
     ];
     $this->callAPIAndDocument('GeometryCollectionType', 'create', $params, __FUNCTION__, __FILE__);
   }
@@ -55,9 +55,20 @@ class CRM_CiviGeometry_GeometryCollectionTypeTest extends \PHPUnit_Framework_Tes
    */
   public function testGeometryCollectionTypeNoDescription() {
     $params = [
-      'label' => 'NSW Branches',
+      'label' => 'External',
     ];
     $this->callAPISuccess('GeometryCollectionType', 'create', $params);
+  }
+
+  /**
+   * Test that you cannot create duplicate Collection Types.
+   */
+  public function testNoDuplicateGeometryCollectionTypes() {
+    $params = [
+      'label' => 'Internal',
+    ];
+    $this->callAPISuccess('GeometryCollectionType', 'create', $params);
+    $this->callAPIFailure('GeometryCollectionType', 'create', $params);
   }
 
 }

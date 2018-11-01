@@ -64,6 +64,8 @@ SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
+DROP TABLE IF EXISTS `civigeometry_geometry_type`;
+DROP TABLE IF EXISTS `civigeometry_geometry`;
 
 SET FOREIGN_KEY_CHECKS=1;
 -- /*******************************************************
@@ -97,6 +99,56 @@ CREATE TABLE `civigeometry_geometry_collection_type` (
 
 -- /*******************************************************
 -- *
+-- * civigeometry_geometry_type
+-- *
+-- * Geometry Types
+-- *
+-- *******************************************************/
+CREATE TABLE `civigeometry_geometry_type` (
+
+
+     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique GeometryType ID',
+     `label` varchar(255) NOT NULL   COMMENT 'The title of the Geometry Type',
+     `description` varchar(255)   DEFAULT true COMMENT 'The description of the Geometry Type' 
+,
+        PRIMARY KEY (`id`)
+ 
+    ,     UNIQUE INDEX `index_label`(
+        label
+  )
+  
+ 
+)    ;
+
+-- /*******************************************************
+-- *
+-- * civigeometry_geometry
+-- *
+-- * Geometries
+-- *
+-- *******************************************************/
+CREATE TABLE `civigeometry_geometry` (
+
+
+     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique Geometry ID',
+     `geometry_type_id` int unsigned    COMMENT 'Geometry Type of this geometry type',
+     `label` varchar(255) NOT NULL   COMMENT 'The Title of this geometry',
+     `description` varchar(255)   DEFAULT NULL COMMENT 'The description of this geometry',
+     `is_archived` tinyint   DEFAULT 0 COMMENT 'Is this geometry archived?',
+     `archive_date` timestamp NULL  DEFAULT NULL COMMENT 'The Title of this geometry' 
+,
+        PRIMARY KEY (`id`)
+ 
+    ,     UNIQUE INDEX `index_geometry_type_label`(
+        geometry_type_id
+      , label
+  )
+  
+,          CONSTRAINT FK_civigeometry_geometry_geometry_type_id FOREIGN KEY (`geometry_type_id`) REFERENCES `civigeometry_geometry_type`(`id`) ON DELETE CASCADE  
+)    ;
+
+-- /*******************************************************
+-- *
 -- * civigeometry_geometry_collection
 -- *
 -- * Details on a collection of Geometries
@@ -123,4 +175,4 @@ CREATE TABLE `civigeometry_geometry_collection` (
 ,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_type_id FOREIGN KEY (`geometry_collection_type_id`) REFERENCES `civigeometry_geometry_collection_type`(`id`) ON DELETE CASCADE  
 )    ;
 
- 
+

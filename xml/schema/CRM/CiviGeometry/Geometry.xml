@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/CiviGeometry</base>
+  <class>Geometry</class>
+  <name>civigeometry_geometry</name>
+  <comment>Geometries</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Geometry ID</comment>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>geometry_type_id</name>
+    <type>int unsigned</type>
+    <title>Geometry Type</title>
+    <comment>Geometry Type of this geometry type</comment>
+    <html>
+      <type>Select</type>
+    </html>
+    <pseudoconstant>
+      <tableName>civigeometry_geometry_type</tableName>
+      <labelColumn>label</labelColumn>
+      <keyColumn>id</keyColumn>
+    </pseudoconstant>
+  </field>
+  <foreignKey>
+    <name>geometry_type_id</name>
+    <table>civigeometry_geometry_type</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <field>
+    <name>label</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>The Title of this geometry</comment>
+    <html>
+      <type>Text</type>
+    </html>
+    <required>true</required>
+  </field>
+  <index>
+    <name>index_geometry_type_label</name>
+    <fieldName>geometry_type_id</fieldName>
+    <fieldName>label</fieldName>
+    <unique>true</unique>
+  </index>
+  <field>
+    <name>description</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>The description of this geometry</comment>
+    <html>
+      <type>Text</type>
+    </html>
+    <default>NULL</default>
+  </field>
+  <field>
+    <name>is_archived</name>
+    <type>boolean</type>
+    <comment>Is this geometry archived?</comment>
+    <html>
+      <type>CheckBox</type>
+    </html>
+    <default>0</default>
+  </field>
+  <field>
+    <name>archive_date</name>
+    <type>timestamp</type>
+    <default>NULL</default>
+    <comment>The Title of this geometry</comment>
+    <html>
+      <type>Select Date</type>
+      <formatType>activityDateTime</formatType>
+    </html>
+    <required>false</required>
+  </field>
+</table>

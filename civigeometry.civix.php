@@ -468,6 +468,12 @@ function _civigeometry_civix_civicrm_entityTypes(&$entityTypes) {
       'class' => 'CRM_CiviGeometry_DAO_GeometryCollection',
       'table' => 'civigeometry_geometry_collection',
     ),
+    'CRM_CiviGeometry_DAO_GeometryCollectionGeometry' => 
+    array (
+      'name' => 'GeometryCollectionGeometry',
+      'class' => 'CRM_CiviGeometry_DAO_GeometryCollectionGeometry',
+      'table' => 'civigeometry_geometry_collection_geometry',
+    ),
     'CRM_CiviGeometry_DAO_GeometryCollectionType' => 
     array (
       'name' => 'GeometryCollectionType',

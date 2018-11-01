@@ -62,8 +62,9 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
+DROP TABLE IF EXISTS `civigeometry_geometry_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
+DROP TABLE IF EXISTS `civigeometry_geometry_collection_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry`;
 
@@ -174,6 +175,30 @@ CREATE TABLE `civigeometry_geometry_collection` (
   )
   
 ,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_type_id FOREIGN KEY (`geometry_collection_type_id`) REFERENCES `civigeometry_geometry_collection_type`(`id`) ON DELETE CASCADE  
+)    ;
+
+-- /*******************************************************
+-- *
+-- * civigeometry_geometry_collection_geometry
+-- *
+-- * Linkage between Geometries and their collections
+-- *
+-- *******************************************************/
+CREATE TABLE `civigeometry_geometry_collection_geometry` (
+
+
+     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique Geometry ID',
+     `geometry_id` int unsigned    COMMENT 'Geometry',
+     `geometry_collection_id` int unsigned    COMMENT 'Geometry Collection' 
+,
+        PRIMARY KEY (`id`)
+ 
+    ,     UNIQUE INDEX `index_geometry_id_geometry_collection_id`(
+        geometry_id
+      , geometry_collection_id
+  )
+  
+,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_collection_id FOREIGN KEY (`geometry_collection_id`) REFERENCES `civigeometry_geometry_collection`(`id`) ON DELETE CASCADE  
 )    ;
 
  

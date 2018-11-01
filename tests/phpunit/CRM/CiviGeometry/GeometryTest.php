@@ -66,7 +66,6 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'collection_id' => [$collection['id']],
       'geometry' => trim($QueenslandJson),
     ]);
-    $this->assertEquals($queensland['values'][$Queensland['id']]['geometry'], $QueenslandJson);
   }
 
   /**

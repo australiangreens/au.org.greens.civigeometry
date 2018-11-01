@@ -13,7 +13,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $className = 'CRM_CiviGeometry_DAO_Geometry';
     $entityName = 'Geometry';
     $hook = empty($params['id']) ? 'create' : 'edit';
-
+    $geometry = FALSE;
     CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);
     $instance = new $className();
     if (!empty($params['id'])) {
@@ -21,11 +21,15 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $instance->find();
     }
     if (!empty($params['geometry'])) {
-      $text = CRM_Core_DAO::singleValueQuery("SELECT st_asText(ST_GeomFromGeoJSON('{$params['geometry']}'))");
-      $params['geometry'] = "GEOMFROMTEEXT('{$text}')";
+//      $text = CRM_Core_DAO::singleValueQuery("SELECT st_asText(ST_GeomFromGeoJSON('{$params['geometry']}'))");
+      $geometry = $params['geometry'];
+      unset($params['geometry']);
     }
     $instance->copyValues($params);
     $instance->save();
+    if ($geometry) {
+      CRM_Core_DAO::executeQuery("UPDATE civigeometry_geometry SET geometry = ST_GeomFromGeoJSON('{$geometry}') WHERE id = %1", [1 => [$instance->id, 'Positive']]);
+    }
     $instance->geometry = CRM_Core_DAO::singleValueQuery("SELECT ST_asGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$instance->id, 'Positive']]);
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
 

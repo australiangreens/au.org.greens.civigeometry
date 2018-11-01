@@ -21,6 +21,8 @@ use Civi\Test\TransactionalInterface;
  */
 class CRM_CiviGeometry_GeometryTypeTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
+  use Civi\Test\Api3DocTrait;
+
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
     // See: https://docs.civicrm.org/dev/en/latest/testing/phpunit/#civitest
@@ -38,17 +40,26 @@ class CRM_CiviGeometry_GeometryTypeTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
-   * Example: Test that a version is returned.
+   * Tests that we can createa a Geometry Type
    */
-  public function testWellFormedVersion() {
-    $this->assertRegExp('/^([0-9\.]|alpha|beta)*$/', \CRM_Utils_System::version());
+  public function testCreateGeometryType() {
+    $params = [
+      'label' => 'State Lower House Districts',
+      'description' => 'Geometry Representing the State Lower House Districts around Australia',
+    ];
+    $this->callAPIAndDocument('GeometryType', 'create', $params, __FUNCTION__, __FILE__);
   }
 
   /**
-   * Example: Test that we're using a fake CMS.
+   * Test that we cannot create duplicate types
    */
-  public function testWellFormedUF() {
-    $this->assertEquals('UnitTests', CIVICRM_UF);
+  public function testNoDuplicateTypes() {
+    $params = [
+      'label' => 'State Lower House Districts',
+      'description' => 'Geometry Representing the State Lower House Districts around Australia',
+    ];
+    $this->callAPISuccess('GeometryType', 'create', $params);
+    $this->callAPIFailure('GeometryType', 'create', $params);
   }
 
 }

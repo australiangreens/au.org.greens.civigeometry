@@ -10,7 +10,8 @@ use CRM_CiviGeometry_ExtensionUtil as E;
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_geometry_create_spec(&$spec) {
-  // $spec['some_parameter']['api.required'] = 1;
+  $spec['collection_id']['title'] = ts('Collection');
+  $spec['collection_id']['api.required'] = 1;
 }
 
 /**
@@ -21,10 +22,16 @@ function _civicrm_api3_geometry_create_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_geometry_create($params) {
+  if (!empty($params['collection_id']) && !is_array($params['collection_id'])) {
+    throw new \API_Exception('Collection ID(s) needs to be passed as an array');
+  }
+  if (empty($params['id']) && empty($params['geometry'])) {
+    throw new \API_Exception('Geometry is required unless supplying an id to do an update');
+  }
   if (isset($params['geomety']) && empty($params['geometry'])) {
     throw new \API_Exception('Geometry was empty');
   }
-  if (isset($params['geometry']) {
+  if (isset($params['geometry'])) {
     $json = json_decode($params['geometry']);
     if ($json === NULL) {
       throw new \API_Exception('Geometry is not proper GeoJSON');

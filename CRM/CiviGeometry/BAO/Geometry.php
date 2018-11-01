@@ -21,11 +21,12 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $instance->find();
     }
     if (!empty($params['geometry'])) {
-      $params['geometry'] = CRM_Utils_Type::escape("ST_GeomFromGeoJSON('" . $params['geometry'] . "')", 'String');
+      $text = CRM_Core_DAO::singleValueQuery("SELECT st_asText(ST_GeomFromGeoJSON('{$params['geometry']}'))");
+      $params['geometry'] = "GEOMFROMTEEXT('{$text}')";
     }
     $instance->copyValues($params);
     $instance->save();
-    $instance->geometry = CRM_Core_DAO::singleValueQuery("SELECT ST_asGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
+    $instance->geometry = CRM_Core_DAO::singleValueQuery("SELECT ST_asGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$instance->id, 'Positive']]);
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
 
     return $instance;

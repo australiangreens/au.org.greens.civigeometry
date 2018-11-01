@@ -84,4 +84,9 @@
     </html>
     <required>false</required>
   </field>
+  <field>
+    <name>geometry</name>
+    <type>geometry</type>
+    <comment>The Spatial data for this geometry</comment>
+  </field>
 </table>

@@ -135,7 +135,8 @@ CREATE TABLE `civigeometry_geometry` (
      `label` varchar(255) NOT NULL   COMMENT 'The Title of this geometry',
      `description` varchar(255)   DEFAULT NULL COMMENT 'The description of this geometry',
      `is_archived` tinyint   DEFAULT 0 COMMENT 'Is this geometry archived?',
-     `archive_date` timestamp NULL  DEFAULT NULL COMMENT 'The Title of this geometry' 
+     `archive_date` timestamp NULL  DEFAULT NULL COMMENT 'The Title of this geometry',
+     `geometry` geometry    COMMENT 'The Spatial data for this geometry' 
 ,
         PRIMARY KEY (`id`)
  
@@ -175,4 +176,4 @@ CREATE TABLE `civigeometry_geometry_collection` (
 ,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_type_id FOREIGN KEY (`geometry_collection_type_id`) REFERENCES `civigeometry_geometry_collection_type`(`id`) ON DELETE CASCADE  
 )    ;
 
-
+ 

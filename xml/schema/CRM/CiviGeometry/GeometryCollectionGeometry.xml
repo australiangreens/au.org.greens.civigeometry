@@ -39,7 +39,7 @@
     <onDelete>CASCADE</onDelete>
   </foreignKey>
   <field>
-    <name>geometry_collection_id</name>
+    <name>collection_id</name>
     <type>int unsigned</type>
     <title>Geometry Collection ID</title>
     <comment>Geometry Collection</comment>
@@ -53,15 +53,15 @@
     </pseudoconstant>
   </field>
   <foreignKey>
-    <name>geometry_collection_id</name>
+    <name>collection_id</name>
     <table>civigeometry_geometry_collection</table>
     <key>id</key>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
   <index>
-    <name>index_geometry_id_geometry_collection_id</name>
+    <name>index_geometry_id_collection_id</name>
     <fieldName>geometry_id</fieldName>
-    <fieldName>geometry_collection_id</fieldName>
+    <fieldName>collection_id</fieldName>
     <unique>true</unique>
   </index>
 </table>

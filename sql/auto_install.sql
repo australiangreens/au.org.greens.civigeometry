@@ -189,16 +189,16 @@ CREATE TABLE `civigeometry_geometry_collection_geometry` (
 
      `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique Geometry ID',
      `geometry_id` int unsigned    COMMENT 'Geometry',
-     `geometry_collection_id` int unsigned    COMMENT 'Geometry Collection' 
+     `collection_id` int unsigned    COMMENT 'Geometry Collection' 
 ,
         PRIMARY KEY (`id`)
  
-    ,     UNIQUE INDEX `index_geometry_id_geometry_collection_id`(
+    ,     UNIQUE INDEX `index_geometry_id_collection_id`(
         geometry_id
-      , geometry_collection_id
+      , collection_id
   )
   
-,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_collection_id FOREIGN KEY (`geometry_collection_id`) REFERENCES `civigeometry_geometry_collection`(`id`) ON DELETE CASCADE  
+,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_id FOREIGN KEY (`collection_id`) REFERENCES `civigeometry_geometry_collection`(`id`) ON DELETE CASCADE  
 )    ;
 
  

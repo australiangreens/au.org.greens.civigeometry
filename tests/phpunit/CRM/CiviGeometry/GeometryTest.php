@@ -138,6 +138,32 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     ]);
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
   }
+  
+  public function testMySQLSTContains() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    $nelson = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Nelson',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => trim($nelsonJSON),
+    ]);
+    $st_contains = CRM_Core_DAO::singleValueQuery("SELECT ST_Contains(geometry, GeomFromText(147.316797, -42.992777)) FROM civigeometry_geometry WHERE label = %1", [1 => ['Nelson', 'String']]);
+    print_r($st_contains);
+  }
 
   /**
    * Test get Geometry Centroid.

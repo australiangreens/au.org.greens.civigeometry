@@ -56,16 +56,19 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
     $geometryTypeParams = [
-      'label' => 'States', 
+      'label' => 'States',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $QueenslandJson = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.txt');
+    $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
     $queensland = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Queensland',
       'geometry_type_id' => $geometryType['id'],
       'collection_id' => [$collection['id']],
-      'geometry' => trim($QueenslandJson),
+      'geometry' => trim($queenslandJSON),
     ]);
+    $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $queensland['id']]);
+    $this->assertEquals(1, $gcg['count']);
+    $this->assertEquals($collection['id'], $gcg['values'][$gcg['id']]['collection_id']);
   }
 
   /**

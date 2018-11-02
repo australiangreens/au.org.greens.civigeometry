@@ -21,7 +21,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $instance->find();
     }
     if (!empty($params['geometry'])) {
-//      $text = CRM_Core_DAO::singleValueQuery("SELECT st_asText(ST_GeomFromGeoJSON('{$params['geometry']}'))");
       $geometry = $params['geometry'];
       unset($params['geometry']);
     }
@@ -31,9 +30,40 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       CRM_Core_DAO::executeQuery("UPDATE civigeometry_geometry SET geometry = ST_GeomFromGeoJSON('{$geometry}') WHERE id = %1", [1 => [$instance->id, 'Positive']]);
     }
     $instance->geometry = CRM_Core_DAO::singleValueQuery("SELECT ST_asGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$instance->id, 'Positive']]);
+    if (!empty($params['collection_id'])) {
+      civicrm_api3('Geometry', 'addCollection', [
+        'geometry_id' => $instance->id,
+        'collection_id' => $params['collection_id'],
+      ]);
+    }
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
 
     return $instance;
+  }
+
+  /**
+   * Add a Deometry to one or more collections. Note a Geometry must be part of a collection
+   * @param array $params
+   * @return array
+   *   Values added
+   */
+  public static function addGeometryToCollection($params) {
+    $count = 0;
+    $result = [];
+    foreach ($params['collection_id'] as $collection_id) {
+      $gcg = new CRM_CiviGeometry_DAO_GeometryCollectionGeometry();
+      $gcg->geometry_id = $params['geometry_id'];
+      $gcg->collection_id = $collection_id;
+      if ($gcg->find(TRUE)) {
+        continue;
+      }
+      $gcg->save();
+      _civicrm_api3_object_to_array($gcg, $result);
+      $gcg->free();
+      $count++;
+    }
+    $result['count'] = $count;
+    return $result;
   }
 
 }

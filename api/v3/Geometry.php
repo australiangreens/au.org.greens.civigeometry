@@ -69,7 +69,7 @@ function civicrm_api3_geometry_get($params) {
  * @return array API result descriptor
  * @throws API_Exception
  */
-function civicrm_api3_geometry_getcollections($params) {
+function civicrm_api3_geometry_getcollection($params) {
   return _civicrm_api3_basic_get('CRM_CiviGeometry_BAO_GeometryCollectionGeometry', $params);
 }
 
@@ -81,13 +81,42 @@ function civicrm_api3_geometry_getcollections($params) {
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
-function _civicrm_api3_geometry_getcollections_spec(&$spec) {
+function _civicrm_api3_geometry_getcollection_spec(&$spec) {
   $spec['geometry_id']['title'] = E::ts('Geometry');
   $spec['geometry_id']['api.required'] = 1;
   $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
   $spec['collection_id']['title'] = E::ts('Collection IDs');
 }
 
+/**
+ * Geomety.aCollections
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_addcollection($params) {
+  if (!is_array($params['collection_id'])) {
+    throw new \API_Exception('Collection Id must be an Array');
+  }
+  $result = CRM_CiviGeometry_BAO_Geometry::addGeometryToCollection($params);
+  return civicrm_api3_create_success($result, $params);
+}
+
+/**
+ * Geometry.getcollections API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_addcollection_spec(&$spec) {
+  $spec['geometry_id']['title'] = E::ts('Geometry');
+  $spec['geometry_id']['api.required'] = 1;
+  $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
+  $spec['collection_id']['title'] = E::ts('Collection IDs');
+}
 
 
 /**
@@ -96,5 +125,4 @@ function _civicrm_api3_geometry_getcollections_spec(&$spec) {
  * @return array API result descriptor
  * @throws API_Exception
  */
-//function civicrm_api3_geometry_removecollection($params) {
-
+function civicrm_api3_geometry_removecollection($params) {}

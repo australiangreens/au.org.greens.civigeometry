@@ -95,7 +95,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ];
     }
     else {
-      $sql = "SELECT ST_Contains(geometry, GeomFromText(%1))
+      $sql = "SELECT ST_Contains(geometry, GeomFromText(%1, 4326))
         FROM civigeometry_geometry
         WHERE id = %2";
       $sql_params = [

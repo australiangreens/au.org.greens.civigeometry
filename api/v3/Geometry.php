@@ -181,3 +181,54 @@ function _civicrm_api3_geometry_getcentroid_spec(&$spec) {
   $spec['id']['api.required'] = 1;
   $spec['id']['type'] = CRM_Utils_Type::T_INT;
 }
+
+/**
+ * Geometry.contains
+ * @param array
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_contains($params) {
+  $paramsToTest = ['geometry_a', 'geometry_b'];
+  foreach ($params as $key => $geometry) {
+    if (in_array($key, $paramsToTest)) {
+      if (is_numeric($geometry)) {
+        try {
+          civicrm_api3('Geometry', 'getSingle', ['id' => $geometry]);
+        }
+        catch (Exception $e) {
+          throw new API_Exception("Geometrty #{$geometry} Does not exist in the database");
+        }
+      }
+      else {
+        $test = CRM_Core_DAO::singleValueQuery("SELECT GeomFromText(%1)", [1 => [$geometry, 'String']]);
+        if (empty($test)) {
+          throw new API_Exception("Database cannot generate geometry from {$geometry}");
+        }
+      }
+    }
+  }
+  $result = CRM_CiviGeometry_BAO_Geometry::contains($params);
+  if (empty($result)) {
+    civicrm_api3_create_error();
+  }
+  else {
+    civicrm_api3_create_success(1);
+  }
+}
+
+/**
+  * Geometry.contains API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_contains_spec(&$spec) {
+  $spec['geometry_a']['title'] = E::ts('Geometry A');
+  $spec['geometry_a']['api.required'] = 1;
+  $spec['geometry_a']['type'] = CRM_Utils_Type::T_INT;
+  $spec['geometry_b']['title'] = E::ts('Geometry B');
+  $spec['geometry_b']['api.required'] = 1;
+}

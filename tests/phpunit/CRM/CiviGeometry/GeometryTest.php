@@ -161,8 +161,10 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'collection_id' => [$collection['id']],
       'geometry' => trim($nelsonJSON),
     ]);
-    $st_contains = CRM_Core_DAO::singleValueQuery("SELECT ST_Contains(geometry, GeomFromText('POINT(147.2687833 -42.9771098)')) FROM civigeometry_geometry WHERE label = %1", [1 => ['Nelson', 'String']]);
-    $this->assertEquals(1, $st_contains);
+    $this->callAPISuccess('Geometry', 'contains', [
+      'geometry_a' => $nelson['id'],
+      'geometry_b' => 'POINT(147.2687833 -42.9771098)',
+    ]);
   }
 
   /**

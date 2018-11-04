@@ -161,10 +161,35 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'collection_id' => [$collection['id']],
       'geometry' => trim($nelsonJSON),
     ]);
-    $this->callAPISuccess('Geometry', 'contains', [
+    $nelsonMBRData = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(ST_Envelope(geometry)) FROM civigeometry_geometry where id = %1", [1 => [$nelson['id'], 'Positive']]);
+    $nelsonMBR = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Nelson MBR',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => trim($nelsonMBRData),
+    ]);
+    $individualResult = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => $nelson['id'],
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
+    $this->assertEquals(1, $individualResult['values']);
+    $nonMBRResult = $this->callAPISuccess('geometry', 'contains', [
+     'geometry_a' => $nelson['id'],
+     'geometry_b' => 'POINT(147.243 -42.983)',
+    ]);
+    $this->assertEquals(0, $nonMBRResult['values']);
+    $mbrResult = $this->callAPISuccess('geometry', 'contains', [
+     'geometry_a' => $nelsonMBR['id'],
+     'geometry_b' => 'POINT(147.243 -42.983)',
+    ]);
+    $this->assertEquals(1, $mbrResult['values']);
+    $results = $this->callAPISuccess('Geometry', 'contains', [
+      'geometry_a' => 0,
+      'geometry_b' => 'POINT(147.2687833 -42.9771098)',
+    ]);
+    $this->assertEquals(2, $results['count']);
+    $this->assertContains($nelson['id'], $results['values']);
+    $this->assertContains($nelsonMBR['id'], $results['values']);
   }
 
   /**

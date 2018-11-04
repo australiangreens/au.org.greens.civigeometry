@@ -184,7 +184,7 @@ function _civicrm_api3_geometry_getcentroid_spec(&$spec) {
 
 /**
  * Geometry.contains
- * @param array
+ * @param array $params
  * @return array API result descriptor
  * @throws API_Exception
  */
@@ -192,7 +192,7 @@ function civicrm_api3_geometry_contains($params) {
   $paramsToTest = ['geometry_a', 'geometry_b'];
   foreach ($params as $key => $geometry) {
     if (in_array($key, $paramsToTest)) {
-      if (is_numeric($geometry)) {
+      if (is_numeric($geometry) && $geometry != 0) {
         try {
           civicrm_api3('Geometry', 'getSingle', ['id' => $geometry]);
         }
@@ -200,7 +200,7 @@ function civicrm_api3_geometry_contains($params) {
           throw new API_Exception("Geometrty #{$geometry} Does not exist in the database");
         }
       }
-      else {
+      elseif ($geometry != 0) {
         $test = CRM_Core_DAO::singleValueQuery("SELECT GeomFromText(%1)", [1 => [$geometry, 'String']]);
         if (empty($test)) {
           throw new API_Exception("Database cannot generate geometry from {$geometry}");
@@ -210,15 +210,19 @@ function civicrm_api3_geometry_contains($params) {
   }
   $result = CRM_CiviGeometry_BAO_Geometry::contains($params);
   if (empty($result)) {
-    civicrm_api3_create_error();
+    // civicrm_api3_create_error();
+    return civicrm_api3_create_success(0);
+  }
+  elseif (is_array($result)) {
+    return civicrm_api3_create_success($result);
   }
   else {
-    civicrm_api3_create_success(1);
+    return civicrm_api3_create_success(1);
   }
 }
 
 /**
-  * Geometry.contains API specification (optional)
+ * Geometry.contains API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call

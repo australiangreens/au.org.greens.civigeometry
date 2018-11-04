@@ -82,22 +82,46 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   /**
    * Use ST_Contains to determine if geometry b is within geometry.
    * @param array $params
-   * @return string
+   * @return string|array
    */
   public static function contains($params) {
+    $multipleResult = [];
+    $duleIntegerSQL = "SELECT ST_Contains(a.geometry, b.geometry)
+      FROM civigeometry_geometry a, civigeometry_geometry b
+      WHERE a.id = %1, and b.id = %2";
+    $singleIntergerSQL = "SELECT ST_Contains(geometry, GeomFromText(%1, 4326))
+      FROM civigeometry_geometry
+      WHERE id = %2";
+    if ($params['geometry_a'] == 0) {
+      $geometries = civicrm_api3('Geometry', 'get', ['is_active' => 1, 'options' => ['limit' => 0], 'return' => ['id']]);
+      foreach ($geometries['values'] as $geometry) {
+        if (is_numeric($params['geometry_b'])) {
+          $res = CRM_Core_DAO::singleValueQuery($duleIntegerSQL, [
+            1 => [$geometry['id'], 'Positive'],
+            2 => [$params['geometry_b'], 'Positive'],
+          ]);
+        }
+        else {
+          $res = CRM_Core_DAO::singleValueQuery($singleIntergerSQL, [
+            1 => [$params['geometry_b'], 'String'],
+            2 => [$geometry['id'], 'Positive'],
+          ]);
+        }
+        if (!empty($res)) {
+          $multipleResult[] = $geometry['id'];
+        }
+      }
+      return $multipleResult;
+    }
     if (is_numeric($params['geometry_b'])) {
-      $sql = "SELECT ST_Contains(a.geometry, b.geometry)
-        FROM civigeometry_geometry a, civigeometry_geometry b
-        WHERE a.id = %1, and b.id = %2";
+      $sql = $duleIntegerSQL;
       $sql_params = [
         1 => [$params['geometry_a'], 'Positive'],
         2 => [$params['geometry_b'], 'Positive'],
       ];
     }
     else {
-      $sql = "SELECT ST_Contains(geometry, GeomFromText(%1, 4326))
-        FROM civigeometry_geometry
-        WHERE id = %2";
+      $sql = $singleIntergerSQL;
       $sql_params = [
         1 => [$params['geometry_b'], 'String'],
         2 => [$params['geometry_a'], 'Positive'],

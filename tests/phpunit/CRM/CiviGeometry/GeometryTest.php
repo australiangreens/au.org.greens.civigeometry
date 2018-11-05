@@ -439,4 +439,55 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']); 
   }
 
+  /**
+   * Test Generating an Overlap with known 100% overlap.
+   */
+  public function testOverlapGeneration100() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'SA1s',
+      'source' => 'ABS',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'SA1s',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $sa1 = $this->callAPISuccess('Geometry', 'create', [
+      'label' => '1210113836',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => trim($sa1JSON),
+    ]);
+    $collection2 = $this->callAPISuccess('GeometryCollection', 'create', [
+      'label' => 'NSW Wards',
+      'source' => 'NSW',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ]);
+    $geometryType2 = $this->callAPISuccess('GeometryType', 'create', [
+      'label' => 'LGA Wards',
+    ]);
+    $willoughbyNaremburnJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $willoughbyNaremburn = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Cairns Division 9',
+      'geometry_type_id' => $geometryType2['id'],
+      'collection_id' => [$collection2['id']],
+      'geometry' => trim($willoughbyNaremburnJSON),
+    ]);
+    $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $sa1['id'],
+      'geometry_id_b' => $willoughbyNaremburn['id'],
+    ]);
+    $this->assertEquals(100, $overlap['values'][$overlap['id']]['overlap']);
+    $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
+    $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $sa1['id'],
+      'geometry_id_b' => $willoughbyNaremburn['id'],
+    ]);
+  }
 }

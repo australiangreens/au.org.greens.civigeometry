@@ -480,6 +480,12 @@ function _civigeometry_civix_civicrm_entityTypes(&$entityTypes) {
       'class' => 'CRM_CiviGeometry_DAO_GeometryCollectionType',
       'table' => 'civigeometry_geometry_collection_type',
     ),
+    'CRM_CiviGeometry_DAO_GeometryOverlapCache' => 
+    array (
+      'name' => 'GeometryOverlapCache',
+      'class' => 'CRM_CiviGeometry_DAO_GeometryOverlapCache',
+      'table' => 'civigeometry_geometry_overlap_cache',
+    ),
     'CRM_CiviGeometry_DAO_GeometryType' => 
     array (
       'name' => 'GeometryType',

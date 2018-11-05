@@ -309,3 +309,34 @@ function _civicrm_api3_geometry_unarchive_spec(&$spec) {
   $spec['id']['api.required'] = 1;
   $spec['id']['type'] = CRM_Utils_Type::T_INT;
 }
+
+/**
+ * Geomety.getOverlap
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_getoverlap($params) {
+  $result = [];
+  $overlapResult = CRM_CiviGeometry_BAO_Geometry::calculateOverlapGeometry($params);
+  $result[$overlapResult['id']] = $overlapResult;
+  return civicrm_api3_create_success($result, $params);
+}
+
+/**
+ * Geometry.getcollections API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
+  $spec['geometry_id_a']['title'] = E::ts('Geometry ID A');
+  $spec['geometry_id_a']['api.required'] = 1;
+  $spec['geometry_id_a']['type'] = CRM_Utils_Type::T_INT;
+  $spec['geometry_id_b']['title'] = E::ts('Geometry ID B');
+  $spec['geometry_id_b']['api.required'] = 1;
+  $spec['geometry_id_b']['type'] = CRM_Utils_Type::T_INT;
+}

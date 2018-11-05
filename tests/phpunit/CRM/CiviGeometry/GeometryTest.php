@@ -385,4 +385,51 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $this->assertEquals(0, $geometry['values'][$geometry['id']]['is_archived']);
   }
 
+  /**
+   * Test Generating an Overlap Cache. 
+   */
+  public function testOverlapGeneration() {
+   $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'States',
+      'source' => 'ABS',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'States',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
+    $queensland = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Queensland',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => trim($queenslandJSON),
+    ]);
+    $collection2 = $this->callAPISuccess('GeometryCollection', 'create', [
+      'label' => 'Queensland Wards',
+      'source' => 'QLD',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ]);
+    $geometryType2 = $this->callAPISuccess('GeometryType', 'create', [
+      'label' => 'LGA Wards', 
+    ]);
+    $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $cairns = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Cairns Division 9',
+      'geometry_type_id' => $geometryType2['id'],
+      'collection_id' => [$collection2['id']],
+      'geometry' => trim($cairnsJSON),
+    ]);
+    $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $queensland['id'],
+      'geometry_id_b' => $cairns['id'],
+    ]);
+    print_r($overlap);
+  }
+
 }

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/CiviGeometry</base>
+  <class>GeometryOverlapCache</class>
+  <name>civigeometry_geometry_overlap_cache</name>
+  <comment>Cache table containing overlaps between 2 geometries</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Geometry ID</comment>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>geometry_id_a</name>
+    <type>int unsigned</type>
+    <title>Geometry ID A</title>
+    <comment>Geometry</comment>
+    <html>
+      <type>Select</type>
+    </html>
+    <pseudoconstant>
+      <tableName>civigeometry_geometry</tableName>
+      <labelColumn>label</labelColumn>
+      <keyColumn>id</keyColumn>
+    </pseudoconstant>
+  </field>
+  <foreignKey>
+    <name>geometry_id_a</name>
+    <table>civigeometry_geometry</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <field>
+    <name>geometry_id_b</name>
+    <type>int unsigned</type>
+    <title>Geometry ID B</title>
+    <comment>Geometry</comment>
+    <html>
+      <type>Select</type>
+    </html>
+    <pseudoconstant>
+      <tableName>civigeometry_geometry</tableName>
+      <labelColumn>label</labelColumn>
+      <keyColumn>id</keyColumn>
+    </pseudoconstant>
+  </field>
+  <foreignKey>
+    <name>geometry_id_b</name>
+    <table>civigeometry_geometry</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <index>
+    <name>index_geometry_id_a_geometry_id_b</name>
+    <fieldName>geometry_id_a</fieldName>
+    <fieldName>geometry_id_b</fieldName>
+    <unique>true</unique>
+  </index>
+  <field>
+    <name>overlap</name>
+    <type>int</type>
+    <comment>Overlap % that Geometry A is within Geometry B</comment>
+    <html>
+     <type>Text</type>
+    </html>
+    <required>true</required>
+    <default>0</default>
+  </field>
+  <field>
+    <name>cache_date</name>
+    <type>timestamp</type>
+    <comment>When was this overlap last re-generated</comment>
+    <html>
+      <type>Select Date</type>
+      <formatType>activityDateTime</formatType>
+    </html>
+    <default>CURRENT_TIMESTAMP()</default>
+    <required>true</required>
+  </field>
+</table>

@@ -62,6 +62,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
+DROP TABLE IF EXISTS `civigeometry_geometry_overlap_cache`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry`;
@@ -199,6 +200,32 @@ CREATE TABLE `civigeometry_geometry_collection_geometry` (
   )
   
 ,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_id FOREIGN KEY (`collection_id`) REFERENCES `civigeometry_geometry_collection`(`id`) ON DELETE CASCADE  
+)    ;
+
+-- /*******************************************************
+-- *
+-- * civigeometry_geometry_overlap_cache
+-- *
+-- * Cache table containing overlaps between 2 geometries
+-- *
+-- *******************************************************/
+CREATE TABLE `civigeometry_geometry_overlap_cache` (
+
+
+     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique Geometry ID',
+     `geometry_id_a` int unsigned    COMMENT 'Geometry',
+     `geometry_id_b` int unsigned    COMMENT 'Geometry',
+     `overlap` int NOT NULL  DEFAULT 0 COMMENT 'Overlap % that Geometry A is within Geometry B',
+     `cache_date` timestamp NOT NULL  DEFAULT CURRENT_TIMESTAMP() COMMENT 'When was this overlap last re-generated' 
+,
+        PRIMARY KEY (`id`)
+ 
+    ,     UNIQUE INDEX `index_geometry_id_a_geometry_id_b`(
+        geometry_id_a
+      , geometry_id_b
+  )
+  
+,          CONSTRAINT FK_civigeometry_geometry_overlap_cache_geometry_id_a FOREIGN KEY (`geometry_id_a`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_overlap_cache_geometry_id_b FOREIGN KEY (`geometry_id_b`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
 )    ;
 
  

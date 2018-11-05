@@ -146,7 +146,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $testGetAll->geometry_id = $params['geometry_id'];
       $testGetAll->find();
       if ($testGetAll->N == 1) {
-        throw new \Exception(E::ts("Geometry %1 is only within 1 collection and Geometries must be in a collection", [1 => $params['geometry_id']]));
+        throw new \Exception(E::ts("Geometries must belong to at least one collection"));
       }
       $gcg = new CRM_CiviGeometry_DAO_GeometryCollectionGeometry();
       $gcg->geometry_id = $params['geometry_id'];

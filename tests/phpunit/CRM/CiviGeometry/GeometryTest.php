@@ -210,7 +210,8 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
-   * Test Removing Collection fails when only 1 collection is present
+   * Test Removing Collection fails when geometry only belongs in one collection.
+   * This is expected to fail as geometry has to be in a collection.
    */
   public function testRemoveOnlyCollection() {
     $collectionTypeParams = [
@@ -227,6 +228,9 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'label' => 'Upper House Districts',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    // Nelson is a Tasmanian Upperhouse District as of November 2018
+    // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
+    // Differences between MBR and actual geometry easier.
     $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
     $nelson = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Nelson',
@@ -245,7 +249,7 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
-   * Test Removing Collection fails when only 1 collection is present
+   * Remove a Geometry from an collection when the Geometry is in Multiple collections.
    */
   public function testRemoveCollection() {
     $collectionTypeParams = [

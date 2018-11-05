@@ -165,7 +165,8 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'geometry' => trim($nelsonJSON),
     ]);
     $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $nelson['id']]);
-    $this->assertEquals('POINT(147.29234219939485 -42.9480728522625)', $centroid['values']);
+    $this->assertContains('147.29234219', $centroid['values']);
+    $this->assertContains('-42.94807285', $centroid['values']);
   }
 
 }

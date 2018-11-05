@@ -386,10 +386,10 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
-   * Test Generating an Overlap Cache. 
+   * Test Generating an Overlap Cache.
    */
   public function testOverlapGeneration() {
-   $collectionTypeParams = [
+    $collectionTypeParams = [
       'label' => 'External',
     ];
     $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
@@ -416,7 +416,7 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'geometry_collection_type_id' => $collectionType['id'],
     ]);
     $geometryType2 = $this->callAPISuccess('GeometryType', 'create', [
-      'label' => 'LGA Wards', 
+      'label' => 'LGA Wards',
     ]);
     $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
     $cairns = $this->callAPISuccess('Geometry', 'create', [
@@ -426,10 +426,17 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'geometry' => trim($cairnsJSON),
     ]);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
-      'geometry_id_a' => $queensland['id'],
-      'geometry_id_b' => $cairns['id'],
+      'geometry_id_a' => $cairns['id'],
+      'geometry_id_b' => $queensland['id'],
     ]);
-    print_r($overlap);
+    $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
+    $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
+    $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $cairns['id'],
+      'geometry_id_b' => $queensland['id'],
+    ]);
+    $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
+    $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']); 
   }
 
 }

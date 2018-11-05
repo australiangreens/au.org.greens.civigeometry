@@ -199,21 +199,23 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @return array|bool
    */
   public static function calculateOverlapGeometry($params) {
-    $overlap = 100.0;
+    $overlap = 100;
     $checkCache = new CRM_CiviGeometry_DAO_GeometryOverlapCache();
     $checkCache->geometry_id_a = $params['geometry_id_a'];
     $checkCache->geometry_id_b = $params['geometry_id_b'];
     $checkCache->addWhere("cache_date >= DATE_SUB(NOW(), INTERVAL 1 Month)");
     $checkCache->find();
     if ($checkCache->N == 1) {
-      return [
-        'id' => $checkCache->id,
-        'geometry_id_a' => $checkCache->geometry_id_a,
-        'geometry_id_b' => $checkCache->geometry_id_b,
-        'overlap' => $checkCache->overlap,
-      ];
+      while ($checkCache->fetch()) {
+        return [
+          'id' => $checkCache->id,
+          'geometry_id_a' => $checkCache->geometry_id_a,
+          'geometry_id_b' => $checkCache->geometry_id_b,
+          'overlap' => $checkCache->overlap,
+          'cache_used' => TRUE,
+        ];
+      }
     }
-    print_r('No Cache');
     $checkIfIntesects = CRM_Core_DAO::singleValueQuery("
       SELECT ST_Intersects(a.geometry, b.geometry)
       FROM civigeometry_geometry a, civigeometry_geometry b
@@ -222,7 +224,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       2 => [$params['geometry_id_b'], 'Positive'],
     ]);
     if (empty($checkIfIntesects)) {
-      $overlap = 0; 
+      $overlap = (int) 0;
     }
     $intersections = CRM_Core_DAO::executeQuery("
       SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
@@ -232,7 +234,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       2 => [$params['geometry_id_b'], 'Positive'],
     ]);
     while ($intersections->fetch()) {
-      $overlap = 100.0 * $intersections->intersection_area / $intersections->area;
+      $overlap = (int) (100.0 * $intersections->intersection_area / $intersections->area);
     }
     $overlapCache = new CRM_CiviGeometry_DAO_GeometryOverlapCache();
     $overlapCache->geometry_id_a = $params['geometry_id_a'];
@@ -248,6 +250,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       'geometry_id_a' => $params['geometry_id_a'],
       'geometry_id_b' => $params['geometry_id_b'],
       'overlap' => $overlap,
+      'cache_used' => FALSE,
     ];
   }
 

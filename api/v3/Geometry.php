@@ -210,7 +210,6 @@ function civicrm_api3_geometry_contains($params) {
   }
   $result = CRM_CiviGeometry_BAO_Geometry::contains($params);
   if (empty($result)) {
-    // civicrm_api3_create_error();
     return civicrm_api3_create_success(0);
   }
   elseif (is_array($result)) {

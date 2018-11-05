@@ -152,4 +152,32 @@ function _civicrm_api3_geometry_addcollection_spec(&$spec) {
  * @return array API result descriptor
  * @throws API_Exception
  */
-function civicrm_api3_geometry_removecollection($params) {}
+function civicrm_api3_geometry_removecollection($params) {
+  return [];
+}
+
+/**
+ * Geomety.getcentroid
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_getcentroid($params) {
+  $result = CRM_CiviGeometry_BAO_Geometry::getCentroid($params);
+  return civicrm_api3_create_success($result);
+}
+
+/**
+ * Geometry.getcentroid API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getcentroid_spec(&$spec) {
+  $spec['id']['title'] = E::ts('Geometry');
+  $spec['id']['api.required'] = 1;
+  $spec['id']['type'] = CRM_Utils_Type::T_INT;
+}

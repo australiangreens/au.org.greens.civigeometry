@@ -66,4 +66,17 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $result;
   }
 
+  /**
+   * Get Centroid for a specific geometry
+   * @param array $params
+   * @return string
+   */
+  public static function getCentroid($params) {
+    $result = CRM_Core_DAO::singleValueQuery("SELECT ST_AsText(ST_Centroid(geometry))
+      FROM civigeometry_geometry
+      WHERE id = %1", [
+      1 => [$params['id'], 'Positive']]);
+    return $result;
+  }
+
 }

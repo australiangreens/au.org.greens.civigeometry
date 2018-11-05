@@ -42,7 +42,7 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
-   * Example: Test that a version is returned.
+   * Example: Test Creating a Geometry.
    */
   public function testCreateGeometry() {
     $collectionTypeParams = [
@@ -137,6 +137,35 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'format' => 'file',
     ]);
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
+  }
+
+  /**
+   * Test get Geometry Centroid.
+   */
+  public function testGetGeometryCentroid() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'Tas Upper House Districts',
+      'source' => 'TASEC',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    $nelson = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Nelson',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => trim($nelsonJSON),
+    ]);
+    $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $nelson['id']]);
+    $this->assertEquals('POINT(147.29234219939485 -42.9480728522625)', $centroid['values']);
   }
 
 }

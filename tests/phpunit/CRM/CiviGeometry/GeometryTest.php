@@ -440,9 +440,9 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
-   * Test Generating an Overlap with known 100% overlap.
+   * Test Generating an Overlap with known >95% overlap.
    */
-  public function testOverlapGeneration100() {
+  public function testOverlapGeneration90() {
     $collectionTypeParams = [
       'label' => 'External',
     ];
@@ -472,7 +472,7 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $geometryType2 = $this->callAPISuccess('GeometryType', 'create', [
       'label' => 'LGA Wards',
     ]);
-    $willoughbyNaremburnJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $willoughbyNaremburnJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'willoughby_naremburn.json');
     $willoughbyNaremburn = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Cairns Division 9',
       'geometry_type_id' => $geometryType2['id'],
@@ -483,11 +483,13 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $willoughbyNaremburn['id'],
     ]);
-    $this->assertEquals(100, $overlap['values'][$overlap['id']]['overlap']);
+    $this->assertGreaterThan(97, $overlap['values'][$overlap['id']]['overlap']);
+    $this->assertLessThanOrEqual(100, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $willoughbyNaremburn['id'],
     ]);
+    $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
   }
 }

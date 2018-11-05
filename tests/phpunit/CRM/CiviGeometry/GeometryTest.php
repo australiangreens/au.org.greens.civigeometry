@@ -154,6 +154,10 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'label' => 'Upper House Districts',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    // Nelson is a Tasmanian Upperhouse District as of November 2018
+    // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
+    // Differences between MBR and actual geometry easier.
+    // We are going to create 2 geometry records 1 being the Geometry its self and the other being the MBR of the Nelson Geometry
     $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
     $nelson = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Nelson',
@@ -168,21 +172,25 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'collection_id' => [$collection['id']],
       'geometry' => trim($nelsonMBRData),
     ]);
+    // Prove that an address is within Nelson
     $individualResult = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => $nelson['id'],
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
     $this->assertEquals(1, $individualResult['values']);
+    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_cotains on the actual geometry (test RMDS isn't using MBR to do the ST_Contains).
     $nonMBRResult = $this->callAPISuccess('geometry', 'contains', [
      'geometry_a' => $nelson['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(0, $nonMBRResult['values']);
+    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_cotains on the MBR geometry.
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
      'geometry_a' => $nelsonMBR['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(1, $mbrResult['values']);
+    // Test that when No Geometry is specified that am is found in both the original Poly and the MBR geometry.
     $results = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => 0,
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',

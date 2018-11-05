@@ -69,6 +69,10 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $queensland['id']]);
     $this->assertEquals(1, $gcg['count']);
     $this->assertEquals($collection['id'], $gcg['values'][$gcg['id']]['collection_id']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $collectionType['id']]);
   }
 
   /**
@@ -198,6 +202,87 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $this->assertEquals(2, $results['count']);
     $this->assertContains($nelson['id'], $results['values']);
     $this->assertContains($nelsonMBR['id'], $results['values']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelsonMBR['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $collectionType['id']]);
+  }
+
+  /**
+   * Test Removing Collection fails when only 1 collection is present
+   */
+  public function testRemoveOnlyCollection() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    $nelson = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Nelson',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => trim($nelsonJSON),
+    ]);
+    $this->callAPIFailure('Geometry', 'removecollection', [
+      'geometry_id' => $nelson['id'],
+      'collection_id' => [$collection['id']],
+    ]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $collectionType['id']]);
+  }
+
+  /**
+   * Test Removing Collection fails when only 1 collection is present
+   */
+  public function testRemoveCollection() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $collection2 = $this->callAPISuccess('GeometryCollection', 'create', [
+      'label' => 'Upper House Districts',
+      'source' => 'Electoral Commissions',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ]);
+    $geometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    $nelson = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Nelson',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id'], $collection2['id']],
+      'geometry' => trim($nelsonJSON),
+    ]);
+    $this->callAPISuccess('Geometry', 'removecollection', [
+      'geometry_id' => $nelson['id'],
+      'collection_id' => [$collection2['id']],
+    ]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection2['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $collectionType['id']]);
   }
 
   /**

@@ -145,7 +145,6 @@ function _civicrm_api3_geometry_addcollection_spec(&$spec) {
   $spec['collection_id']['title'] = E::ts('Collection IDs');
 }
 
-
 /**
  * Geometry.removeCollection
  * @param array $params
@@ -153,7 +152,23 @@ function _civicrm_api3_geometry_addcollection_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_geometry_removecollection($params) {
-  return [];
+  return CRM_CiviGeometry_BAO_Geometry::removeGeometryFromCollection($params);
+}
+
+/**
+ * Geometry.removecollections API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_removecollection_spec(&$spec) {
+  $spec['geometry_id']['title'] = E::ts('Geometry');
+  $spec['geometry_id']['api.required'] = 1;
+  $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
+  $spec['collection_id']['title'] = E::ts('Collection IDs');
+  $spec['collection_id']['api.required'] = 1;
 }
 
 /**

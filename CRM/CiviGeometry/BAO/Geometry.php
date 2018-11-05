@@ -48,7 +48,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *   Values added
    */
   public static function addGeometryToCollection($params) {
-    $count = 0;
     $result = [];
     foreach ($params['collection_id'] as $collection_id) {
       $gcg = new CRM_CiviGeometry_DAO_GeometryCollectionGeometry();
@@ -60,9 +59,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $gcg->save();
       _civicrm_api3_object_to_array($gcg, $result);
       $gcg->free();
-      $count++;
     }
-    $result['count'] = $count;
     return $result;
   }
 
@@ -129,6 +126,38 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $result = CRM_Core_DAO::singleValueQuery($sql, $sql_params);
     return $result;
+  }
+
+  /**
+   * Remove a Geometry from a collection(s)
+   * @param array $params
+   * @return array
+   */
+  public static function removeGeometryFromCollection($params) {
+    foreach ($params['collection_id'] as $collection_id) {
+      $testGet = new CRM_CiviGeometry_DAO_GeometryCollectionGeometry();
+      $testGet->geometry_id = $params['geometry_id'];
+      $testGet->collection_id = $collection_id;
+      $testGet->find();
+      if ($testGet->N == 0) {
+        throw new \Exception(E::ts("Geometry %1 is not within collection %2", [1 => $params['geometry_id'], 2 => $collection_id]));
+      }
+      $testGetAll = new CRM_CiviGeometry_DAO_GeometryCollectionGeometry();
+      $testGetAll->geometry_id = $params['geometry_id'];
+      $testGetAll->find();
+      if ($testGetAll->N == 1) {
+        throw new \Exception(E::ts("Geometry %1 is only within 1 collection and Geometries must be in a collection", [1 => $params['geometry_id']]));
+      }
+      $gcg = new CRM_CiviGeometry_DAO_GeometryCollectionGeometry();
+      $gcg->geometry_id = $params['geometry_id'];
+      $gcg->collection_id = $collection_id;
+      if ($gcg->find()) {
+        while ($gcg->fetch()) {
+          $gcg->delete();
+          return civicrm_api3_create_success();
+        }
+      }
+    }
   }
 
 }

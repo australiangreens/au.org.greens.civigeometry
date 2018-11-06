@@ -495,6 +495,7 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
 
   /**
    * Test getting a distance
+   * @note Postgres reported 2,202 meeters here however MySQL5.7 using native functions returned 2,197
    */
   public function testGetDistance() {
     $result = $this->callAPISuccess('Geometry', 'getdistance', [
@@ -503,4 +504,5 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     ]);
     $this->assertEquals('2197', (int) $result['values']);
   }
+
 }

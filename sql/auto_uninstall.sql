@@ -33,7 +33,7 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
+DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
 
 SET FOREIGN_KEY_CHECKS=1;

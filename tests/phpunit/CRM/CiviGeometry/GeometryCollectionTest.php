@@ -97,4 +97,38 @@ class CRM_CiviGeometry_GeometryCollectionTest extends \PHPUnit_Framework_TestCas
     $this->callAPIFailure('GeometryCollection', 'create', $params);
   }
 
+  /**
+   * Test Archiving a Geometry collection
+   */
+  public function testArchivingCollection() {
+    $params = [
+      'label' => 'NSW State LH',
+      'description' => 'NSW State Lower House Elecroates',
+      'origin' => 'NSW Electoral Commission',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $params);
+    $collection = $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
+    $this->assertEquals(1, $collection['values'][$collection['id']]['is_archive']);
+    $this->assertEquals(date('Ymdhis'), $collection['values'][$collection['id']]['archive_date']);
+  }
+
+  /**
+   * Test Unarchiving a geometry collection
+   */
+  public function testUnArchivingCollection() {
+    $params = [
+      'label' => 'NSW State LH',
+      'description' => 'NSW State Lower House Elecroates',
+      'origin' => 'NSW Electoral Commission',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $params);
+    // Test that calling unarchive on a non archived collection fails.
+    $this->callAPIFailure('GeometryCollection', 'unarchive', ['id' => $collection['id']]);
+    $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
+    $collection = $this->callAPISuccess('GeometryCollection', 'unarchive', ['id' => $collection['id']]);
+    $this->assertEquals(0, $collection['values'][$collection['id']]['is_archive']);
+  }
+
 }

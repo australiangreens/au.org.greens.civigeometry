@@ -198,6 +198,33 @@ function _civicrm_api3_geometry_getcentroid_spec(&$spec) {
 }
 
 /**
+ * Geomety.archive
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_archive($params) {
+  $apiResult = [];
+  $result = CRM_CiviGeometry_BAO_Geometry::archiveGeometry($params);
+  _civicrm_api3_object_to_array($result, $apiResult[$result->id]); 
+  return civicrm_api3_create_success($apiResult, $params);
+}
+
+/**
+ * Geometry.archive API specification (optional)
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_archive_spec(&$spec) {
+  $spec['id']['title'] = E::ts('Geometry ID');
+  $spec['id']['api.required'] = 1;
+  $spec['id']['type'] = CRM_Utils_Type::T_INT;
+}
+
+/**
  * Geometry.contains
  * @param array $params
  * @return array API result descriptor
@@ -249,4 +276,36 @@ function _civicrm_api3_geometry_contains_spec(&$spec) {
   $spec['geometry_a']['type'] = CRM_Utils_Type::T_INT;
   $spec['geometry_b']['title'] = E::ts('Geometry B');
   $spec['geometry_b']['api.required'] = 1;
+}
+
+/**
+ * Geomety.unarchive
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_unarchive($params) {
+  $archivedCheck = civicrm_api3('Geometry', 'get', ['id' => $params['id']]);
+  if (empty($archivedCheck['values'][$archivedCheck['id']]['is_archived'])) {
+    throw new \API_Exception("Geometry cannot be un archived if it is not archived");
+  }
+  $apiResult = [];
+  $result = CRM_CiviGeometry_BAO_Geometry::unarchiveGeometry($params);
+  _civicrm_api3_object_to_array($result, $apiResult[$result->id]); 
+  return civicrm_api3_create_success($apiResult, $params);
+}
+
+/**
+ * Geometry.unarchive API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_unarchive_spec(&$spec) {
+  $spec['id']['title'] = E::ts('Geometry ID');
+  $spec['id']['api.required'] = 1;
+  $spec['id']['type'] = CRM_Utils_Type::T_INT;
 }

@@ -64,7 +64,7 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'label' => 'Queensland',
       'geometry_type_id' => $geometryType['id'],
       'collection_id' => [$collection['id']],
-      'geometry' => trim($queenslandJSON),
+      'geometry' => $queenslandJSON,
     ]);
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $queensland['id']]);
     $this->assertEquals(1, $gcg['count']);
@@ -317,6 +317,72 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $nelson['id']]);
     $this->assertContains('147.29234219', $centroid['values']);
     $this->assertContains('-42.94807285', $centroid['values']);
+  }
+
+  /**
+   * Test Archiving a Geometry
+   */
+  public function testArchiveGeometry() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'Queensland Wards',
+      'source' => 'QEC',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'LGA Wards',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Cairns Division 9',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => $geometryJSON,
+    ]);
+    $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
+    $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
+    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archive_date']);
+    $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
+  }
+
+  /**
+   * Test Unarchiving a Geometry.
+   */
+  public function testUnArchiveGeometry() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'Queensland Wards',
+      'source' => 'QEC',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'LGA Wards',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Cairns Division 9',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => $geometryJSON,
+    ]);
+    $this->callAPIFailure('Geometry', 'unarchive', ['id' => $geometry['id']]);
+    $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
+    $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
+    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archive_date']);
+    $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
+    $this->callAPISuccess('Geometry', 'unarchive', ['id' => $geometry['id']]);
+    $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
+    $this->assertEquals(0, $geometry['values'][$geometry['id']]['is_archived']);
   }
 
 }

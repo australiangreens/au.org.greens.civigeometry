@@ -492,4 +492,15 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     ]);
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
   }
+
+  /**
+   * Test getting a distance
+   */
+  public function testGetDistance() {
+    $result = $this->callAPISuccess('Geometry', 'getdistance', [
+     'geometry_a' => 'POINT(147.2687833 -42.9771098)',
+     'geometry_b' => 'POINT(147.243 -42.983)',
+    ]);
+    $this->assertEquals('2197', (int) $result['values']);
+  }
 }

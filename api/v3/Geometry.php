@@ -263,6 +263,34 @@ function civicrm_api3_geometry_contains($params) {
 }
 
 /**
+ * Geomety.getdistance
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_getdistance($params) {
+  $result = CRM_CiviGeometry_BAO_Geometry::calculateDistance($params);
+  return civicrm_api3_create_success($result, $params);
+}
+
+/**
+ * Geometry.getdistance API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getdistance_spec(&$spec) {
+  $spec['geometry_a']['title'] = E::ts('Geometry A');
+  $spec['geometry_a']['api.required'] = 1;
+  $spec['geometry_a']['type'] = CRM_Utils_Type::T_STRING;
+  $spec['geometry_b']['title'] = E::ts('Geometry B');
+  $spec['geometry_b']['api.required'] = 1;
+  $spec['geometry_b']['type'] = CRM_Utils_Type::T_STRING;
+}
+
+/**
  * Geometry.contains API specification (optional)
  * This is used for documentation and validation.
  *

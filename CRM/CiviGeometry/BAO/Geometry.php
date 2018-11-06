@@ -254,4 +254,18 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     ];
   }
 
+  /**
+   * Calculate distance between 2 points
+   * @param array $params
+   * @return string
+   */
+  public function calculateDistance($params) {
+    $result = CRM_Core_DAO::singleValueQuery("SELECT earth_circle_distance(ST_GeomFromText(%1, 4326), ST_GeomFromText(%2, 4326))", [
+      1 => [$params['geometry_a'], 'String'],
+      2 => [$params['geometry_b'], 'String'],
+    ]);
+    $meters = (float) $result * 1000;
+    return $meters;
+  }
+
 }

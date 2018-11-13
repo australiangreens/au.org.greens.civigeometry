@@ -26,7 +26,7 @@ function civicrm_api3_geometry_create($params) {
     if (!CRM_Utils_Rule::commaSeparatedIntegers($params['collection_id'])) {
       throw new \API_Exception(E::ts('collection_id is not a valid list of ids'));
     }
-    $params['collection_id'] = explode(',', $params['collection_id'];
+    $params['collection_id'] = explode(',', $params['collection_id']);
   }
   if (empty($params['id']) && empty($params['geometry'])) {
     throw new \API_Exception(E::ts('Geometry is required unless supplying an id to do an update'));

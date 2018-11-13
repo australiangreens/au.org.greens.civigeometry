@@ -65,9 +65,10 @@ function civicrm_api3_geometry_get($params) {
   $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
   if (!empty($results['values'])) {
     foreach ($results['values'] as $id => $values) {
-      $results['values'][$id]['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_asGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
+      $results['values'][$id]['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
     }
   }
+  return $results;
 }
 
 /**

@@ -78,4 +78,33 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
     $this->assertEquals('UnitTests', CIVICRM_UF);
   }
 
+  /**
+   * Test Creating Geometry using gzip data.
+   */
+  public function testCreateGzipedGeometry() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'NSW Branches',
+      'source' => 'Greens NSW',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'States',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $gzipedGeometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'lower_north_shore.json.gz');
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Queensland',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => $gzipedGeometryJSON,
+      'format' => 'gzip',
+    ]);
+    $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
+  }
+
 }

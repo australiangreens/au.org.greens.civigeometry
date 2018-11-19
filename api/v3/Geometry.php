@@ -12,6 +12,7 @@ use CRM_CiviGeometry_ExtensionUtil as E;
 function _civicrm_api3_geometry_create_spec(&$spec) {
   $spec['collection_id']['title'] = E::ts('Collection');
   $spec['collection_id']['api.required'] = 1;
+  $spec['format']['title'] = E::ts('Geometry Data Format e.g. gzip');
 }
 
 /**
@@ -35,7 +36,18 @@ function civicrm_api3_geometry_create($params) {
     throw new \API_Exception(E::ts('Geometry was empty'));
   }
   if (isset($params['geometry'])) {
-    $json = json_decode($params['geometry']);
+    if (isset($params['format'])) {
+      if ($params['format'] == 'gzip') {
+        $geoJSON = gzdecode($params['geometry']);
+        $json = json_decode($geoJSON);
+      }
+      else {
+        $json = json_decode($params['geometry']);
+      }
+    }
+    else {
+      $json = json_decode($params['geometry']);
+    }
     if ($json === NULL) {
       throw new \API_Exception(E::ts('Geometry is not proper GeoJSON'));
     }

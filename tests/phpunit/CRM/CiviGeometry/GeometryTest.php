@@ -72,16 +72,48 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
   }
 
   /**
-   * Example: Test that we're using a fake CMS.
+   * Test THat the gZip libary works.
    */
-  public function testWellFormedUF() {
-    $this->assertEquals('UnitTests', CIVICRM_UF);
+  public function testGzipExtension() {
+    $gziped = gzencode('hello');
+    $this->assertEquals('hello', gzdecode($gziped));
   }
 
   /**
    * Test Creating Geometry using gzip data.
    */
   public function testCreateGzipedGeometry() {
+    $collectionTypeParams = [
+      'label' => 'External',
+    ];
+    $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    $collectionParams = [
+      'label' => 'SA1',
+      'source' => 'ABS',
+      'geometry_collection_type_id' => $collectionType['id'],
+    ];
+    $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'States',
+    ];
+    $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $geometryJSON = str_replace('"', "'", $geometryJSON);
+    $gzipedGeometryJSON = gzencode($geometryJSON);
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => '12101139836',
+      'geometry_type_id' => $geometryType['id'],
+      'collection_id' => [$collection['id']],
+      'geometry' => $gzipedGeometryJSON,
+      'format' => 'gzip',
+    ]);
+    $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
+  }
+
+  /**
+   * Test Creating Geometry using gzip data.
+   */
+  public function testCreateGeometryFromFile() {
     $collectionTypeParams = [
       'label' => 'External',
     ];
@@ -96,13 +128,13 @@ class CRM_CiviGeometry_GeometryTest extends \PHPUnit_Framework_TestCase implemen
       'label' => 'States',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $gzipedGeometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'lower_north_shore.json.gz');
+    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'lower_north_shore.json';
     $geometry = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Queensland',
       'geometry_type_id' => $geometryType['id'],
       'collection_id' => [$collection['id']],
-      'geometry' => $gzipedGeometryJSON,
-      'format' => 'gzip',
+      'geometry' => $geometryFile,
+      'format' => 'file',
     ]);
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
   }

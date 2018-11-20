@@ -38,16 +38,22 @@ function civicrm_api3_geometry_create($params) {
   if (isset($params['geometry'])) {
     if (isset($params['format'])) {
       if ($params['format'] == 'gzip') {
-        $geoJSON = gzdecode($params['geometry']);
-        $json = json_decode($geoJSON);
+        try {
+          $params['geometry'] = gzdecode($params['geometry']);
+        }
+        catch(Exception $e) {
+          throw new API_Exception($e->getMessage());
+        }
+        $params['geometry'] = str_replace("'", '"', $params['geometry']);
       }
-      else {
-        $json = json_decode($params['geometry']);
+      elseif ($params['format'] == 'file') {
+        if (!file_exists($params['geometry'])) {
+          throw new \API_Exception(E::ts('File does not exist'));
+        }
+        $params['geometry'] = file_get_contents($params['geometry']);
       }
     }
-    else {
-      $json = json_decode($params['geometry']);
-    }
+    $json = json_decode($params['geometry']);
     if ($json === NULL) {
       throw new \API_Exception(E::ts('Geometry is not proper GeoJSON'));
     }

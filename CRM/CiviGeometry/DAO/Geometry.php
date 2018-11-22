@@ -199,7 +199,7 @@ class CRM_CiviGeometry_DAO_Geometry extends CRM_Core_DAO {
         ],
         'geometry' => [
           'name' => 'geometry',
-          'type' => CRM_Utils_Type::T_GEOMETRY,
+          'type' => CRM_Utils_Type::T_STRING,
           'title' => CRM_CiviGeometry_ExtensionUtil::ts('Geometry'),
           'description' => CRM_CiviGeometry_ExtensionUtil::ts('The Spatial data for this geometry'),
           'table_name' => 'civigeometry_geometry',

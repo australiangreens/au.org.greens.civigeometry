@@ -2,14 +2,15 @@
 
 ![Screenshot](/images/screenshot.png)
 
-(*FIXME: In one or two paragraphs, describe what the extension does and why one would download it. *)
+This extension allows users to manage geometry spatial data within their CiviCRM instance and allows them to perform calculations between different locations and between locations and polygons.
 
 The extension is licensed under [AGPL-3.0](LICENSE.txt).
 
 ## Requirements
 
 * PHP v5.4+
-* CiviCRM (*FIXME: Version number*)
+* CiviCRM (5.7.x)
+* MySQL version 5.7 or MariaDB version 10.2
 
 ## Installation (Web UI)
 
@@ -22,7 +23,7 @@ install it with the command-line tool [cv](https://github.com/civicrm/cv).
 
 ```bash
 cd <extension-dir>
-cv dl au.org.greens.civigeometry@https://github.com/FIXME/au.org.greens.civigeometry/archive/master.zip
+cv dl au.org.greens.civigeometry@https://bitbucket.org:australian_greens/au.org.greens.civigeometry/archive/master.zip
 ```
 
 ## Installation (CLI, Git)
@@ -31,14 +32,14 @@ Sysadmins and developers may clone the [Git](https://en.wikipedia.org/wiki/Git) 
 install it with the command-line tool [cv](https://github.com/civicrm/cv).
 
 ```bash
-git clone https://github.com/FIXME/au.org.greens.civigeometry.git
+git clone https://bitbucket.org/australian_greens/au.org.greens.civigeometry.git
 cv en civigeometry
 ```
 
 ## Usage
 
-(* FIXME: Where would a new user navigate to get started? What changes would they see? *)
+Users can create collections of geometries and can create polygons based on GeoJSON via the CiviCRM API
 
 ## Known Issues
 
-(* FIXME *)
+When creating a polygon, there can be issues with webserver size limits. If that is an issue, then the best option is to upload the GeoJSON as a file to the CiviCRM Server and then specify the path in the geometry parameter of the Geometry.create call and the `type = 'file'`

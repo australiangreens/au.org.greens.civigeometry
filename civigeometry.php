@@ -168,7 +168,7 @@ function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$
   $permissions['geometry_collection']['unarchive'] = $permissions['geometry_collection']['archive'] = $permissions['geometry_collection']['delete'] = $permissions['geometry_collection']['create'];
   $permissions['geometry_type']['create'] = $permissions['geometry_type']['delete'] = array(array('administer geometry', 'administer civicrm'));
   $permissions['geometry_type']['default'] = array('access geometry');
-  $permissions['geometry_collection_type'] = $$permissions['geometry_type'];
+  $permissions['geometry_collection_type'] = $permissions['geometry_type'];
 }
 
 // --- Functions below this ship commented out. Uncomment as required. ---

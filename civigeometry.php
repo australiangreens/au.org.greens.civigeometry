@@ -134,6 +134,43 @@ function civigeometry_civicrm_entityTypes(&$entityTypes) {
   _civigeometry_civix_civicrm_entityTypes($entityTypes);
 }
 
+/**
+ * Implements hook_civicrm_permission().
+ *
+ * Declares CMS based Permissions for this Extension.
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_permission/
+ */
+function civigeometry_civicrm_permission(&$permissions) {
+  $prefix = E::ts('CiviCRM Geometry Extension');
+  $permissions['administer geometry'] = array(
+    $prefix . E::ts('Administer Geometry'),
+    E::ts('Create and Update Geometries and Geometry Collections in the System'),
+  );
+  $permissions['access geometry'] = array(
+    $prefix . E::ts('Access Geometry'),
+    E::ts('Access Geometries and their collections'),
+  );
+}
+
+/**
+ * Implements hook_civicrm_alterAPIPermissions().
+ *
+ * Declares what permissions are required to do what API Access when check_permissions is passed as true.
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_permission/
+ */
+function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+  $permissions['geometry']['create'] = $permissions['geometry']['delete'] = array(array('administer geometry', 'administer civicrm'));
+  $permissions['geometry']['default'] = array('access geometry');
+  $permissions['geometry_collection']['create'] = array(array('administer geometry', 'administer civicrm'));
+  $permissions['geometry_collection']['default'] = array('access geometry');
+  $permissions['geometry_collection']['unarchive'] = $permissions['geometry_collection']['archive'] = $permissions['geometry_collection']['delete'] = $permissions['geometry_collection']['create'];
+  $permissions['geometry_type']['create'] = $permissions['geometry_type']['delete'] = array(array('administer geometry', 'administer civicrm'));
+  $permissions['geometry_type']['default'] = array('access geometry');
+  $permissions['geometry_collection_type'] = $$permissions['geometry_type'];
+}
+
 // --- Functions below this ship commented out. Uncomment as required. ---
 
 /**

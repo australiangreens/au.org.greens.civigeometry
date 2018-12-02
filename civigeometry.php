@@ -142,7 +142,7 @@ function civigeometry_civicrm_entityTypes(&$entityTypes) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_permission/
  */
 function civigeometry_civicrm_permission(&$permissions) {
-  $prefix = E::ts('CiviCRM Geometry Extension');
+  $prefix = E::ts('CiviCRM Geometry Extension: ');
   $permissions['administer geometry'] = array(
     $prefix . E::ts('Administer Geometry'),
     E::ts('Create and Update Geometries and Geometry Collections in the System'),

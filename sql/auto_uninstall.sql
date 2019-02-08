@@ -1,7 +1,7 @@
 -- +--------------------------------------------------------------------+
 -- | CiviCRM version 5                                                  |
 -- +--------------------------------------------------------------------+
--- | Copyright CiviCRM LLC (c) 2004-2018                                |
+-- | Copyright CiviCRM LLC (c) 2004-2019                                |
 -- +--------------------------------------------------------------------+
 -- | This file is a part of CiviCRM.                                    |
 -- |                                                                    |
@@ -33,7 +33,6 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_overlap_cache`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;

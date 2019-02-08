@@ -62,8 +62,8 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
+DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
 
 SET FOREIGN_KEY_CHECKS=1;
 -- /*******************************************************
@@ -95,7 +95,6 @@ CREATE TABLE `civigeometry_geometry_collection_type` (
  
 )    ;
 
- 
 -- /*******************************************************
 -- *
 -- * civigeometry_geometry_collection
@@ -112,7 +111,7 @@ CREATE TABLE `civigeometry_geometry_collection` (
      `description` varchar(255)   DEFAULT NULL COMMENT 'Description of the Geometry Collection',
      `source` varchar(255)   DEFAULT NULL COMMENT 'Source of the Geometry Collection',
      `is_archive` tinyint   DEFAULT 0 COMMENT 'Is this Geometry Collection archived',
-     `archive_date` timestamp NULL   COMMENT 'When was this Geometry Collection archived' 
+     `archive_date` timestamp NULL  DEFAULT NULL COMMENT 'When was this Geometry Collection archived' 
 ,
         PRIMARY KEY (`id`)
  

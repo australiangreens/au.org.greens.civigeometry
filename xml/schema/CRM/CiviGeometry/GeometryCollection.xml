@@ -88,6 +88,11 @@
     <type>timestamp</type>
     <comment>When was this Geometry Collection archived</comment>
     <required>false</required>
+    <default>NULL</default>
+    <html>
+     <type>Select Date</type>
+     <formatType>activityDateTime</formatType>
+    </html>
   </field>
 
 </table>

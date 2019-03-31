@@ -263,6 +263,7 @@ function _civigeometry_civix_find_files($dir, $pattern) {
  */
 function _civigeometry_civix_civicrm_managed(&$entities) {
   $mgdFiles = _civigeometry_civix_find_files(__DIR__, '*.mgd.php');
+  sort($mgdFiles);
   foreach ($mgdFiles as $file) {
     $es = include $file;
     foreach ($es as $e) {

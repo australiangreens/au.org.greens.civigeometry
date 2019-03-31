@@ -19,7 +19,7 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class CRM_CiviGeometry_GeometryTypeTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class api_v3_GeometryCollectionTypeTest extends \PHPUnit_Framework_TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   use Civi\Test\Api3DocTrait;
 
@@ -40,26 +40,35 @@ class CRM_CiviGeometry_GeometryTypeTest extends \PHPUnit_Framework_TestCase impl
   }
 
   /**
-   * Tests that we can createa a Geometry Type
+   * Test Creating a Geometry Collection Type.
    */
-  public function testCreateGeometryType() {
+  public function testCreateGeometryCollectionType() {
     $params = [
-      'label' => 'State Lower House Districts',
-      'description' => 'Geometry Representing the State Lower House Districts around Australia',
+      'label' => 'External',
+      'description' => 'Externally created Geometry Collection',
     ];
-    $this->callAPIAndDocument('GeometryType', 'create', $params, __FUNCTION__, __FILE__);
+    $this->callAPIAndDocument('GeometryCollectionType', 'create', $params, __FUNCTION__, __FILE__);
   }
 
   /**
-   * Test that we cannot create duplicate types
+   * Test Create Geometry Collection Type without description.
    */
-  public function testNoDuplicateTypes() {
+  public function testGeometryCollectionTypeNoDescription() {
     $params = [
-      'label' => 'State Lower House Districts',
-      'description' => 'Geometry Representing the State Lower House Districts around Australia',
+      'label' => 'External',
     ];
-    $this->callAPISuccess('GeometryType', 'create', $params);
-    $this->callAPIFailure('GeometryType', 'create', $params);
+    $this->callAPISuccess('GeometryCollectionType', 'create', $params);
+  }
+
+  /**
+   * Test that you cannot create duplicate Collection Types.
+   */
+  public function testNoDuplicateGeometryCollectionTypes() {
+    $params = [
+      'label' => 'Internal',
+    ];
+    $this->callAPISuccess('GeometryCollectionType', 'create', $params);
+    $this->callAPIFailure('GeometryCollectionType', 'create', $params);
   }
 
 }

@@ -75,7 +75,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals(1, $gcg['count']);
     $this->assertEquals($collection['id'], $gcg['values'][$gcg['id']]['collection_id']);
     // TODO: geometry matches input geoJSON
-    
+    $this->assertEquals($queenslandJSON, $queensland['values'][$queensland['id']]['geometry']);
+    $this->assertEquals($queenslandJSON, $this->callAPISuccess('Geometry', 'get', ['id' => $queensland['id']])['values'][$queensland['id']]['geometry']); 
     // TODO: RULE: Geometry can only be of one Geometry Type
     
     // Tear down test data

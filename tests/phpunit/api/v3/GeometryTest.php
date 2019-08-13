@@ -45,20 +45,24 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
    * Example: Test Creating a Geometry.
    */
   public function testCreateGeometry() {
+    // Create a collection type
     $collectionTypeParams = [
       'label' => 'External',
     ];
     $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    // Create a collection
     $collectionParams = [
       'label' => 'States',
       'source' => 'ABS',
       'geometry_collection_type_id' => $collectionType['id'],
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    // Create a geometry type
     $geometryTypeParams = [
       'label' => 'States',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    // Load geoJSON file and create a geometry
     $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
     $queensland = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Queensland',
@@ -66,9 +70,15 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
       'collection_id' => [$collection['id']],
       'geometry' => $queenslandJSON,
     ]);
+    // RULE: A Geometry can be assigned to one or more collections but never 0
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $queensland['id']]);
     $this->assertEquals(1, $gcg['count']);
     $this->assertEquals($collection['id'], $gcg['values'][$gcg['id']]['collection_id']);
+    // TODO: geometry matches input geoJSON
+    
+    // TODO: RULE: Geometry can only be of one Geometry Type
+    
+    // Tear down test data
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
@@ -76,7 +86,7 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
   }
 
   /**
-   * Test THat the gZip libary works.
+   * Test that the gZip libary works
    */
   public function testGzipExtension() {
     $gziped = gzencode('hello');
@@ -84,7 +94,7 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
   }
 
   /**
-   * Test Creating Geometry using gzip data.
+   * Test creating geometry using gzip data
    */
   public function testCreateGzipedGeometry() {
     $collectionTypeParams = [
@@ -111,11 +121,14 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
       'geometry' => $gzipedGeometryJSON,
       'format' => 'gzip',
     ]);
+    // RULE: A Geometry can be assigned to one or more collections but never 0
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
+    
+    // TODO: Similar tests as per acceptance criteria
   }
 
   /**
-   * Test Creating Geometry using gzip data.
+   * Test creating geometry using gzip data
    */
   public function testCreateGeometryFromFile() {
     $collectionTypeParams = [
@@ -143,17 +156,21 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
   }
   
+  // TODO: What does this test do?
   public function testMySQLSTContains() {
+    // Create a collection type
     $collectionTypeParams = [
       'label' => 'External',
     ];
     $collectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $collectionTypeParams);
+    //Create a collection
     $collectionParams = [
       'label' => 'Tasmanian Upper House',
       'source' => 'TasEC',
       'geometry_collection_type_id' => $collectionType['id'],
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    // Create a geometry type
     $geometryTypeParams = [
       'label' => 'Upper House Districts',
     ];
@@ -161,7 +178,7 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
     // Nelson is a Tasmanian Upperhouse District as of November 2018
     // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
     // Differences between MBR and actual geometry easier.
-    // We are going to create 2 geometry records 1 being the Geometry its self and the other being the MBR of the Nelson Geometry
+    // We are going to create 2 geometry records 1 being the geometry itself and the other being the MBR of the Nelson Geometry
     $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
     $nelson = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Nelson',
@@ -176,7 +193,7 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
       'collection_id' => [$collection['id']],
       'geometry' => trim($nelsonMBRData),
     ]);
-    // Prove that an address is within Nelson
+    // Prove that this address is within Nelson
     $individualResult = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => $nelson['id'],
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
@@ -188,13 +205,13 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(0, $nonMBRResult['values']);
-    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_cotains on the MBR geometry.
+    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_cotains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
      'geometry_a' => $nelsonMBR['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(1, $mbrResult['values']);
-    // Test that when No Geometry is specified that am is found in both the original Poly and the MBR geometry.
+    // Test that when no geometry is specified that this point is found in both the original poly and the MBR geometry
     $results = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => 0,
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
@@ -210,7 +227,7 @@ class api_v3_GeometryTest extends \PHPUnit_Framework_TestCase implements Headles
   }
 
   /**
-   * Test Removing Collection fails when geometry only belongs in one collection.
+   * Test removing collection fails when geometry only belongs in one collection.
    * This is expected to fail as geometry has to be in a collection.
    */
   public function testRemoveOnlyCollection() {

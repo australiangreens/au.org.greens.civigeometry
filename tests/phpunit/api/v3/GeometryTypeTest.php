@@ -6,7 +6,7 @@ use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
 
 /**
- * FIXME - Add test description.
+ * This class tests creating a geometry type.
  *
  * Tips:
  *  - With HookInterface, you may implement CiviCRM hooks directly in the test class.
@@ -51,13 +51,15 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
   }
 
   /**
-   * Test that we cannot create duplicate types
+   * Test that we cannot create duplicate types.
+   * Uniqueness is defined by label being unique.
    */
   public function testNoDuplicateTypes() {
     $params = [
       'label' => 'State Lower House Districts',
       'description' => 'Geometry Representing the State Lower House Districts around Australia',
     ];
+    // The tesst should pass and create a geometry type but fail eh 2nd time as the label is already there. 
     $this->callAPISuccess('GeometryType', 'create', $params);
     $this->callAPIFailure('GeometryType', 'create', $params);
   }

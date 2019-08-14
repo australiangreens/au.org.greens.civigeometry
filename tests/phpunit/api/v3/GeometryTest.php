@@ -6,7 +6,7 @@ use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
 
 /**
- * FIXME - Add test description.
+ * This test class tests creating and returning Geometries and also geometry information such as overlap, point to geometry and testing if a point is in a geometry.
  *
  * Tips:
  *  - With HookInterface, you may implement CiviCRM hooks directly in the test class.
@@ -42,7 +42,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
-   * Example: Test Creating a Geometry.
+   * Test Creating a geometry in the database.
+   * Ensure that we can handle passing an array of collection ids and that we require at least one collection, a geometry type and that the geometry is specified.
    */
   public function testCreateGeometry() {
     // Create a collection type
@@ -64,22 +65,30 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
     // Load geoJSON file and create a geometry
     $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
-    $queensland = $this->callAPISuccess('Geometry', 'create', [
+    $geometryParams = [
       'label' => 'Queensland',
       'geometry_type_id' => $geometryType['id'],
+      // colleciton_id aaccpets an array of ids or a comma separated list of ids.
       'collection_id' => [$collection['id']],
       'geometry' => $queenslandJSON,
-    ]);
+    ];
+    $queensland = $this->callAPISuccess('Geometry', 'create', $geometryParams);
     // RULE: A Geometry can be assigned to one or more collections but never 0
     $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $queensland['id']]);
     $this->assertEquals(1, $gcg['count']);
     $this->assertEquals($collection['id'], $gcg['values'][$gcg['id']]['collection_id']);
-    // TODO: geometry matches input geoJSON
-    $this->assertEquals($queenslandJSON, $queensland['values'][$queensland['id']]['geometry']);
-    $this->assertEquals($queenslandJSON, $this->callAPISuccess('Geometry', 'get', ['id' => $queensland['id']])['values'][$queensland['id']]['geometry']); 
-    // TODO: RULE: Geometry can only be of one Geometry Type
-    
+    // Check that the returned geometry matches what was set to be stored. use json_decode function to convert to an array, so that white space is not an issue
+    $this->assertEquals(json_decode($queenslandJSON, TRUE), json_decode($queensland['values'][$queensland['id']]['geometry'], TRUE));
+    $this->assertEquals(json_decode($queenslandJSON, TRUE), json_decode($this->callAPISuccess('Geometry', 'get', ['id' => $queensland['id']])['values'][$queensland['id']]['geometry'], TRUE));
+    // RULE: Geometries can only have 1 type associated.
+    $geometryType2 = $this->callAPISuccess('GeometryType', 'Create', ['label' => 'Australian States']);
+    $geometryParams['geometry_type_id'] = "{$geometryType2['id']}, {$geometryType['id']}";
+    $this->callAPIFailure('Geometry', 'create', $geometryParams);
+    $geometryParams['geometry_type_id'] = [$geometryType2['id'], $geometryType['id']];
+    $this->callAPIFailure('Geometry', 'create', $geometryParams);
     // Tear down test data
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType2['id']]);
+    // verify that we can delete geometries as well as archiving them. 
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
@@ -109,12 +118,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
     $geometryTypeParams = [
-      'label' => 'States',
+      'label' => 'Stastical Area Level 1',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
     $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
-    $geometryJSON = str_replace('"', "'", $geometryJSON);
-    $gzipedGeometryJSON = gzencode($geometryJSON);
+    $geometryJSONForGzipping = str_replace('"', "'", $geometryJSON);
+    $gzipedGeometryJSON = gzencode($geometryJSONForGzipping);
     $geometry = $this->callAPISuccess('Geometry', 'create', [
       'label' => '12101139836',
       'geometry_type_id' => $geometryType['id'],
@@ -123,13 +132,15 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'format' => 'gzip',
     ]);
     // RULE: A Geometry can be assigned to one or more collections but never 0
-    $gcg = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
-    
-    // TODO: Similar tests as per acceptance criteria
+    $collectionsGeometryisIn = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $geometry['id']]);
+    // Assert that the GeoJSON has been stored correctly in the database. use json_decode to avoid any whitespace issues
+    $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($geometry['values'][$geometry['id']]['geometry'], TRUE));
+    $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']])['values'][$geometry['id']]['geometry'], TRUE));
+    $this->assertEquals(1, $collectionsGeometryisIn['count']);
   }
 
   /**
-   * Test creating geometry using gzip data
+   * Test creating geometry using a specified file as the geomerty
    */
   public function testCreateGeometryFromFile() {
     $collectionTypeParams = [
@@ -256,10 +267,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection['id']],
       'geometry' => trim($nelsonJSON),
     ]);
+    // RULE Geometries must be in at least one colection.
     $this->callAPIFailure('Geometry', 'removecollection', [
       'geometry_id' => $nelson['id'],
       'collection_id' => [$collection['id']],
     ]);
+    // tare down created objects
     $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
@@ -290,10 +303,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
     $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    // Permit adding mutlitple collections when creating the geometry
     $nelson = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Nelson',
       'geometry_type_id' => $geometryType['id'],
-      'collection_id' => [$collection['id'], $collection2['id']],
+      // colleciton_id aaccpets an array of ids or a comma separated list of ids.
+      'collection_id' => "{$collection['id']}, {$collection2['id']}",
       'geometry' => trim($nelsonJSON),
     ]);
     $this->callAPISuccess('Geometry', 'removecollection', [
@@ -333,6 +348,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => trim($nelsonJSON),
     ]);
     $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $nelson['id']]);
+    // CHeck that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
     $this->assertContains('147.29234219', $centroid['values']);
     $this->assertContains('-42.94807285', $centroid['values']);
   }
@@ -393,20 +409,24 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection['id']],
       'geometry' => $geometryJSON,
     ]);
+    // RULE can only un archived archived geometries
     $this->callAPIFailure('Geometry', 'unarchive', ['id' => $geometry['id']]);
     $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
+    // Check that archived_date is properly set
     $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archived_date']);
     $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
     $this->callAPISuccess('Geometry', 'unarchive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
+    // Check that the archived date
     $this->assertEquals(0, $geometry['values'][$geometry['id']]['is_archived']);
+    $this->assertFalse(isset($geometry['values'][$geometry['id']]['archived_date']));
   }
 
   /**
    * Test Generating an Overlap Cache.
    */
-  public function testOverlapGeneration() {
+  public function testOverlapGenerationCache() {
     $collectionTypeParams = [
       'label' => 'External',
     ];
@@ -447,20 +467,22 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
     ]);
+    // Check that Cains Division 9 only covers 4% of Queensland state.
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
     ]);
+    // Verify calling the API again gets the same result and the cache has been used. 
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']); 
   }
 
   /**
-   * Test Generating an Overlap with known >95% overlap.
+   * Test Generating an Overlap between 2 specific geomeetries is within 97 and 100%
    */
-  public function testOverlapGeneration90() {
+  public function testOverlapGeneration() {
     $collectionTypeParams = [
       'label' => 'External',
     ];
@@ -497,17 +519,21 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection2['id']],
       'geometry' => trim($willoughbyNaremburnJSON),
     ]);
+    // Get teh overlap betweenn the SA1 as inner of the Naremburn wardd
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $willoughbyNaremburn['id'],
     ]);
+    // MariaDB and MySQL will do these calculations slightly differently but it should be in a 3% range between 100% and 97%.
     $this->assertGreaterThan(97, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertLessThanOrEqual(100, $overlap['values'][$overlap['id']]['overlap']);
+    // Assert that the cache is not warmed up at all
     $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $willoughbyNaremburn['id'],
     ]);
+    // Check that the result came from the cache for performance reasons.
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
   }
 

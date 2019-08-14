@@ -75,7 +75,7 @@
     </html>
   </field>
   <field>
-    <name>is_archive</name>
+    <name>is_archived</name>
     <type>boolean</type>
     <comment>Is this Geometry Collection archived</comment>
     <default>0</default>
@@ -84,7 +84,7 @@
     </html>
   </field>
   <field>
-    <name>archive_date</name>
+    <name>archived_date</name>
     <type>timestamp</type>
     <comment>When was this Geometry Collection archived</comment>
     <required>false</required>

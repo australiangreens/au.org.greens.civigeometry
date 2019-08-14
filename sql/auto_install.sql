@@ -137,7 +137,7 @@ CREATE TABLE `civigeometry_geometry` (
      `label` varchar(255) NOT NULL   COMMENT 'The Title of this geometry',
      `description` varchar(255)   DEFAULT NULL COMMENT 'The description of this geometry',
      `is_archived` tinyint   DEFAULT 0 COMMENT 'Is this geometry archived?',
-     `archive_date` timestamp NULL  DEFAULT NULL COMMENT 'The Title of this geometry',
+     `archived_date` timestamp NULL  DEFAULT NULL COMMENT 'The Title of this geometry',
      `geometry` geometry    COMMENT 'The Spatial data for this geometry' 
 ,
         PRIMARY KEY (`id`)
@@ -165,8 +165,8 @@ CREATE TABLE `civigeometry_geometry_collection` (
      `label` varchar(255) NOT NULL   COMMENT 'Title of the Geometry Collection',
      `description` varchar(255)   DEFAULT NULL COMMENT 'Description of the Geometry Collection',
      `source` varchar(255)   DEFAULT NULL COMMENT 'Source of the Geometry Collection',
-     `is_archive` tinyint   DEFAULT 0 COMMENT 'Is this Geometry Collection archived',
-     `archive_date` timestamp NULL  DEFAULT NULL COMMENT 'When was this Geometry Collection archived' 
+     `is_archived` tinyint   DEFAULT 0 COMMENT 'Is this Geometry Collection archived',
+     `archived_date` timestamp NULL  DEFAULT NULL COMMENT 'When was this Geometry Collection archived' 
 ,
         PRIMARY KEY (`id`)
  

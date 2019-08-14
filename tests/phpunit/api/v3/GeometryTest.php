@@ -68,7 +68,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $geometryParams = [
       'label' => 'Queensland',
       'geometry_type_id' => $geometryType['id'],
-      // colleciton_id aaccpets an array of ids or a comma separated list of ids.
+      // collection_id accepts an array of ids or a comma separated list of ids.
       'collection_id' => [$collection['id']],
       'geometry' => $queenslandJSON,
     ];
@@ -267,12 +267,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection['id']],
       'geometry' => trim($nelsonJSON),
     ]);
-    // RULE Geometries must be in at least one colection.
+    // RULE Geometries must be in at least one collection.
     $this->callAPIFailure('Geometry', 'removecollection', [
       'geometry_id' => $nelson['id'],
       'collection_id' => [$collection['id']],
     ]);
-    // tare down created objects
+    // tear down created objects
     $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
@@ -409,7 +409,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection['id']],
       'geometry' => $geometryJSON,
     ]);
-    // RULE can only un archived archived geometries
+    // RULE can only unarchive archived geometries
     $this->callAPIFailure('Geometry', 'unarchive', ['id' => $geometry['id']]);
     $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
@@ -467,7 +467,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
     ]);
-    // Check that Cains Division 9 only covers 4% of Queensland state.
+    // Check that Cairns Division 9 only covers 4% of Queensland state.
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
@@ -480,7 +480,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
-   * Test Generating an Overlap between 2 specific geomeetries is within 97 and 100%
+   * Test Generating an Overlap between 2 specific geometries is within 97 and 100%
    */
   public function testOverlapGeneration() {
     $collectionTypeParams = [
@@ -539,7 +539,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test getting a distance
-   * @note Postgres reported 2,202 meters here however MySQL5.7 using native functions returned 2,197
+   * @note Postgres reported 2,202 metres here however MySQL5.7 using native functions returned 2,197
    */
   public function testGetDistance() {
     $result = $this->callAPISuccess('Geometry', 'getdistance', [

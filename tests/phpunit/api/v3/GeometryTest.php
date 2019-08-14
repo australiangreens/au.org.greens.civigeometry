@@ -140,7 +140,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
-   * Test creating geometry using a specified file as the geomerty
+   * Test creating geometry using a specified file as the geometry.
    */
   public function testCreateGeometryFromFile() {
     $collectionTypeParams = [
@@ -211,13 +211,13 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
     $this->assertEquals(1, $individualResult['values']);
-    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_cotains on the actual geometry (test RMDS isn't using MBR to do the ST_Contains).
+    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the actual geometry (test RMDS isn't using MBR to do the ST_Contains).
     $nonMBRResult = $this->callAPISuccess('geometry', 'contains', [
      'geometry_a' => $nelson['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(0, $nonMBRResult['values']);
-    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_cotains on the MBR geometry
+    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
      'geometry_a' => $nelsonMBR['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
@@ -303,11 +303,11 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
     $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
-    // Permit adding mutlitple collections when creating the geometry
+    // Permit adding multiple collections when creating the geometry
     $nelson = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Nelson',
       'geometry_type_id' => $geometryType['id'],
-      // colleciton_id aaccpets an array of ids or a comma separated list of ids.
+      // collection_id accepts an array of ids or a comma separated list of ids.
       'collection_id' => "{$collection['id']}, {$collection2['id']}",
       'geometry' => trim($nelsonJSON),
     ]);
@@ -348,7 +348,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => trim($nelsonJSON),
     ]);
     $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $nelson['id']]);
-    // CHeck that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
+    // Check that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
     $this->assertContains('147.29234219', $centroid['values']);
     $this->assertContains('-42.94807285', $centroid['values']);
   }
@@ -519,7 +519,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection2['id']],
       'geometry' => trim($willoughbyNaremburnJSON),
     ]);
-    // Get teh overlap betweenn the SA1 as inner of the Naremburn wardd
+    // Get the overlap between the SA1 as inner of the Naremburn wardd
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $willoughbyNaremburn['id'],
@@ -539,7 +539,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test getting a distance
-   * @note Postgres reported 2,202 meeters here however MySQL5.7 using native functions returned 2,197
+   * @note Postgres reported 2,202 meters here however MySQL5.7 using native functions returned 2,197
    */
   public function testGetDistance() {
     $result = $this->callAPISuccess('Geometry', 'getdistance', [

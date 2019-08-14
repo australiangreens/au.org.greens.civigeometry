@@ -6,7 +6,7 @@ use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
 
 /**
- * FIXME - Add test description.
+ * This test provides coverage for the API methods relating to the GeometryCollection entity
  *
  * Tips:
  *  - With HookInterface, you may implement CiviCRM hooks directly in the test class.
@@ -64,7 +64,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
   }
 
   /**
-   * Test that we can create multiple geometry collections of the same type.
+   * Test that we can create multiple geometry collections of the same type
    */
   public function testMultipleGeometryCollectionsSameType() {
     $params1 = [
@@ -85,6 +85,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
 
   /**
    * Test that no duplicate Collections can be created
+   * A duplicate is understood in terms of identical types and labels
    */
   public function testNoDuplicateGeometryCollections() {
     $params = [
@@ -109,7 +110,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $params);
     $collection = $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
-    $this->assertEquals(1, $collection['values'][$collection['id']]['is_archive']);
+    $this->assertEquals(1, $collection['values'][$collection['id']]['is_archived']);
     $this->assertEquals(date('Ymdhis'), $collection['values'][$collection['id']]['archive_date']);
   }
 
@@ -128,7 +129,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     $this->callAPIFailure('GeometryCollection', 'unarchive', ['id' => $collection['id']]);
     $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
     $collection = $this->callAPISuccess('GeometryCollection', 'unarchive', ['id' => $collection['id']]);
-    $this->assertEquals(0, $collection['values'][$collection['id']]['is_archive']);
+    $this->assertEquals(0, $collection['values'][$collection['id']]['is_archived']);
   }
 
 }

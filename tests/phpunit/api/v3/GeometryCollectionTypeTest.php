@@ -6,7 +6,7 @@ use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
 
 /**
- * FIXME - Add test description.
+ * This test provides coverage for the API method that lets you create geometry collection types
  *
  * Tips:
  *  - With HookInterface, you may implement CiviCRM hooks directly in the test class.
@@ -40,7 +40,7 @@ class api_v3_GeometryCollectionTypeTest extends \PHPUnit\Framework\TestCase impl
   }
 
   /**
-   * Test Creating a Geometry Collection Type.
+   * Test creating a Geometry Collection Type.
    */
   public function testCreateGeometryCollectionType() {
     $params = [
@@ -51,7 +51,7 @@ class api_v3_GeometryCollectionTypeTest extends \PHPUnit\Framework\TestCase impl
   }
 
   /**
-   * Test Create Geometry Collection Type without description.
+   * Test create Geometry Collection Type without description.
    */
   public function testGeometryCollectionTypeNoDescription() {
     $params = [

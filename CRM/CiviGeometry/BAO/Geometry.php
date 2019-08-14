@@ -170,7 +170,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $instance->id = $params['id'];
     $instance->find();
     $instance->is_archived = 1;
-    $instance->archive_date = date('Ymdhis');
+    $instance->archived_date = date('Ymdhis');
     $instance->save();
     CRM_Utils_Hook::post('archive', 'Geometry', $instance->id, $instance);
     return $instance;
@@ -187,7 +187,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $instance->find();
     $instance->is_archived = 0;
     $instance->save();
-    CRM_Core_DAO::executeQuery("UPDATE civigeometry_geometry SET archive_date = NULL WHERE id = %1", [1 => [$instance->id, 'Positive']]);
+    CRM_Core_DAO::executeQuery("UPDATE civigeometry_geometry SET archived_date = NULL WHERE id = %1", [1 => [$instance->id, 'Positive']]);
     $instance->find();
     CRM_Utils_Hook::post('unarchive', 'Geometry', $instance->id, $instance);
     return $instance;

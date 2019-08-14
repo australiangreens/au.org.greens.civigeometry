@@ -97,7 +97,7 @@ function _civicrm_api3_geometry_collection_unarchive_spec(&$spec) {
  */
 function civicrm_api3_geometry_collection_unarchive($params) {
   $archiveCheck = civicrm_api3('GeometryCollection', 'get', ['id' => $params['id']]);
-  if (empty($archiveCheck['values'][$archiveCheck['id']]['is_archive'])) {
+  if (empty($archiveCheck['values'][$archiveCheck['id']]['is_archived'])) {
     throw new \API_Exception(E::ts("Cannot unarchive a geometry collection that is not archived"));
   }
   $result = CRM_CiviGeometry_BAO_GeometryCollection::unarchiveCollection($params);

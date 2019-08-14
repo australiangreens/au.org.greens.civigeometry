@@ -111,7 +111,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $params);
     $collection = $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
     $this->assertEquals(1, $collection['values'][$collection['id']]['is_archived']);
-    $this->assertEquals(date('Ymdhis'), $collection['values'][$collection['id']]['archive_date']);
+    $this->assertEquals(date('Ymdhis'), $collection['values'][$collection['id']]['archived_date']);
   }
 
   /**

@@ -363,7 +363,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
-    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archive_date']);
+    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archived_date']);
     $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
   }
 
@@ -395,7 +395,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPIFailure('Geometry', 'unarchive', ['id' => $geometry['id']]);
     $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
-    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archive_date']);
+    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archived_date']);
     $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
     $this->callAPISuccess('Geometry', 'unarchive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);

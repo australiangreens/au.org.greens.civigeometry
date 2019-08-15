@@ -380,9 +380,10 @@ function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
 function _civicrm_api3_geometry_getspaicaldata_spec(&$spec) {
   $spec['id'] = [
     'title' => E::ts('Geometry ID'),
-    'type' => CRM_Utils_Typ::T_INT,
+    'type' => CRM_Utils_Type::T_INT,
     'api.required' => 1,
   ];
+}
 
 /**
  * Return Spatial information about a perticular geometry

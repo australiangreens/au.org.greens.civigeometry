@@ -517,12 +517,22 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $spatialData = $this->callAPISuccess('Geometry', 'getspaicaldata', ['id' => $geometry['id']]);
     // Test Accuracy of spatical data.
-    //$this->assertEquals('POLYGON((151.126707616 -33.853568996,151.126707616 -33.778527002,151.268936992 -33.778527002,151.268936992 -33.853568996,151.126707616 -33.853568996))',
-    //  $spatialData['values'][$geometry['id']]['ST_Envelope']);
-    print_r($spatialData['values'][$geometry['id']]['ST_Envelope']);
+    // The envelopeBounds come from PostgresSQL instance
+    $envelopeBounds = explode(',', '151.126707616 -33.853568996,151.126707616 -33.778527002,151.268936992 -33.778527002,151.268936992 -33.853568996,151.126707616 -33.853568996');
+    $envelopeBoundsFromDB = explode(',', substr($spatialData['values'][$geometry['id']]['ST_Envelope'], 9, -2));
+    // For Some reason the 2nd and 4th set of bounds are orded differently depending on PostGres or MySQL/MariaDB
+    $this->assertEquals($envelopeBounds[0], $envelopeBoundsFromDB[0]);
+    $this->assertEquals($envelopeBounds[3], $envelopeBoundsFromDB[1]);
+    $this->assertEquals($envelopeBounds[2], $envelopeBoundsFromDB[2]);
+    $this->assertEquals($envelopeBounds[1], $envelopeBoundsFromDB[3]);
+    $this->assertEquals($envelopeBounds[4], $envelopeBoundsFromDB[4]);
     $centriodInformation = explode(' ', substr($spatialData['values'][$geometry['id']]['ST_Centroid'],6, -1));
     $this->assertEquals('151.195994', substr($centriodInformation[0], 0, 10));
     $this->assertEquals('-33.8176881', substr($centriodInformation[1], 0, 11));
+    // PostGres reported area of 57.749 Square KM)
+    // MariaDB reported 56.236
+    // MySQL reported
+    print_r($spatialData['values'][$geometry['id']]['square_km']);
     $this->assertApproxEquals('57.749', $spatialData['values'][$geometry['id']]['square_km'], 2);
   }
 

@@ -370,8 +370,24 @@ function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
 }
 
 /**
- * Return Spatial information about a perticular geometry
+ * Geometry.getspaicaldata API specification (optional)
+ * This is used for documentation and validation.
  *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getspaicaldata_spec(&$spec) {
+  $spec['id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Typ::T_INT,
+    'api.required' => 1,
+  ];
+
+/**
+ * Return Spatial information about a perticular geometry
+ * @param array $params
+ * @return array
  */
 function civicrm_api3_geometry_getspaicaldata($params) {
   $apiResult = [];

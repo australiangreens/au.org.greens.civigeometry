@@ -529,11 +529,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $centriodInformation = explode(' ', substr($spatialData['values'][$geometry['id']]['ST_Centroid'],6, -1));
     $this->assertEquals('151.195994', substr($centriodInformation[0], 0, 10));
     $this->assertEquals('-33.8176881', substr($centriodInformation[1], 0, 11));
-    // PostGres reported area of 57.749 Square KM)
-    // MariaDB reported 56.236
-    // MySQL reported
-    print_r($spatialData['values'][$geometry['id']]['square_km']);
-    $this->assertApproxEquals('57.749', $spatialData['values'][$geometry['id']]['square_km'], 2);
+    // PostGres reported area of 57.749 Square KM
+    // MariaDB and MySQL 5.7 reported 56.236
+    $this->assertEquals('56.236', $spatialData['values'][$geometry['id']]['square_km']);
   }
 
 }

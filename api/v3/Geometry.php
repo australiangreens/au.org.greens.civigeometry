@@ -225,6 +225,22 @@ function _civicrm_api3_geometry_archive_spec(&$spec) {
 }
 
 /**
+ * Geometry.contains API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_contains_spec(&$spec) {
+  $spec['geometry_a']['title'] = E::ts('Geometry A');
+  $spec['geometry_a']['api.required'] = 1;
+  $spec['geometry_a']['type'] = CRM_Utils_Type::T_INT;
+  $spec['geometry_b']['title'] = E::ts('Geometry B');
+  $spec['geometry_b']['api.required'] = 1;
+}
+
+/**
  * Geometry.contains
  * @param array $params
  * @return array API result descriptor
@@ -291,22 +307,6 @@ function _civicrm_api3_geometry_getdistance_spec(&$spec) {
 }
 
 /**
- * Geometry.contains API specification (optional)
- * This is used for documentation and validation.
- *
- * @param array $spec description of fields supported by this API call
- * @return void
- * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
- */
-function _civicrm_api3_geometry_contains_spec(&$spec) {
-  $spec['geometry_a']['title'] = E::ts('Geometry A');
-  $spec['geometry_a']['api.required'] = 1;
-  $spec['geometry_a']['type'] = CRM_Utils_Type::T_INT;
-  $spec['geometry_b']['title'] = E::ts('Geometry B');
-  $spec['geometry_b']['api.required'] = 1;
-}
-
-/**
  * Geomety.unarchive
  *
  * @param array $params
@@ -367,4 +367,14 @@ function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
   $spec['geometry_id_b']['title'] = E::ts('Geometry ID B');
   $spec['geometry_id_b']['api.required'] = 1;
   $spec['geometry_id_b']['type'] = CRM_Utils_Type::T_INT;
+}
+
+/**
+ * Return Spatial information about a perticular geometry
+ *
+ */
+function civicrm_api3_geometry_getspaicaldata($params) {
+  $apiResult = [];
+  $apiResult[$params['id']] = CRM_CiviGeometry_BAO_Geometry::returnSpatialInformation($params['id']);
+  return civicrm_api3_create_success($apiResult);
 }

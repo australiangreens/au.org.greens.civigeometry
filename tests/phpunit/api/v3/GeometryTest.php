@@ -22,6 +22,7 @@ use Civi\Test\TransactionalInterface;
 class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   use Civi\Test\Api3DocTrait;
+  use Civi\Test\GenericAssertionsTrait;
 
   private $jsonDirectoryStore = __DIR__ . DIRECTORY_SEPARATOR . 'load';
 
@@ -490,6 +491,39 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals('2197', (int) $result['values']);
+  }
+
+  /**
+   * Test returning spatial properties for a geometry
+   */
+  public function testSpatialDataProperties() {
+    $collectionParams = [
+      'label' => 'NSW Branches',
+      'source' => 'Greens NSW',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $NSWBranchesCollection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    $geometryTypeParams = [
+      'label' => 'Branch',
+    ];
+    $branchGeometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'lower_north_shore.json';
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Lower North Shore',
+      'geometry_type_id' => $branchGeometryType['id'],
+      'collection_id' => [$NSWBranchesCollection['id']],
+      'geometry' => $geometryFile,
+      'format' => 'file',
+    ]);
+    $spatialData = $this->callAPISuccess('Geometry', 'getspaicaldata', ['id' => $geometry['id']]);
+    // Test Accuracy of spatical data.
+    //$this->assertEquals('POLYGON((151.126707616 -33.853568996,151.126707616 -33.778527002,151.268936992 -33.778527002,151.268936992 -33.853568996,151.126707616 -33.853568996))',
+    //  $spatialData['values'][$geometry['id']]['ST_Envelope']);
+    print_r($spatialData['values'][$geometry['id']]['ST_Envelope']);
+    $centriodInformation = explode(' ', substr($spatialData['values'][$geometry['id']]['ST_Centroid'],6, -1));
+    $this->assertEquals('151.195994', substr($centriodInformation[0], 0, 10));
+    $this->assertEquals('-33.8176881', substr($centriodInformation[1], 0, 11));
+    $this->assertApproxEquals('57.749', $spatialData['values'][$geometry['id']]['square_km'], 2);
   }
 
 }

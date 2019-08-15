@@ -269,4 +269,20 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $meters;
   }
 
+  public static function returnSpatialInformation($geometryID) {
+    return CRM_Core_DAO::executeQuery("SELECT
+        id,
+        label
+        , round((ST_Area(geometry)*10000), 3) as square_km
+        , ST_AsText(ST_Envelope(geometry)) as ST_Envelope
+        , ST_AsText(ST_Centroid(geometry)) as ST_Centroid
+        , ST_IsSimple (geometry) as ST_IsSimple
+        , ST_SRID(geometry) as ST_SRID
+      FROM %1
+      WHERE id = %2", [
+      1 => [self::getTableName(), 'MysqlColumnNameOrAlias'],
+      2 => [$geometryID, 'Positive'],
+    ])->fetchAll()[0];
+  }
+
 }

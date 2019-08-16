@@ -532,6 +532,24 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // PostGres reported area of 57.749 Square KM
     // MariaDB and MySQL 5.7 reported 56.236
     $this->assertEquals('56.236', $spatialData['values'][$geometry['id']]['square_km']);
+    $bounds = $this->callAPISuccess('Geometry', 'getbounds', ['id' => $geometry['id']]);
+    $this->assertEquals(['left_bound' => '151.126707616', 'bottom_bound' => '-33.853568996', 'top_bound' => '-33.778527002', 'right_bound' => '151.268936992'], $bounds['values'][$geometry['id']]);
+  }
+
+ /**
+   * Test returning geometry in KML format
+   */
+  public function testCustomOutputFormat() {
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => '12101139836',
+      'geometry_type_id' => $this->sa1GeometryType['id'],
+      'collection_id' => [$this->sa1Collection['id']],
+      'geometry' => $geometryJSON,
+    ]);
+    $getGeometry = $this->callAPISuccess('Geometry', 'get', ['format' => 'kml']);
+    $this->assertEquals('<MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>151.18540272,-33.8022812055 151.185615104,-33.8022131255 151.186521952,-33.802339499 151.18660944,-33.8023522825 151.186400992,-33.8033745925 151.18620336,-33.8043426235 151.185657952,-33.8071025645 151.184443328,-33.806932827 151.184176192,-33.8065670635 151.183489312,-33.807019851 151.183223648,-33.807194824 151.18304544,-33.806998983 151.18288128,-33.8068107085 151.182722176,-33.806619178 151.18257024,-33.806424151 151.18244352,-33.8062482715 151.182426976,-33.8062253315 151.182289088,-33.806014191 151.182224928,-33.805905744 151.18216128,-33.8057982035 151.182068416,-33.8056292245 151.182040672,-33.805578775 151.18192512,-33.805357478 151.181736832,-33.8049863125 151.181663776,-33.8048362775 151.181523008,-33.804534339 151.18145568,-33.804382491 151.181874016,-33.8041690195 151.18220064,-33.803836038 151.1829096,-33.8033327825 151.183241152,-33.8031041595 151.18357392,-33.8028830105 151.183727808,-33.802830822 151.184271168,-33.8026439905 151.18540272,-33.8022812055</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>'
+      , $getGeometry['values'][$getGeometry['id']]['geometry']);
   }
 
 }

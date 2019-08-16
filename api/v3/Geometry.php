@@ -73,6 +73,21 @@ function civicrm_api3_geometry_delete($params) {
 }
 
 /**
+ * Geometry.create API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_get_spec(&$spec) {
+  $spec['format'] = [
+    'title' => E::ts('Geometry OutputFormat'),
+    'type' => CRM_Utils_Type::T_STRING,
+  ];
+}
+
+/**
  * Geometry.get API
  *
  * @param array $params
@@ -80,10 +95,16 @@ function civicrm_api3_geometry_delete($params) {
  * @throws API_Exception
  */
 function civicrm_api3_geometry_get($params) {
+  if (!empty($params['format']) && !in_array($params['format'], ['json', 'kml', 'wkt'])) {
+    throw new API_Exception(E::ts('Output Format is not of an acceptable format it must be one of json, kml, or wkt'));
+  }
   $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
   if (!empty($results['values'])) {
     foreach ($results['values'] as $id => $values) {
       $results['values'][$id]['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
+    }
+    if (!empty($params['format'])) {
+      $results['values'][$id]['geometry'] = CRM_CiviGeometry_BAO_Geometry::outputGeometryInFormat($results['values'][$id]['geometry'], $params['format']);
     }
   }
   return $results;
@@ -393,5 +414,32 @@ function _civicrm_api3_geometry_getspaicaldata_spec(&$spec) {
 function civicrm_api3_geometry_getspaicaldata($params) {
   $apiResult = [];
   $apiResult[$params['id']] = CRM_CiviGeometry_BAO_Geometry::returnSpatialInformation($params['id']);
+  return civicrm_api3_create_success($apiResult);
+}
+
+/**
+ * Geometry.getbounds API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getbounds_spec(&$spec) {
+  $spec['id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 1,
+  ];
+}
+
+/**
+ * Return the bounds of the geometry
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_getbounds($params) {
+  $apiResult = [];
+  $apiResult[$params['id']] = CRM_CiviGeometry_BAO_Geometry::generateBounds($params['id']);
   return civicrm_api3_create_success($apiResult);
 }

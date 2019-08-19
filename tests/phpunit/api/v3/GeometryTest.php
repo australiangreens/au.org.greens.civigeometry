@@ -103,6 +103,21 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $geometryParams['geometry_type_id'] = "{$geometryType2['id']}, {$this->stateGeometryType['id']}";
     $this->callAPIFailure('Geometry', 'create', $geometryParams);
     $geometryParams['geometry_type_id'] = [$geometryType2['id'], $this->stateGeometryType['id']];
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    // Create SA1 Geometry
+    $sa1 = $this->callAPISuccess('Geometry', 'create', [
+      'label' => '1210113836',
+      'geometry_type_id' => $this->sa1GeometryType['id'],
+      'collection_id' => [$this->sa1Collection['id']],
+      'geometry' => trim($sa1JSON),
+    ]);
+    // Test that calling geometry.get returns all geoemtry in the colletion
+    $collectionGet = $this->callAPISuccess('Geometry', 'get', ['geometry_collection_id' => $this->statesCollection['id']]);
+    // We should find 1 geometry
+    $this->assertEquals(1, $collectionGet['count']);
+    // Check that if we pass in 2 geometry collection types then it will return both the SA1 and the Queensland Geometry
+    $collectionGet2 = $this->callAPISuccess('Geometry', 'get', ['geometry_collection_id' => ['IN' => [$this->statesCollection['id'], $this->sa1Collection['id']]]]);
+    $this->assertEquals(2, $collectionGet2['count']);
     $this->callAPIFailure('Geometry', 'create', $geometryParams);
     // Tear down test data
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType2['id']]);

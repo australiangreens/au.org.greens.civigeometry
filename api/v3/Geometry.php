@@ -85,6 +85,9 @@ function _civicrm_api3_geometry_get_spec(&$spec) {
     'title' => E::ts('Geometry OutputFormat'),
     'type' => CRM_Utils_Type::T_STRING,
   ];
+  $spec['geometry_collection_id'] = [
+    'title' => E::ts('Geometry COllection ID')
+  ];
 }
 
 /**
@@ -98,7 +101,14 @@ function civicrm_api3_geometry_get($params) {
   if (!empty($params['format']) && !in_array($params['format'], ['json', 'kml', 'wkt'])) {
     throw new API_Exception(E::ts('Output Format is not of an acceptable format it must be one of json, kml, or wkt'));
   }
-  $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
+  $sql = NULL;
+  if (!empty($params['geometry_collection_id'])) {
+    $geometries = civicrm_api3('Geometry', 'getcollection', ['collection_id' => $params['geometry_collection_id'], 'return' => ['geometry_id']]);
+    $geometryIds = CRM_Utils_Array::collect('geometry_id', $geometries['values']);
+    $sql = CRM_Utils_SQL_Select::fragment()->where('id IN (#geometryIDs)', ['geometryIDs' => $geometryIds]);
+  }
+  // Note we append additional SQL where clause here if geometry_collection_id is specfieid, this is a pseudo field
+  $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, "", $sql);
   if (!empty($results['values'])) {
     foreach ($results['values'] as $id => $values) {
       $results['values'][$id]['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
@@ -130,10 +140,10 @@ function civicrm_api3_geometry_getcollection($params) {
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_geometry_getcollection_spec(&$spec) {
-  $spec['geometry_id']['title'] = E::ts('Geometry');
-  $spec['geometry_id']['api.required'] = 1;
+  $spec['geometry_id']['title'] = E::ts('Geometry ID');
   $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
   $spec['collection_id']['title'] = E::ts('Collection IDs');
+  $spec['collection_id']['type'] = CRM_Utils_Type::T_INT;
 }
 
 /**

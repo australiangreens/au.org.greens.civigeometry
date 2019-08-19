@@ -60,7 +60,7 @@ Avaliable Entities and methods
       - When requesting or creating geometry the default format is GeoJSON. You can specify alternate output formats via the parameter format. Acceptable output formats are json (ie. GeoJSON), kml and wkt. 
       - You can also specify an input format when creating a geometry. GeoJSOa (default), gzipped GeoJSON (`gzip`) and (server-side) file references (`file`) are acceptable input formats.
     - `archive`/`unarchive` - Archive or unarchive a single geometry
-    - `getCollections` - Find out which collection a geoemtry belongs to, or find out the ids of all the geometries in a specific collection
+    - `getCollections` - Find out which collection a geometry belongs to, or find out the ids of all the geometries in a specific collection
     - `getSpatialData` - Return basic spatial data including the envelope and centroid of the polygon, the SRID of the polygon (see Known Issue #2 below), and whether it is a simple or complex geometry (polygons are always considered complex)
     - `getBounds` - Return the min/max X and Y points of a geometry
     - `getDistance` - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`

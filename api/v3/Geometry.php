@@ -99,7 +99,7 @@ function _civicrm_api3_geometry_get_spec(&$spec) {
  */
 function civicrm_api3_geometry_get($params) {
   if (!empty($params['format']) && !in_array($params['format'], ['json', 'kml', 'wkt'])) {
-    throw new API_Exception(E::ts('Output Format is not of an acceptable format it must be one of json, kml, or wkt'));
+    throw new API_Exception(E::ts('Output format must be one of json, kml or wkt'));
   }
   $sql = NULL;
   if (!empty($params['geometry_collection_id'])) {
@@ -107,7 +107,7 @@ function civicrm_api3_geometry_get($params) {
     $geometryIds = CRM_Utils_Array::collect('geometry_id', $geometries['values']);
     $sql = CRM_Utils_SQL_Select::fragment()->where('id IN (#geometryIDs)', ['geometryIDs' => $geometryIds]);
   }
-  // Note we append additional SQL where clause here if geometry_collection_id is specfieid, this is a pseudo field
+  // Note we append additional SQL where clause here if geometry_collection_id is specified, this is a pseudo field
   $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, "", $sql);
   if (!empty($results['values'])) {
     foreach ($results['values'] as $id => $values) {

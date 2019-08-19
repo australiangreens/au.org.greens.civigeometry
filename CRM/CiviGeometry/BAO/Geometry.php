@@ -269,6 +269,16 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $metres;
   }
 
+  /**
+   * Return Spatial Properties for a geometry
+   * @param int $geometryID
+   * @return array
+   *   - Containing, approximate Square Kms of the Geometry
+   *   - The Envelope of the geometry
+   *   - The Centroid of the geometry
+   *   - Is it a simple geometry
+   *   - the SRID of the geometry
+   */
   public static function returnSpatialInformation($geometryID) {
     return CRM_Core_DAO::executeQuery("SELECT
         id,
@@ -295,6 +305,12 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $polygon->out($format);
   }
 
+  /**
+   * Return the min and max x and y points for a geometry
+   * @param int $geometryID
+   * 
+   * @return array
+   */
   public static function generateBounds($geometryID) {
     $envelope = CRM_Core_DAO::singleValueQuery("SELECT ST_AsText(ST_Envelope(geometry)) FROM " . self::getTableName() . " WHERE id = %1", [
       1 => [$geometryID, 'Positive'],

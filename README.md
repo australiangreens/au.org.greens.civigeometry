@@ -40,31 +40,31 @@ Users can create collections of geometries and can create polygons based on GeoJ
 
 Avaliable Entities and methods
 
-- GeometryCollection
- - A Geometry Collection is a collation of polygons. For example, a collection of States or Provinces in a country
- - Operations
-   - Create/Update/Delete (CRUD) Collections
-   - Archive/Unarchive - Archive or unarchive a Geometry Collection. Note: this does not affect geometries linked to a collection
-- GeometryType 
+- `GeometryCollection`
+  - A Geometry Collection is a collation of polygons. For example, a collection of States or Provinces in a country
+  - Operations
+    - Create/Read/Update/Delete (CRUD). Note that CiviCRM implements these as `create` (Create/Update), `read` and `delete`
+    - `archive`/`unarchive` - Archive or unarchive a Geometry Collection. Note: this does not affect geometries linked to a collection
+- `GeometryType`
   - Useful for specfiying what type of geometry is being stored e.g. Wards, States, Electorates etc
   - Operations
-    - CRUD operations
-- GeometryCollectionType 
+    - CRUD
+- `GeometryCollectionType`
   - Useful for specifying the source or type of collection e.g. External, Internal, Ad-Hoc, User created, etc., which can assist with finding geometries
   - Operations
-    - CRUD operations
-- Geometry
+    - CRUD
+- `Geometry`
   - A Geometry is a polygon that defines an enclosed spatial region. For example, state or province boundaries, council areas, electorates, etc.
   - Operations
-    - CRUD operations
+    - CRUD
       - When requesting or creating geometry the default format is GeoJSON. You can specify alternate output formats via the parameter format. Acceptable output formats are json (ie. GeoJSON), kml and wkt. 
       - You can also specify an input format when creating a geometry. GeoJSOa (default), gzipped GeoJSON (`gzip`) and (server-side) file references (`file`) are acceptable input formats.
-    - Archive/Unarchive - Archive or unarchive a single geometry
-    - getCollections - Find out which collection a geoemtry belongs to, or find out the ids of all the geometries in a specific collection
-    - getSpatialData - Return basic spatial data including the envelope and centroid of the polygon, the SRID of the polygon (see Known Issue #2 below), and whether it is a simple or complex geometry (polygons are always considered complex)
-    - getBounds - Return the min/max X and Y points of a geometry
-    - getDistance - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`
-    - getOverlap - Determine the overlap between two geometry shapes. Returned as a percentage
+    - `archive`/`unarchive` - Archive or unarchive a single geometry
+    - `getCollections` - Find out which collection a geoemtry belongs to, or find out the ids of all the geometries in a specific collection
+    - `getSpatialData` - Return basic spatial data including the envelope and centroid of the polygon, the SRID of the polygon (see Known Issue #2 below), and whether it is a simple or complex geometry (polygons are always considered complex)
+    - `getBounds` - Return the min/max X and Y points of a geometry
+    - `getDistance` - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`
+    - `getOverlap` - Determine the overlap between two geometry shapes. Returned as a percentage
 
 ## Known Issues
 

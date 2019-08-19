@@ -545,7 +545,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => $geometryFile,
       'format' => 'file',
     ]);
-    $spatialData = $this->callAPISuccess('Geometry', 'getspaicaldata', ['id' => $geometry['id']]);
+    $spatialData = $this->callAPISuccess('Geometry', 'getspatialdata', ['id' => $geometry['id']]);
     // Test Accuracy of spatical data.
     // The envelopeBounds come from PostgresSQL instance
     $envelopeBounds = explode(',', '151.126707616 -33.853568996,151.126707616 -33.778527002,151.268936992 -33.778527002,151.268936992 -33.853568996,151.126707616 -33.853568996');

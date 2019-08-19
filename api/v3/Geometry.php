@@ -391,14 +391,14 @@ function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
 }
 
 /**
- * Geometry.getspaicaldata API specification (optional)
+ * Geometry.getspatialdata API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
  * @return void
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
-function _civicrm_api3_geometry_getspaicaldata_spec(&$spec) {
+function _civicrm_api3_geometry_getspatialdata_spec(&$spec) {
   $spec['id'] = [
     'title' => E::ts('Geometry ID'),
     'type' => CRM_Utils_Type::T_INT,
@@ -411,7 +411,7 @@ function _civicrm_api3_geometry_getspaicaldata_spec(&$spec) {
  * @param array $params
  * @return array
  */
-function civicrm_api3_geometry_getspaicaldata($params) {
+function civicrm_api3_geometry_getspatialdata($params) {
   $apiResult = [];
   $apiResult[$params['id']] = CRM_CiviGeometry_BAO_Geometry::returnSpatialInformation($params['id']);
   return civicrm_api3_create_success($apiResult);

@@ -47,7 +47,7 @@ function civicrm_api3_geometry_collection_get($params) {
 }
 
 /**
- * GeometryCollection.create API specification (optional)
+ * GeometryCollection.archive API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
@@ -61,7 +61,7 @@ function _civicrm_api3_geometry_collection_archive_spec(&$spec) {
 }
 
 /**
- * GeometryCollection.create API
+ * GeometryCollection.archive API
  *
  * @param array $params
  * @return array API result descriptor
@@ -75,7 +75,7 @@ function civicrm_api3_geometry_collection_archive($params) {
 }
 
 /**
- * GeometryCollection.create API specification (optional)
+ * GeometryCollection.unarchive API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
@@ -89,7 +89,7 @@ function _civicrm_api3_geometry_collection_unarchive_spec(&$spec) {
 }
 
 /**
- * GeometryCollection.create API
+ * GeometryCollection.unarchive API
  *
  * @param array $params
  * @return array API result descriptor

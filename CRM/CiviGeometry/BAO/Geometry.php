@@ -265,8 +265,63 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       1 => [$params['geometry_a'], 'String'],
       2 => [$params['geometry_b'], 'String'],
     ]);
-    $meters = (float) $result * 1000;
-    return $meters;
+    $metres = (float) $result * 1000;
+    return $metres;
+  }
+
+  public static function returnSpatialInformation($geometryID) {
+    return CRM_Core_DAO::executeQuery("SELECT
+        id,
+        label
+        , round((ST_Area(geometry)*10000), 3) as square_km
+        , ST_AsText(ST_Envelope(geometry)) as ST_Envelope
+        , ST_AsText(ST_Centroid(geometry)) as ST_Centroid
+        , ST_IsSimple (geometry) as ST_IsSimple
+        , ST_SRID(geometry) as ST_SRID
+      FROM %1
+      WHERE id = %2", [
+      1 => [self::getTableName(), 'MysqlColumnNameOrAlias'],
+      2 => [$geometryID, 'Positive'],
+    ])->fetchAll()[0];
+  }
+
+  /**
+   * Output GeoJSON in a customFormat
+   * @param json $geoJSON - GeoJSON content to be passed out
+   */
+  public static function outputGeometryInFormat($geoJSON, $format) {
+    self::safeLoadAutoloader();
+    $polygon = geoPHP::load($geoJSON, 'json');
+    return $polygon->out($format);
+  }
+
+  public static function generateBounds($geometryID) {
+    $envelope = CRM_Core_DAO::singleValueQuery("SELECT ST_AsText(ST_Envelope(geometry)) FROM " . self::getTableName() . " WHERE id = %1", [
+      1 => [$geometryID, 'Positive'],
+    ]);
+    $envelopePieces = explode(',', substr($envelope, 9, -2));
+    $leftBound = $rightBound = $topBound = $bottomBound = 0;
+    foreach ($envelopePieces as $key => $piece) {
+      if ($key == 0 || $key == 2) {
+        $pieces = explode(' ', $piece);
+        if ($key == 0) {
+          $leftBound = $pieces[0];
+          $bottomBound = $pieces[1];
+        }
+        else {
+          $topBound = $pieces[1];
+          $rightBound = $pieces[0];
+        }
+      }
+    }
+    return ['left_bound' => $leftBound, 'bottom_bound' => $bottomBound, 'top_bound' => $topBound, 'right_bound' => $rightBound];
+  }
+
+  public static function safeLoadAutoloader() {
+    $path = E::path('vendor/autoload.php');
+    if (file_exists($path)) {
+      require_once $path;
+    }
   }
 
 }

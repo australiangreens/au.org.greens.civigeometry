@@ -99,7 +99,7 @@ function _civicrm_api3_geometry_get_spec(&$spec) {
  */
 function civicrm_api3_geometry_get($params) {
   if (!empty($params['format']) && !in_array($params['format'], ['json', 'kml', 'wkt'])) {
-    throw new API_Exception(E::ts('Output format must be one of json, kml or wkt"'));
+    throw new API_Exception(E::ts('Output format must be one of json, kml or wkt'));
   }
   $sql = NULL;
   if (!empty($params['geometry_collection_id'])) {

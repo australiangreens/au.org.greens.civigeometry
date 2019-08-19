@@ -265,8 +265,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       1 => [$params['geometry_a'], 'String'],
       2 => [$params['geometry_b'], 'String'],
     ]);
-    $meters = (float) $result * 1000;
-    return $meters;
+    $metres = (float) $result * 1000;
+    return $metres;
   }
 
   public static function returnSpatialInformation($geometryID) {

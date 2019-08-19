@@ -103,7 +103,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $geometryParams['geometry_type_id'] = "{$geometryType2['id']}, {$this->stateGeometryType['id']}";
     $this->callAPIFailure('Geometry', 'create', $geometryParams);
     $geometryParams['geometry_type_id'] = [$geometryType2['id'], $this->stateGeometryType['id']];
-    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry
     $sa1 = $this->callAPISuccess('Geometry', 'create', [
       'label' => '1210113836',
@@ -137,12 +137,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    * Test creating geometry using gzip data
    */
   public function testCreateGzipedGeometry() {
-    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     $geometryJSONForGzipping = str_replace('"', "'", $geometryJSON);
     $gzipedGeometryJSON = gzencode($geometryJSONForGzipping);
     // Create Geometry specifying that the format is gzip
     $geometry = $this->callAPISuccess('Geometry', 'create', [
-      'label' => '12101139836',
+      'label' => 'sample_sa1_geometry',
       'geometry_type_id' => $this->sa1GeometryType['id'],
       'collection_id' => [$this->sa1Collection['id']],
       'geometry' => $gzipedGeometryJSON,
@@ -172,10 +172,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'Branch',
     ];
     $branchGeometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'lower_north_shore.json';
+    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_nsw_branch_geometry.json';
     // Create Geometry specifying file as the format
     $geometry = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Lower North Shore',
+      'label' => 'Sample NSW Branch Geometry',
       'geometry_type_id' => $branchGeometryType['id'],
       'collection_id' => [$NSWBranchesCollection['id']],
       'geometry' => $geometryFile,
@@ -202,39 +202,39 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'Upper House Districts',
     ];
     $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGometryTypeParams);
-    // Nelson is a Tasmanian Upperhouse District as of November 2018
+    // upperHouseDistrict is a Tasmanian Upperhouse District as of November 2018
     // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
     // Differences between MBR and actual geometry easier.
-    // We are going to create 2 geometry records 1 being the geometry itself and the other being the MBR of the Nelson Geometry
-    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
-    $nelson = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Nelson',
+    // We are going to create 2 geometry records 1 being the geometry itself and the other being the MBR of the upperHouseDistrict Geometry
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
       'geometry_type_id' => $UHGeometryType['id'],
       'collection_id' => [$UHCollection['id']],
-      'geometry' => trim($nelsonJSON),
+      'geometry' => trim($upperHouseDistrictJSON),
     ]);
-    $nelsonMBRData = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(ST_Envelope(geometry)) FROM civigeometry_geometry where id = %1", [1 => [$nelson['id'], 'Positive']]);
-    $nelsonMBR = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Nelson MBR',
+    $upperHouseDistrictMBRData = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(ST_Envelope(geometry)) FROM civigeometry_geometry where id = %1", [1 => [$upperHouseDistrict['id'], 'Positive']]);
+    $upperHouseDistrictMBR = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House  MBR',
       'geometry_type_id' => $UHGeometryType['id'],
       'collection_id' => [$UHCollection['id']],
-      'geometry' => trim($nelsonMBRData),
+      'geometry' => trim($upperHouseDistrictMBRData),
     ]);
-    // Prove that this address is within Nelson
+    // Prove that this address is within upperHouseDistrict
     $individualResult = $this->callAPISuccess('Geometry', 'contains', [
-      'geometry_a' => $nelson['id'],
+      'geometry_a' => $upperHouseDistrict['id'],
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
     $this->assertEquals(1, $individualResult['values']);
     // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the actual geometry (test RMDS isn't using MBR to do the ST_Contains).
     $nonMBRResult = $this->callAPISuccess('geometry', 'contains', [
-     'geometry_a' => $nelson['id'],
+     'geometry_a' => $upperHouseDistrict['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(0, $nonMBRResult['values']);
     // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
-     'geometry_a' => $nelsonMBR['id'],
+     'geometry_a' => $upperHouseDistrictMBR['id'],
      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(1, $mbrResult['values']);
@@ -244,10 +244,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
     $this->assertEquals(2, $results['count']);
-    $this->assertContains($nelson['id'], $results['values']);
-    $this->assertContains($nelsonMBR['id'], $results['values']);
-    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
-    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelsonMBR['id']]);
+    $this->assertContains($upperHouseDistrict['id'], $results['values']);
+    $this->assertContains($upperHouseDistrictMBR['id'], $results['values']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
   }
@@ -267,23 +267,23 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'Upper House Districts',
     ];
     $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGeometryTypeParams);
-    // Nelson is a Tasmanian Upperhouse District as of November 2018
+    // Our sample geometry is of Nelson is a Tasmanian Upperhouse District as of November 2018
     // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
     // Differences between MBR and actual geometry easier.
-    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
-    $nelson = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Nelson',
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
       'geometry_type_id' => $UHGeometryType['id'],
       'collection_id' => [$UHCollection['id']],
-      'geometry' => trim($nelsonJSON),
+      'geometry' => trim($upperHouseDistrictJSON),
     ]);
     // RULE Geometries must be in at least one collection.
     $this->callAPIFailure('Geometry', 'removecollection', [
-      'geometry_id' => $nelson['id'],
+      'geometry_id' => $upperHouseDistrict['id'],
       'collection_id' => [$UHCollection['id']],
     ]);
     // tear down created objects
-    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
   }
@@ -299,7 +299,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_collection_type_id' => $this->externalCollectionType['id'],
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
-    // Create 2nd collection more broader than just about tasmanian upper house
+    // Create a superset of the first collection
     $collection2 = $this->callAPISuccess('GeometryCollection', 'create', [
       'label' => 'Upper House Districts',
       'source' => 'Electoral Commissions',
@@ -310,22 +310,22 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'Upper House Districts',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
     // Permit adding multiple collections when creating the geometry
-    $nelson = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Nelson',
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
       'geometry_type_id' => $geometryType['id'],
       // collection_id accepts an array of ids or a comma separated list of ids.
       'collection_id' => "{$collection['id']}, {$collection2['id']}",
-      'geometry' => trim($nelsonJSON),
+      'geometry' => trim($upperHouseDistrictJSON),
     ]);
     // Remove Geometry from the 2nd collection created
     // RULE Geometries can be in more than one collection but have to be in at least 1 collection.
     $this->callAPISuccess('Geometry', 'removecollection', [
-      'geometry_id' => $nelson['id'],
+      'geometry_id' => $upperHouseDistrict['id'],
       'collection_id' => [$collection2['id']],
     ]);
-    $this->callAPISuccess('Geometry', 'delete', ['id' => $nelson['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection2['id']]);
@@ -347,15 +347,15 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'Upper House Districts',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $nelsonJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'nelson.json');
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
     // Create Geometry
-    $nelson = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Nelson',
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
       'geometry_type_id' => $geometryType['id'],
       'collection_id' => [$collection['id']],
-      'geometry' => trim($nelsonJSON),
+      'geometry' => trim($upperHouseDistrictJSON),
     ]);
-    $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $nelson['id']]);
+    $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $upperHouseDistrict['id']]);
     // Check that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
     $this->assertContains('147.29234219', $centroid['values']);
     $this->assertContains('-42.94807285', $centroid['values']);
@@ -365,7 +365,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    * Test Archiving a Geometry
    */
   public function testArchiveGeometry() {
-    // Create Collection for wards
+    // Create Collection for archiving geometry
     $collectionParams = [
       'label' => 'Queensland Wards',
       'source' => 'QEC',
@@ -377,10 +377,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'LGA Wards',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_qld_ward_geometry.json');
     // Create Ward Geometry
     $geometry = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Cairns Division 9',
+      'label' => 'Sample Queensland Ward',
       'geometry_type_id' => $geometryType['id'],
       'collection_id' => [$collection['id']],
       'geometry' => $geometryJSON,
@@ -407,10 +407,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'LGA Wards',
     ];
     $geometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_qld_ward_geometry.json');
     // Create Ward Geometry
     $geometry = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Cairns Division 9',
+      'label' => 'Sample Queensland Ward',
       'geometry_type_id' => $geometryType['id'],
       'collection_id' => [$collection['id']],
       'geometry' => $geometryJSON,
@@ -451,10 +451,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $wardGeometryType = $this->callAPISuccess('GeometryType', 'create', [
       'label' => 'LGA Wards',
     ]);
-    $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'cairns_division_9_geo_json.json');
+    $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_qld_ward_geometry.json');
     // Create ward Geometry
     $cairns = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Cairns Division 9',
+      'label' => 'Sample Queensland Ward',
       'geometry_type_id' => $wardGeometryType['id'],
       'collection_id' => [$wardsCollection['id']],
       'geometry' => trim($cairnsJSON),
@@ -463,7 +463,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
     ]);
-    // Check that Cairns Division 9 only covers 4% of Queensland state.
+    // Check that Sample Queensland Ward only covers 4% of Queensland state.
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
@@ -479,10 +479,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    * Test Generating an Overlap between 2 specific geometries is within 97 and 100%
    */
   public function testOverlapGeneration() {
-    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry
     $sa1 = $this->callAPISuccess('Geometry', 'create', [
-      'label' => '1210113836',
+      'label' => 'sample_sa1_geometry',
       'geometry_type_id' => $this->sa1GeometryType['id'],
       'collection_id' => [$this->sa1Collection['id']],
       'geometry' => trim($sa1JSON),
@@ -497,18 +497,18 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $wardGeometryType = $this->callAPISuccess('GeometryType', 'create', [
       'label' => 'LGA Wards',
     ]);
-    $willoughbyNaremburnJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'willoughby_naremburn.json');
+    $nswWardJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_nsw_ward_geometry.json');
     // Create Ward Geometry
-    $willoughbyNaremburn = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Cairns Division 9',
+    $nswWard = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample NSW Ward',
       'geometry_type_id' => $wardGeometryType['id'],
       'collection_id' => [$wardsCollection['id']],
-      'geometry' => trim($willoughbyNaremburnJSON),
+      'geometry' => trim($nswWardJSON),
     ]);
     // Get the overlap between the SA1 as inner of the Naremburn wardd
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
-      'geometry_id_b' => $willoughbyNaremburn['id'],
+      'geometry_id_b' => $nswWard['id'],
     ]);
     // MariaDB and MySQL will do these calculations slightly differently but it should be in a 3% range between 100% and 97%.
     $this->assertGreaterThan(97, $overlap['values'][$overlap['id']]['overlap']);
@@ -517,7 +517,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
-      'geometry_id_b' => $willoughbyNaremburn['id'],
+      'geometry_id_b' => $nswWard['id'],
     ]);
     // Check that the result came from the cache for performance reasons.
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
@@ -551,10 +551,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'label' => 'Branch',
     ];
     $branchGeometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
-    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'lower_north_shore.json';
+    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_nsw_branch_geometry.json';
     // Create Geometry
     $geometry = $this->callAPISuccess('Geometry', 'create', [
-      'label' => 'Lower North Shore',
+      'label' => 'Sample NSW Branch Geometry',
       'geometry_type_id' => $branchGeometryType['id'],
       'collection_id' => [$NSWBranchesCollection['id']],
       'geometry' => $geometryFile,
@@ -587,9 +587,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    * Test returning geometry in KML format
    */
   public function testCustomOutputFormat() {
-    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . '12101139836.json');
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     $geometry = $this->callAPISuccess('Geometry', 'create', [
-      'label' => '12101139836',
+      'label' => 'sample_sa1_geometry',
       'geometry_type_id' => $this->sa1GeometryType['id'],
       'collection_id' => [$this->sa1Collection['id']],
       'geometry' => $geometryJSON,

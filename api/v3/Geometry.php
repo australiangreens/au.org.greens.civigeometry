@@ -107,7 +107,7 @@ function civicrm_api3_geometry_get($params) {
     $geometryIds = CRM_Utils_Array::collect('geometry_id', $geometries['values']);
     $sql = CRM_Utils_SQL_Select::fragment()->where('id IN (#geometryIDs)', ['geometryIDs' => $geometryIds]);
   }
-  // Note we append additional SQL where clause here if geometry_collection_id is specfieid, this is a pseudo field
+  // Note we append additional SQL where clause here if geometry_collection_id is specified, this is a pseudo field
   $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, "", $sql);
   if (!empty($results['values'])) {
     foreach ($results['values'] as $id => $values) {

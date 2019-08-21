@@ -7,7 +7,7 @@ The extension is licensed under [AGPL-3.0](LICENSE.txt).
 ## Requirements
 
 * PHP v5.4+
-* CiviCRM (5.7.x)
+* CiviCRM (5.13.x)
 * MySQL version 5.7 or MariaDB version 10.2
 
 ## Installation (Web UI)

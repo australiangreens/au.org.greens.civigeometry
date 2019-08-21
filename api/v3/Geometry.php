@@ -41,7 +41,7 @@ function civicrm_api3_geometry_create($params) {
         try {
           $params['geometry'] = gzdecode($params['geometry']);
         }
-        catch(Exception $e) {
+        catch (Exception $e) {
           throw new API_Exception($e->getMessage());
         }
         $params['geometry'] = str_replace("'", '"', $params['geometry']);
@@ -86,7 +86,7 @@ function _civicrm_api3_geometry_get_spec(&$spec) {
     'type' => CRM_Utils_Type::T_STRING,
   ];
   $spec['geometry_collection_id'] = [
-    'title' => E::ts('Geometry COllection ID')
+    'title' => E::ts('Geometry COllection ID'),
   ];
 }
 
@@ -110,11 +110,12 @@ function civicrm_api3_geometry_get($params) {
   // Note we append additional SQL where clause here if geometry_collection_id is specified, this is a pseudo field
   $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, "", $sql);
   if (!empty($results['values'])) {
-    foreach ($results['values'] as $id => $values) {
-      $results['values'][$id]['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
+    foreach ($results['values'] as $key => $values) {
+      $id = !empty($params['sequential']) ? $values['id'] : $key;
+      $results['values'][$key]['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
     }
     if (!empty($params['format'])) {
-      $results['values'][$id]['geometry'] = CRM_CiviGeometry_BAO_Geometry::outputGeometryInFormat($results['values'][$id]['geometry'], $params['format']);
+      $results['values'][$key]['geometry'] = CRM_CiviGeometry_BAO_Geometry::outputGeometryInFormat($results['values'][$key]['geometry'], $params['format']);
     }
   }
   return $results;
@@ -238,7 +239,7 @@ function _civicrm_api3_geometry_getcentroid_spec(&$spec) {
 function civicrm_api3_geometry_archive($params) {
   $apiResult = [];
   $result = CRM_CiviGeometry_BAO_Geometry::archiveGeometry($params);
-  _civicrm_api3_object_to_array($result, $apiResult[$result->id]); 
+  _civicrm_api3_object_to_array($result, $apiResult[$result->id]);
   return civicrm_api3_create_success($apiResult, $params);
 }
 
@@ -351,7 +352,7 @@ function civicrm_api3_geometry_unarchive($params) {
   }
   $apiResult = [];
   $result = CRM_CiviGeometry_BAO_Geometry::unarchiveGeometry($params);
-  _civicrm_api3_object_to_array($result, $apiResult[$result->id]); 
+  _civicrm_api3_object_to_array($result, $apiResult[$result->id]);
   return civicrm_api3_create_success($apiResult, $params);
 }
 

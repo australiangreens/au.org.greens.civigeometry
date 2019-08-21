@@ -326,6 +326,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   /**
    * Convert Wkt Geoemtry to KML
    * @param string $wkt
+   * @see http://blog.mastermaps.com/2008/03/wkt-to-kml-transformation.html for where this function comes from
    * @return string KML Geoemtry
    */
   public static function wkt2kml($wkt){

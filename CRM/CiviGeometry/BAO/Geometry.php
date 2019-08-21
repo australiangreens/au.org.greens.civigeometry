@@ -296,16 +296,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
-   * Output GeoJSON in a customFormat
-   * @param json $geoJSON - GeoJSON content to be passed out
-   */
-  public static function outputGeometryInFormat($geoJSON, $format) {
-    self::safeLoadAutoloader();
-    $polygon = geoPHP::load($geoJSON, 'json');
-    return $polygon->out($format);
-  }
-
-  /**
    * Return the min and max x and y points for a geometry
    * @param int $geometryID
    * 
@@ -333,11 +323,45 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return ['left_bound' => $leftBound, 'bottom_bound' => $bottomBound, 'top_bound' => $topBound, 'right_bound' => $rightBound];
   }
 
-  public static function safeLoadAutoloader() {
-    $path = E::path('vendor/autoload.php');
-    if (file_exists($path)) {
-      require_once $path;
+  /**
+   * Convert Wkt Geoemtry to KML
+   * @param string $wkt
+   * @see http://blog.mastermaps.com/2008/03/wkt-to-kml-transformation.html for where this function comes from
+   * @return string KML Geoemtry
+   */
+  public static function wkt2kml($wkt){
+    // Change coordinate format
+    $wkt = preg_replace("/([0-9\.\-]+) ([0-9\.\-]+),*/", "$1,$2 ", $wkt);
+    
+    $wkt = substr($wkt, 15);
+    $wkt = substr($wkt, 0, -3);
+    $polygons = explode(')),((', $wkt);
+    $kml = '<MultiGeometry>';
+    
+    foreach ($polygons as $polygon) {
+      $kml .= '<Polygon>';
+      $boundary = explode('),(', $polygon);
+      if ($boundary[0]) {
+        $kml .= '<outerBoundaryIs>'
+          . '<LinearRing>'
+          . '<coordinates>' . $boundary[0] . '</coordinates>'
+          . '</LinearRing>'
+          . '</outerBoundaryIs>';
+      }
+      else {
+        return '';
+      }
+      for ($i = 1; $i < count($boundary); $i++) {
+        $kml .= '<innerBoundaryIs>'
+          . '<LinearRing>'
+          . '<coordinates>' . $boundary[$i] . '</coordinates>'
+          . '</LinearRing>'
+          . '</innerBoundaryIs>';
+      }
+      $kml .= '</Polygon>';
     }
+    $kml .= '</MultiGeometry>';
+    return $kml;
   }
 
 }

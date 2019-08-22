@@ -1,6 +1,5 @@
 <?php
 
-use CRM_CiviGeometry_ExtensionUtil as E;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
@@ -59,7 +58,7 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
       'label' => 'State Lower House Districts',
       'description' => 'Geometry Representing the State Lower House Districts around Australia',
     ];
-    // The tesst should pass and create a geometry type but fail eh 2nd time as the label is already there. 
+    // The tesst should pass and create a geometry type but fail eh 2nd time as the label is already there.
     $this->callAPISuccess('GeometryType', 'create', $params);
     $this->callAPIFailure('GeometryType', 'create', $params);
   }

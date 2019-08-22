@@ -1,5 +1,4 @@
 <?php
-use CRM_CiviGeometry_ExtensionUtil as E;
 
 /**
  * GeometryType.create API specification (optional)

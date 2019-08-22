@@ -72,7 +72,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $result = CRM_Core_DAO::singleValueQuery("SELECT ST_AsText(ST_Centroid(geometry))
       FROM civigeometry_geometry
       WHERE id = %1", [
-      1 => [$params['id'], 'Positive']]);
+        1 => [$params['id'], 'Positive'],
+      ]);
     return $result;
   }
 
@@ -228,9 +229,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       SELECT ST_Intersects(a.geometry, b.geometry)
       FROM civigeometry_geometry a, civigeometry_geometry b
       WHERE a.id = %1 AND b.id = %2", [
-      1 => [$params['geometry_id_a'], 'Positive'],
-      2 => [$params['geometry_id_b'], 'Positive'],
-    ]);
+        1 => [$params['geometry_id_a'], 'Positive'],
+        2 => [$params['geometry_id_b'], 'Positive'],
+      ]);
     if (empty($checkIfIntesects)) {
       $overlap = (int) 0;
     }
@@ -238,9 +239,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
       FROM civigeometry_geometry a, civigeometry_geometry b
       WHERE a.id = %1 AND b.id = %2", [
-      1 => [$params['geometry_id_a'], 'Positive'],
-      2 => [$params['geometry_id_b'], 'Positive'],
-    ]);
+        1 => [$params['geometry_id_a'], 'Positive'],
+        2 => [$params['geometry_id_b'], 'Positive'],
+      ]);
     while ($intersections->fetch()) {
       $overlap = (int) (100.0 * $intersections->intersection_area / $intersections->area);
     }
@@ -298,15 +299,15 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         , ST_SRID(geometry) as ST_SRID
       FROM %1
       WHERE id = %2", [
-      1 => [self::getTableName(), 'MysqlColumnNameOrAlias'],
-      2 => [$geometryID, 'Positive'],
-    ])->fetchAll()[0];
+        1 => [self::getTableName(), 'MysqlColumnNameOrAlias'],
+        2 => [$geometryID, 'Positive'],
+      ])->fetchAll()[0];
   }
 
   /**
    * Return the min and max x and y points for a geometry
    * @param int $geometryID
-   * 
+   *
    * @return array
    */
   public static function generateBounds($geometryID) {
@@ -334,18 +335,18 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   /**
    * Convert Wkt Geoemtry to KML
    * @param string $wkt
-   * @see http://blog.mastermaps.com/2008/03/wkt-to-kml-transformation.html for where this function comes from
+   * @see http://blog.mastermaps.com/2008/03/wkt-to-kml-transformation.html
    * @return string KML Geoemtry
    */
-  public static function wkt2kml($wkt){
+  public static function wkt2kml($wkt) {
     // Change coordinate format
     $wkt = preg_replace("/([0-9\.\-]+) ([0-9\.\-]+),*/", "$1,$2 ", $wkt);
-    
+
     $wkt = substr($wkt, 15);
     $wkt = substr($wkt, 0, -3);
     $polygons = explode(')),((', $wkt);
     $kml = '<MultiGeometry>';
-    
+
     foreach ($polygons as $polygon) {
       $kml .= '<Polygon>';
       $boundary = explode('),(', $polygon);

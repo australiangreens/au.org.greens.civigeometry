@@ -112,11 +112,11 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => trim($sa1JSON),
     ]);
     // Test that calling geometry.get returns all geoemtry in the colletion
-    $collectionGet = $this->callAPISuccess('Geometry', 'get', ['geometry_collection_id' => $this->statesCollection['id']]);
+    $collectionGet = $this->callAPISuccess('Geometry', 'get', ['collection_id' => $this->statesCollection['id']]);
     // We should find 1 geometry
     $this->assertEquals(1, $collectionGet['count']);
     // Check that if we pass in 2 geometry collection types then it will return both the SA1 and the Queensland Geometry
-    $collectionGet2 = $this->callAPISuccess('Geometry', 'get', ['geometry_collection_id' => ['IN' => [$this->statesCollection['id'], $this->sa1Collection['id']]]]);
+    $collectionGet2 = $this->callAPISuccess('Geometry', 'get', ['collection_id' => ['IN' => [$this->statesCollection['id'], $this->sa1Collection['id']]]]);
     $this->assertEquals(2, $collectionGet2['count']);
     $this->callAPIFailure('Geometry', 'create', $geometryParams);
     // Tear down test data
@@ -197,6 +197,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_collection_type_id' => $this->externalCollectionType['id'],
     ];
     $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    $UHCollectionParams['label'] = 'Tasmanian Upper House No MBR';
+    $UHCollection2 = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
     // Create a geometry type
     $UHGometryTypeParams = [
       'label' => 'Upper House Districts',
@@ -210,7 +212,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Sample Tasmanian Upper House ',
       'geometry_type_id' => $UHGeometryType['id'],
-      'collection_id' => [$UHCollection['id']],
+      'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
       'geometry' => trim($upperHouseDistrictJSON),
     ]);
     $upperHouseDistrictMBRData = CRM_Core_DAO::singleValueQuery("SELECT ST_AsGeoJSON(ST_Envelope(geometry)) FROM civigeometry_geometry where id = %1", [1 => [$upperHouseDistrict['id'], 'Positive']]);
@@ -246,6 +248,13 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals(2, $results['count']);
     $this->assertContains($upperHouseDistrict['id'], $results['values']);
     $this->assertContains($upperHouseDistrictMBR['id'], $results['values']);
+    $resultWithCollection = $this->callAPISuccess('Geometry', 'contains', [
+      'geometry_a' => 0,
+      'geometry_a_collection_id' => $UHCollection2['id'],
+      'geometry_b' => 'POINT(147.2687833 -42.9771098)',
+    ]);
+    $this->assertEquals(1, $resultWithCollection['count']);
+    $this->assertContains($upperHouseDistrict['id'], $resultWithCollection['values']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);

@@ -1,6 +1,5 @@
 <?php
 
-use CRM_CiviGeometry_ExtensionUtil as E;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;

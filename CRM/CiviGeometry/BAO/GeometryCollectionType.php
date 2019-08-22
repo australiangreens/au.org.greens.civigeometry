@@ -1,5 +1,4 @@
 <?php
-use CRM_CiviGeometry_ExtensionUtil as E;
 
 class CRM_CiviGeometry_BAO_GeometryCollectionType extends CRM_CiviGeometry_DAO_GeometryCollectionType {
 

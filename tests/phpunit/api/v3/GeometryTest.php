@@ -1,6 +1,5 @@
 <?php
 
-use CRM_CiviGeometry_ExtensionUtil as E;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
 use Civi\Test\TransactionalInterface;
@@ -121,7 +120,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPIFailure('Geometry', 'create', $geometryParams);
     // Tear down test data
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType2['id']]);
-    // verify that we can delete geometries as well as archiving them. 
+    // verify that we can delete geometries as well as archiving them.
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
   }
 
@@ -184,7 +183,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Check that the geometry created matches that in the file.
     $this->assertEquals(json_decode(file_get_contents($geometryFile), TRUE), json_decode($geometry['values'][$geometry['id']]['geometry'], TRUE));
   }
-  
+
   /**
    * Verify that MySQL/MariaDB is not using the Minimum Bounding Rectangle rather using the actual geometry
    * when determining if a point is withing the geometry
@@ -230,14 +229,14 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals(1, $individualResult['values']);
     // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the actual geometry (test RMDS isn't using MBR to do the ST_Contains).
     $nonMBRResult = $this->callAPISuccess('geometry', 'contains', [
-     'geometry_a' => $upperHouseDistrict['id'],
-     'geometry_b' => 'POINT(147.243 -42.983)',
+      'geometry_a' => $upperHouseDistrict['id'],
+      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(0, $nonMBRResult['values']);
     // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
-     'geometry_a' => $upperHouseDistrictMBR['id'],
-     'geometry_b' => 'POINT(147.243 -42.983)',
+      'geometry_a' => $upperHouseDistrictMBR['id'],
+      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(1, $mbrResult['values']);
     // Test that when no geometry is specified that this point is found in both the original poly and the MBR geometry
@@ -479,9 +478,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
     ]);
-    // Verify calling the API again gets the same result and the cache has been used. 
+    // Verify calling the API again gets the same result and the cache has been used.
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
-    $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']); 
+    $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
   }
 
   /**
@@ -538,8 +537,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    */
   public function testGetDistance() {
     $result = $this->callAPISuccess('Geometry', 'getdistance', [
-     'geometry_a' => 'POINT(147.2687833 -42.9771098)',
-     'geometry_b' => 'POINT(147.243 -42.983)',
+      'geometry_a' => 'POINT(147.2687833 -42.9771098)',
+      'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals('2197', (int) $result['values']);
   }
@@ -592,7 +591,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals(['left_bound' => '151.126707616', 'bottom_bound' => '-33.853568996', 'top_bound' => '-33.778527002', 'right_bound' => '151.268936992'], $bounds['values'][$geometry['id']]);
   }
 
- /**
+  /**
    * Test returning geometry in KML format
    */
   public function testCustomOutputFormat() {
@@ -604,8 +603,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => $geometryJSON,
     ]);
     $getGeometry = $this->callAPISuccess('Geometry', 'get', ['format' => 'kml']);
-    $this->assertEquals('<MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>151.18540272,-33.8022812055 151.185615104,-33.8022131255 151.186521952,-33.802339499 151.18660944,-33.8023522825 151.186400992,-33.8033745925 151.18620336,-33.8043426235 151.185657952,-33.8071025645 151.184443328,-33.806932827 151.184176192,-33.8065670635 151.183489312,-33.807019851 151.183223648,-33.807194824 151.18304544,-33.806998983 151.18288128,-33.8068107085 151.182722176,-33.806619178 151.18257024,-33.8064241509999 151.18244352,-33.8062482715 151.182426976,-33.8062253315 151.182289088,-33.806014191 151.182224928,-33.805905744 151.18216128,-33.8057982035 151.182068416,-33.8056292245 151.182040672,-33.805578775 151.18192512,-33.805357478 151.181736832,-33.8049863125 151.181663776,-33.8048362775001 151.181523008,-33.804534339 151.18145568,-33.804382491 151.181874016,-33.8041690195 151.18220064,-33.803836038 151.1829096,-33.8033327825 151.183241152,-33.8031041595 151.18357392,-33.8028830105 151.183727808,-33.802830822 151.184271168,-33.8026439905 151.18540272,-33.8022812055 </coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>'
-      , $getGeometry['values'][$getGeometry['id']]['geometry']);
+    $this->assertEquals('<MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>151.18540272,-33.8022812055 151.185615104,-33.8022131255 151.186521952,-33.802339499 151.18660944,-33.8023522825 151.186400992,-33.8033745925 151.18620336,-33.8043426235 151.185657952,-33.8071025645 151.184443328,-33.806932827 151.184176192,-33.8065670635 151.183489312,-33.807019851 151.183223648,-33.807194824 151.18304544,-33.806998983 151.18288128,-33.8068107085 151.182722176,-33.806619178 151.18257024,-33.8064241509999 151.18244352,-33.8062482715 151.182426976,-33.8062253315 151.182289088,-33.806014191 151.182224928,-33.805905744 151.18216128,-33.8057982035 151.182068416,-33.8056292245 151.182040672,-33.805578775 151.18192512,-33.805357478 151.181736832,-33.8049863125 151.181663776,-33.8048362775001 151.181523008,-33.804534339 151.18145568,-33.804382491 151.181874016,-33.8041690195 151.18220064,-33.803836038 151.1829096,-33.8033327825 151.183241152,-33.8031041595 151.18357392,-33.8028830105 151.183727808,-33.802830822 151.184271168,-33.8026439905 151.18540272,-33.8022812055 </coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>',
+      $getGeometry['values'][$getGeometry['id']]['geometry']);
   }
 
 }

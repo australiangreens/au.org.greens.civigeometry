@@ -90,7 +90,15 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       FROM civigeometry_geometry
       WHERE id = %2";
     if ($params['geometry_a'] == 0) {
-      $geometries = civicrm_api3('Geometry', 'get', ['is_active' => 1, 'options' => ['limit' => 0], 'return' => ['id']]);
+      $geometryParams = [
+        'is_active' => 1,
+        'options' => ['limit' => 0],
+        'return' => ['id'],
+      ];
+      if (!empty($params['geometry_a_collection_id'])) {
+        $geometryParams['collection_id'] = $params['geometry_a_collection_id'];
+      }
+      $geometries = civicrm_api3('Geometry', 'get', $geometryParams);
       foreach ($geometries['values'] as $geometry) {
         if (is_numeric($params['geometry_b'])) {
           $res = CRM_Core_DAO::singleValueQuery($duleIntegerSQL, [

@@ -89,5 +89,6 @@
     <type>geometry</type>
     <comment>The Spatial data for this geometry</comment>
     <crmType>CRM_Utils_Type::T_STRING</crmType>
+    <required>true</required>
   </field>
 </table>

@@ -138,7 +138,7 @@ CREATE TABLE `civigeometry_geometry` (
      `description` varchar(255)   DEFAULT NULL COMMENT 'The description of this geometry',
      `is_archived` tinyint   DEFAULT 0 COMMENT 'Is this geometry archived?',
      `archived_date` timestamp NULL  DEFAULT NULL COMMENT 'The Title of this geometry',
-     `geometry` geometry    COMMENT 'The Spatial data for this geometry' 
+     `geometry` geometry NOT NULL   COMMENT 'The Spatial data for this geometry' 
 ,
         PRIMARY KEY (`id`)
  

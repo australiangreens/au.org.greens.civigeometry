@@ -52,15 +52,9 @@ end
    * created during the installation (e.g., a setting or a managed entity), do
    * so here to avoid order of operation problems.
    */
-  //public function postInstall() {
-  // $customFieldId = civicrm_api3('CustomField', 'getvalue', array(
-  //   'return' => array("id"),
-  //   'name' => "customFieldCreatedViaManagedHook",
-  //));
-  //civicrm_api3('Setting', 'create', array(
-  //   'myWeirdFieldSetting' => array('id' => $customFieldId, 'weirdness' => 1),
-  //));
-  //}
+  public function postInstall() {
+    CRM_Core_DAO::executeQuery('ALTER TABLE civigeometry_geometry ADD SPATIAL INDEX(`geometry`)');
+  }
 
   /**
    * Example: Run an external SQL script when the module is uninstalled.
@@ -84,17 +78,17 @@ end
   //}
 
   /**
-   * Example: Run a couple simple queries.
+   * Add Spatial Data Index to civigeometry_geoemtry table.
    *
    * @return TRUE on success
    * @throws Exception
    */
-  //public function upgrade_4200() {
-  //  $this->ctx->log->info('Applying update 4200');
-  //  CRM_Core_DAO::executeQuery('UPDATE foo SET bar = "whiz"');
-  //  CRM_Core_DAO::executeQuery('DELETE FROM bang WHERE willy = wonka(2)');
-  //  return TRUE;
-  //}
+  public function upgrade_4200() {
+    $this->ctx->log->info('Applying update 4200 - Applying Spatial Index to civigeometry_geometry');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry CHANGE geometry geometry geometry  NOT NULL  COMMENT 'The Spatial data for this geometry'");
+    CRM_Core_DAO::executeQuery('ALTER TABLE civigeometry_geometry ADD SPATIAL INDEX(`geometry`)');
+    return TRUE;
+  }
 
 
   /**

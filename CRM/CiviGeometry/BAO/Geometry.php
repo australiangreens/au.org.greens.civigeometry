@@ -23,6 +23,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     if (!empty($params['geometry'])) {
       $geometry = $params['geometry'];
       unset($params['geometry']);
+      // We need to pass in a basic geometry point because MariaDB will not permit Spatial Indexes with NULL values and there for a value is needed for insert.
+      // MySQL5.7 appears to support spatial indexes with NULL values;
+      $params['geometry'] = CRM_Core_DAO::singleValueQuery("SELECT ST_geomFromText('POINT(0 0)')");
     }
     $instance->copyValues($params);
     $instance->save();

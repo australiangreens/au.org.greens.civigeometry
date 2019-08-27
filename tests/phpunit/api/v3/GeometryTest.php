@@ -255,6 +255,14 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $this->assertEquals(1, $resultWithCollection['count']);
     $this->assertContains($upperHouseDistrict['id'], $resultWithCollection['values']);
+    // Assert that the non MBR geometry contains its self and MBR
+    $resultGeometryIdB = $this->callAPISuccess('Geometry', 'contains', [
+      'geometry_a' => 0,
+      'geometry_b' => $upperHouseDistrict['id'],
+    ]);
+    $this->assertEquals(2, $resultGeometryIdB['count']);
+    $this->assertContains($upperHouseDistrict['id'], $resultGeometryIdB['values']);
+    $this->assertContains($upperHouseDistrictMBR['id'], $resultGeometryIdB['values']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);

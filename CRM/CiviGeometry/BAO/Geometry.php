@@ -104,17 +104,17 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $geometries = civicrm_api3('Geometry', 'get', $geometryParams)['values'];
       $singleIntergerSQL .= " WHERE id IN (%2)";
       $dualIntegerSQL .= " AND a.id IN (%1)";
-      $geoemtry_ids = CRM_Utils_Array::collect('id', $geometries);
+      $geometry_ids = CRM_Utils_Array::collect('id', $geometries);
       if (is_numeric($params['geometry_b'])) {
         $res = CRM_Core_DAO::executeQuery($dualIntegerSQL, [
-          1 => [implode(', ', $geoemtry_ids), 'CommaSeparatedIntegers'],
+          1 => [implode(', ', $geometry_ids), 'CommaSeparatedIntegers'],
           2 => [$params['geometry_b'], 'Positive'],
         ]);
       }
       else {
         $res = CRM_Core_DAO::executeQuery($singleIntergerSQL, [
           1 => [$params['geometry_b'], 'String'],
-          2 => [implode(', ', $geoemtry_ids), 'CommaSeparatedIntegers'],
+          2 => [implode(', ', $geometry_ids), 'CommaSeparatedIntegers'],
         ]);
       }
       while ($res->fetch()) {

@@ -103,7 +103,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       }
       $geometries = civicrm_api3('Geometry', 'get', $geometryParams)['values'];
       $singleIntergerSQL .= " WHERE id IN (%2)";
-      $dualIntegerSQL .= "AND a.id IN (%1)";
+      $dualIntegerSQL .= " AND a.id IN (%1)";
       $geoemtry_ids = CRM_Utils_Array::collect('id', $geometries);
       if (is_numeric($params['geometry_b'])) {
         $res = CRM_Core_DAO::executeQuery($dualIntegerSQL, [

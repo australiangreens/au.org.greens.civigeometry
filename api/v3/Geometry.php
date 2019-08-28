@@ -103,7 +103,11 @@ function civicrm_api3_geometry_get($params) {
   }
   $sql = NULL;
   if (!empty($params['collection_id'])) {
-    $geometries = civicrm_api3('Geometry', 'getcollection', ['collection_id' => $params['collection_id'], 'return' => ['geometry_id']]);
+    $geometries = civicrm_api3('Geometry', 'getcollection', [
+      'collection_id' => $params['collection_id'],
+      'return' => ['geometry_id'],
+      'options' => ['limit' => 0],
+    ]);
     $geometryIds = CRM_Utils_Array::collect('geometry_id', $geometries['values']);
     $sql = CRM_Utils_SQL_Select::fragment()->where('id IN (#geometryIDs)', ['geometryIDs' => $geometryIds]);
   }

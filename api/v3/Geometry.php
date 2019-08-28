@@ -103,7 +103,11 @@ function civicrm_api3_geometry_get($params) {
   }
   $sql = NULL;
   if (!empty($params['collection_id'])) {
-    $geometries = civicrm_api3('Geometry', 'getcollection', ['collection_id' => $params['collection_id'], 'return' => ['geometry_id']]);
+    $geometries = civicrm_api3('Geometry', 'getcollection', [
+      'collection_id' => $params['collection_id'],
+      'return' => ['geometry_id'],
+      'options' => ['limit' => 0],
+    ]);
     $geometryIds = CRM_Utils_Array::collect('geometry_id', $geometries['values']);
     $sql = CRM_Utils_SQL_Select::fragment()->where('id IN (#geometryIDs)', ['geometryIDs' => $geometryIds]);
   }
@@ -111,21 +115,24 @@ function civicrm_api3_geometry_get($params) {
   $results = _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params, TRUE, "", $sql);
   if (!empty($results['values'])) {
     foreach ($results['values'] as $key => $values) {
-      $id = !empty($params['sequential']) ? $values['id'] : $key;
-      $mySQLFunction = 'ST_AsGeoJSON';
-      $kml = FALSE;
-      // If we are outputting a KML or wkt format then we use ST_asText rather than ST_AsGeoJSON
-      if (!empty($params['format']) && in_array($params['format'], ['kml', 'wkt'])) {
-        $mySQLFunction = 'ST_AsText';
-        if ($params['format'] == 'kml') {
-          $kml = TRUE;
+      // Geometry field was returned in the select so we need to re-format into geoJSON, kml or wkt format.
+      if (isset($values['geometry'])) {
+        $id = !empty($params['sequential']) ? $values['id'] : $key;
+        $mySQLFunction = 'ST_AsGeoJSON';
+        $kml = FALSE;
+        // If we are outputting a KML or wkt format then we use ST_asText rather than ST_AsGeoJSON
+        if (!empty($params['format']) && in_array($params['format'], ['kml', 'wkt'])) {
+          $mySQLFunction = 'ST_AsText';
+          if ($params['format'] == 'kml') {
+            $kml = TRUE;
+          }
         }
+        $geometry = CRM_Core_DAO::singleValueQuery("SELECT {$mySQLFunction}(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
+        if ($kml) {
+          $geometry = CRM_CiviGeometry_BAO_Geometry::wkt2kml($geometry);
+        }
+        $results['values'][$key]['geometry'] = $geometry;
       }
-      $geometry = CRM_Core_DAO::singleValueQuery("SELECT {$mySQLFunction}(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$id, 'Positive']]);
-      if ($kml) {
-        $geometry = CRM_CiviGeometry_BAO_Geometry::wkt2kml($geometry);
-      }
-      $results['values'][$key]['geometry'] = $geometry;
     }
   }
   return $results;

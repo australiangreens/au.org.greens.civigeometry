@@ -616,4 +616,26 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       $getGeometry['values'][$getGeometry['id']]['geometry']);
   }
 
+  /**
+   * Test that requesting only specific parameters you only get those paremters back
+   */
+  public function testGeometryReturnParams() {
+    $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'sample_sa1_geometry',
+      'geometry_type_id' => $this->sa1GeometryType['id'],
+      'collection_id' => [$this->sa1Collection['id']],
+      'geometry' => $geometryJSON,
+    ]);
+    $geometryGet = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id'], 'return' => ['id', 'label', 'geometry_type_id']]);
+    $this->assertEquals('sample_sa1_geometry', $geometryGet['values'][$geometry['id']]['label']);
+    $this->assertEquals($geometry['id'], $geometryGet['values'][$geometry['id']]['id']);
+    $this->assertEquals($this->sa1GeometryType['id'], $geometryGet['values'][$geometry['id']]['geometry_type_id']);
+    // Assert that we haven't returned geometry.
+    $this->assertTRUE(!isset($geometryGet['values'][$geometry['id']]['geometry']));
+    // Assert that when we request geometry we get it back
+    $geometryGet2 = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id'], 'return' => ['geometry']]);
+    $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($geometryGet2['values'][$geometry['id']]['geometry'], TRUE));
+  }
+
 }

@@ -94,21 +94,25 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       FROM civigeometry_geometry cg";
     $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
-      $singleIntegerSQL .= " INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
-      $singleIntegerWhere = " AND cgc.collection_id = %2";
-      $dualIntegerSQL .= " INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = a.id";
-      $dualIntegerWhere .= " AND cgc.collection_id = %1";
+      $dualIntegerParams = [
+        2 => [$params['geometry_b'], 'Positive']
+      ];
+      $singleIntegerParams = [
+        1 => [$params['geometry_b'], 'String'],
+      ];
+      if (!empty($params['geometry_a_collection_id'])) {
+        $singleIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
+        $singleIntegerWhere = " AND cgc.collection_id = %2";
+        $singleIntegerParams[2] = [$params['geometry_a_collection_id'], 'Positive'];
+        $dualIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = a.id";
+        $dualIntegerWhere .= " AND cgc.collection_id = %1";
+        $dualIntegerParams[1] = [$params['geometry_a_collection_id'], 'Positive'];
+      }
       if (is_numeric($params['geometry_b'])) {
-        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, [
-          1 => [$params['geometry_a_collection_id'], 'Positive'],
-          2 => [$params['geometry_b'], 'Positive'],
-        ]);
+        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, $dualIntegerParams);
       }
       else {
-        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, [
-          1 => [$params['geometry_b'], 'String'],
-          2 => [$params['geometry_a_collection_id'], 'Positive'],
-        ]);
+        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
       }
       while ($res->fetch()) {
         if ($res->contains_result) {

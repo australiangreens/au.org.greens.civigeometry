@@ -89,17 +89,13 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $multipleResult = [];
     $dualIntegerSQL = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
         FROM civigeometry_geometry a, civigeometry_geometry b";
-    $dualIntegerWhere = " WHERE b.id = %2";
+    $dualIntegerWhere = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
     $singleIntegerSQL = "SELECT cg.id, ST_Contains(cg.geometry, GeomFromText(%1, 4326)) as contains_result
       FROM civigeometry_geometry cg";
+    $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
-      $geometryParams = [
-        'is_archived' => 0,
-        'options' => ['limit' => 0],
-        'return' => ['id'],
-      ];
-      $geometries = civicrm_api3('Geometry', 'get', $geometryParams)['values'];
-      $singleIntegerSQL .= "INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = cg.id WHERE cgc.collection_id = %2";
+      $singleIntegerSQL .= "INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
+      $singleIntegerWhere = " AND cgc.collection_id = %2";
       $dualIntegerSQL .= " INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = a.id";
       $dualIntegerWhere .= " AND cgc.collection_id = %1";
       $geometry_ids = CRM_Utils_Array::collect('id', $geometries);
@@ -110,7 +106,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         ]);
       }
       else {
-        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL, [
+        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, [
           1 => [$params['geometry_b'], 'String'],
           2 => [$params['geoemtry_a_collection_id'], 'Positive'],
         ]);
@@ -130,7 +126,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ];
     }
     else {
-      $sql = $singleIntegerSQL . " WHERE id = %2";
+      $sql = $singleIntegerSQL . $singleIntegerWhere . " AND cg.id = %2";
       $sql_params = [
         1 => [$params['geometry_b'], 'String'],
         2 => [$params['geometry_a'], 'Positive'],

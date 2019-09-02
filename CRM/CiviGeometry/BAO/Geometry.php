@@ -94,11 +94,10 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       FROM civigeometry_geometry cg";
     $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
-      $singleIntegerSQL .= "INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
+      $singleIntegerSQL .= " INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
       $singleIntegerWhere = " AND cgc.collection_id = %2";
       $dualIntegerSQL .= " INNER JOIN civigeometry_collection_geometry cgc ON cgc.geometry_id = a.id";
       $dualIntegerWhere .= " AND cgc.collection_id = %1";
-      $geometry_ids = CRM_Utils_Array::collect('id', $geometries);
       if (is_numeric($params['geometry_b'])) {
         $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, [
           1 => [$params['geometry_a_collection_id'], 'Positive'],

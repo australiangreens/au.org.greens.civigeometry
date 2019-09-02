@@ -108,7 +108,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       else {
         $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, [
           1 => [$params['geometry_b'], 'String'],
-          2 => [$params['geoemtry_a_collection_id'], 'Positive'],
+          2 => [$params['geometry_a_collection_id'], 'Positive'],
         ]);
       }
       while ($res->fetch()) {

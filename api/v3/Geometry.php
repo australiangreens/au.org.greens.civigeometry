@@ -516,7 +516,7 @@ function civicrm_api3_geometry_getaddressgeometry($params) {
   if ($params['is_active']) {
     $sql = CRM_Utils_SQL_Select::fragment()->where('a.geometry_id IN (SELECT id FROM civigeometry_geometry WHERE is_archived = 0)');
   }
-  return _civicrm_api3_basic_get('CRM_CiviGeometry_BAO_AddressGeometry', $params, TRUE, "", $sql);
+  return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_AddressGeometry', $params, TRUE, "", $sql);
 }
 
 /**
@@ -550,5 +550,5 @@ function _civicrm_api3_geometry_createaddressgeometry_spec(&$spec) {
  * @return array
  */
 function civicrm_api3_geometry_createaddressgeometry($params) {
-  return _civicrm_api3_basic_create('CRM_CiviGeometry_BAO_AddressGeometry', $params);
+  return _civicrm_api3_basic_create('CRM_CiviGeometry_DAO_AddressGeometry', $params);
 }

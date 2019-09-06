@@ -472,3 +472,83 @@ function civicrm_api3_geometry_getbounds($params) {
   $apiResult[$params['id']] = CRM_CiviGeometry_BAO_Geometry::generateBounds($params['id']);
   return civicrm_api3_create_success($apiResult);
 }
+
+/**
+ * Geometry.getbounds API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getaddressgeometry_spec(&$spec) {
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Geometry',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_Geometry',
+    'FKKeyColumn' => 'id',
+  ];
+  $spec['address_id'] = [
+    'title' => E::ts('Address ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Address',
+    'FKClassName' => 'CRM_Core_BAO_Address',
+    'FKKeyColumn' => 'id',
+  ];
+  $spec['is_active'] = [
+    'title' => E::ts('Limit to only Active Geometries'),
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+    'api.default' => 1,
+  ];
+}
+
+/**
+ * Return the bounds of the geometry
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_getaddressgeometry($params) {
+  $sql = '';
+  if (empty($params['geometry_id']) && empty($params['address_id'])) {
+    throw new \API_Exception(E::ts('Must supply one of geometry_id or address_id'));
+  }
+  if ($params['is_active']) {
+    $sql = CRM_Utils_SQL_Select::fragment()->where('a.geometry_id IN (SELECT id FROM civigeometry_geometry WHERE is_archived = 0)');
+  }
+  return _civicrm_api3_basic_get('CRM_CiviGeometry_BAO_AddressGeometry', $params, TRUE, "", $sql);
+}
+
+/**
+ * Geometry.getbounds API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_createaddressgeometry_spec(&$spec) {
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Geometry',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_Geometry',
+    'FKKeyColumn' => 'id',
+  ];
+  $spec['address_id'] = [
+    'title' => E::ts('Address ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Address',
+    'FKClassName' => 'CRM_Core_BAO_Address',
+    'FKKeyColumn' => 'id',
+  ];
+}
+
+/**
+ * Return the bounds of the geometry
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_createaddressgeometry($params) {
+  return _civicrm_api3_basic_create('CRM_CiviGeometry_BAO_AddressGeometry', $params);
+}

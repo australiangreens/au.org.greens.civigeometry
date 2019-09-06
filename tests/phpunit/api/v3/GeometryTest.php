@@ -20,8 +20,9 @@ use Civi\Test\TransactionalInterface;
  */
 class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
-  use Civi\Test\Api3DocTrait;
-  use Civi\Test\GenericAssertionsTrait;
+  use \Civi\Test\Api3DocTrait;
+  use \Civi\Test\GenericAssertionsTrait;
+  use \Civi\Test\ContactTestTrait;
 
   private $jsonDirectoryStore = __DIR__ . DIRECTORY_SEPARATOR . 'load';
 
@@ -636,6 +637,70 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Assert that when we request geometry we get it back
     $geometryGet2 = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id'], 'return' => ['geometry']]);
     $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($geometryGet2['values'][$geometry['id']]['geometry'], TRUE));
+  }
+
+  /**
+   * Verify that MySQL/MariaDB is not using the Minimum Bounding Rectangle rather using the actual geometry
+   * when determining if a point is withing the geometry
+   */
+  public function testGeometryAddressStorage() {
+    // Create a collection
+    $UHCollectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    $UHCollectionParams['label'] = 'Tasmanian Upper House No MBR';
+    $UHCollection2 = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    // Create a geometry type
+    $UHGometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGometryTypeParams);
+    // upperHouseDistrict is a Tasmanian Upperhouse District as of November 2018
+    // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
+    // Differences between MBR and actual geometry easier.
+    // We are going to create 2 geometry records 1 being the geometry itself and the other being the MBR of the upperHouseDistrict Geometry
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
+      'geometry_type_id' => $UHGeometryType['id'],
+      'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
+      'geometry' => trim($upperHouseDistrictJSON),
+    ]);
+    // Create a CiviCRM Address with a known point
+    $contact = $this->individualCreate();
+    $address = $this->callAPISuccess('Address', 'Create', [
+      'contact_id' => $contact,
+      'location_type_id' => 'Billing',
+      'street_address' => '123 Happy Place',
+      'city' => 'New York',
+      'skip_geocode' => 1,
+      'geo_code_1' => '-42.9771098',
+      'geo_code_2' => '147.2687833',
+    ]);
+    // Return Geometry IDs for which this point from the address is in
+    $result = $this->callAPISuccess('Geometry', 'contains', [
+      'geometry_a' => 0,
+      'geometry_b' => 'POINT(' . $address['values'][$address['id']]['geo_code_2'] . ' ' . $address['values'][$address['id']]['geo_code_1'] . ')',
+    ]);
+    foreach ($result['values'] as $geometry_id) {
+      $this->callAPISuccess('Geometry', 'createaddressgeometry', [
+        'address_id' => $address['id'],
+        'geometry_id' => $geometry_id,
+      ]);
+    }
+    $getResult = $this->callAPISuccess('Geometry', 'getaddressgeometry', [
+      'address_id' => $address['id'],
+    ]);
+    $this->assertEquals(1, $getResult['count']);
+    $this->assertEquals(array_values($result['values']), array_values(CRM_Utils_Array::collect('geometry_id', $getResult['values'])));
+    $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection2['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
   }
 
 }

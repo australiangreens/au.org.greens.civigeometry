@@ -90,6 +90,16 @@ end
     return TRUE;
   }
 
+  /**
+   * Add in AddressGeometry Table
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_4201() {
+    $this->ctx->log->info('Applying update 4201 - Adding in AddressGeometry Table');
+    $this->executeSqlFile('sql/address_geometry.sql');
+  }
 
   /**
    * Example: Run an external SQL script.

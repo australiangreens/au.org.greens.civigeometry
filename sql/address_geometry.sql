@@ -1,4 +1,4 @@
-CREATE TABLE `civicrm_address_geometry` (
+CREATE TABLE `civigeometry_address_geometry` (
 
 
      `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique AddressGeometry ID',

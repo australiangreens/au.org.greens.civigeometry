@@ -3,7 +3,7 @@
 <table>
   <base>CRM/CiviGeometry</base>
   <class>AddressGeometry</class>
-  <name>civicrm_address_geometry</name>
+  <name>civigeometry_address_geometry</name>
   <comment>Holds a static cache of geometry ids an address is within</comment>
   <log>true</log>
 

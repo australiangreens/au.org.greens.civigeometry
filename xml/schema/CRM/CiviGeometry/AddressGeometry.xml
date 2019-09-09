@@ -24,12 +24,6 @@
     <comment>FK to Address Table</comment>
     <required>true</required>
   </field>
-  <foreignKey>
-    <name>address_id</name>
-    <table>civicrm_address</table>
-    <key>id</key>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
   <field>
     <name>geometry_id</name>
     <type>int unsigned</type>
@@ -42,5 +36,11 @@
     <key>id</key>
     <onDelete>CASCADE</onDelete>
   </foreignKey>
+  <index>
+    <name>UI_geometry_id_address_id</name>
+    <fieldName>geometry_id</fieldName>
+    <fieldName>address_id</fieldName>
+    <unique>true</unique>
+  </index>
 
 </table>

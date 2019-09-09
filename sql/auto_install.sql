@@ -62,13 +62,13 @@
 
 SET FOREIGN_KEY_CHECKS=0;
 
-DROP TABLE IF EXISTS `civigeometry_address_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_overlap_cache`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
 DROP TABLE IF EXISTS `civigeometry_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
+DROP TABLE IF EXISTS `civigeometry_address_geometry`;
 
 SET FOREIGN_KEY_CHECKS=1;
 -- /*******************************************************
@@ -229,6 +229,7 @@ CREATE TABLE `civigeometry_geometry_overlap_cache` (
 ,          CONSTRAINT FK_civigeometry_geometry_overlap_cache_geometry_id_a FOREIGN KEY (`geometry_id_a`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_overlap_cache_geometry_id_b FOREIGN KEY (`geometry_id_b`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
 )    ;
 
+ 
 -- /*******************************************************
 -- *
 -- * civigeometry_address_geometry
@@ -250,7 +251,6 @@ CREATE TABLE `civigeometry_address_geometry` (
       , address_id
   )
   
-,          CONSTRAINT FK_civigeometry_address_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
+,          CONSTRAINT FK_civigeometry_address_geometry_address_id FOREIGN KEY (`address_id`) REFERENCES `civicrm_address`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_address_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
 )    ;
 
- 

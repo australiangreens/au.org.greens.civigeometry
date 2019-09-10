@@ -690,6 +690,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $this->assertEquals(1, $getResult['count']);
     $this->assertEquals(array_values($result['values']), array_values(CRM_Utils_Array::collect('geometry_id', $getResult['values'])));
+    // Assert That when we skip the cache we get the same information back.
+    $nonCacheResult = $this->callAPISuccess('Address', 'getgeometries', [
+      'address_id' => $address['id'],
+      'skip_cache' => 1,
+    ]);
+    $this->assertEquals(array_values($result['values']), array_values(CRM_Utils_Array::collect('geometry_id', $nonCacheResult['values'])));
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
@@ -746,6 +752,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('geometry', 'archive', ['id' => $upperHouseDistrict['id']]);
     $result2 = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals(0, $result2['count']);
+    // Esure that when we pass skip cache that we still return information back even if the geometry is archived.
+    $nonCacheResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id'], 'skip_cache' => 1]);
+    $this->assertEquals(1, $nonCacheResult['count']);
+    $this->assertEquals($upperHouseDistrict['id'], $nonCacheResult['values'][0]['geometry_id']);
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);

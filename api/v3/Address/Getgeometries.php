@@ -22,6 +22,11 @@ function _civicrm_api3_address_getgeometries_spec(&$spec) {
     'FKClassName' => 'CRM_CiviGeometry_BAO_Geometry',
     'FKApiName' => 'Geometry',
   ];
+  $spec['skip_cache'] = [
+    'title' => E::ts('Skip Cache'),
+    'type' => CRM_Utils_Type::T_BOOLEAN,
+    'api.default' => 0,
+  ];
 }
 
 /**
@@ -35,5 +40,30 @@ function _civicrm_api3_address_getgeometries_spec(&$spec) {
  */
 function civicrm_api3_address_getgeometries($params) {
   civicrm_api3_verify_one_mandatory($params, NULL, ['address_id', 'geometry_id']);
+  if ($params['skip_cache']) {
+    if (!empty($params['address_id'])) {
+      $address = civicrm_api3('Address', 'getsingle', ['id' => $params['address_id']]);
+      $results = [];
+      if (!empty($address['geo_code_1']) && !empty($address['geo_code_2'])) {
+        $geometries = civicrm_api3('Geometry', 'contains', [
+          'geometry_a' => 0,
+          'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',
+        ]);
+        $key = 0;
+        foreach ($geometries['values'] as $geometry) {
+          $results[$key] = [
+            'address_id' => $params['address_id'],
+            'geometry_id' => $geometry,
+          ];
+          $key++;
+        }
+        return civicrm_api3_create_success($results, $params);
+      }
+      return civicrm_api3_create_success(0);
+    }
+    else {
+      return civicrm_api3_create_success(CRM_CiviGeometry_BAO_Geometry::getAddresses($params['geometry_id']), $params);
+    } 
+  }
   return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_AddressGeometry', $params);
 }

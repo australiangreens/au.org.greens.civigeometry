@@ -377,4 +377,18 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $kml;
   }
 
+  /**
+   * Get an an array of address ids for a specific geometry_id
+   * @param int $geometry_id
+   * @return array
+   */
+  public static function getAddresses($geometry_id) {
+    $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g, civicrm_address ca')
+      ->select("ca.id as address_id, g.id as geometry_id")
+      ->where("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) = 1")
+      ->where("g.id = #geometry_id", ['geometry_id' => $geometry_id]);
+    $results = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+    return $results;
+  }
+
 }

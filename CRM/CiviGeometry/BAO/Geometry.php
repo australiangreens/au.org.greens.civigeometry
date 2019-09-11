@@ -88,34 +88,31 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   public static function contains($params) {
     $multipleResult = [];
     $dualIntegerSQL = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
-      FROM civigeometry_geometry a, civigeometry_geometry b
-      WHERE b.id = %2";
-    $singleIntergerSQL = "SELECT id, ST_Contains(geometry, GeomFromText(%1, 4326)) as contains_result
-      FROM civigeometry_geometry";
+        FROM civigeometry_geometry a, civigeometry_geometry b";
+    $dualIntegerWhere = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
+    $singleIntegerSQL = "SELECT cg.id, ST_Contains(cg.geometry, GeomFromText(%1, 4326)) as contains_result
+      FROM civigeometry_geometry cg";
+    $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
-      $geometryParams = [
-        'is_archived' => 0,
-        'options' => ['limit' => 0],
-        'return' => ['id'],
+      $dualIntegerParams = [
+        2 => [$params['geometry_b'], 'Positive']
+      ];
+      $singleIntegerParams = [
+        1 => [$params['geometry_b'], 'String'],
       ];
       if (!empty($params['geometry_a_collection_id'])) {
-        $geometryParams['collection_id'] = $params['geometry_a_collection_id'];
+        $singleIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
+        $singleIntegerWhere = " AND cgc.collection_id = %2";
+        $singleIntegerParams[2] = [$params['geometry_a_collection_id'], 'Positive'];
+        $dualIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = a.id";
+        $dualIntegerWhere .= " AND cgc.collection_id = %1";
+        $dualIntegerParams[1] = [$params['geometry_a_collection_id'], 'Positive'];
       }
-      $geometries = civicrm_api3('Geometry', 'get', $geometryParams)['values'];
-      $singleIntergerSQL .= " WHERE id IN (%2)";
-      $dualIntegerSQL .= " AND a.id IN (%1)";
-      $geometry_ids = CRM_Utils_Array::collect('id', $geometries);
       if (is_numeric($params['geometry_b'])) {
-        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL, [
-          1 => [implode(', ', $geometry_ids), 'CommaSeparatedIntegers'],
-          2 => [$params['geometry_b'], 'Positive'],
-        ]);
+        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, $dualIntegerParams);
       }
       else {
-        $res = CRM_Core_DAO::executeQuery($singleIntergerSQL, [
-          1 => [$params['geometry_b'], 'String'],
-          2 => [implode(', ', $geometry_ids), 'CommaSeparatedIntegers'],
-        ]);
+        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
       }
       while ($res->fetch()) {
         if ($res->contains_result) {
@@ -125,14 +122,14 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       return $multipleResult;
     }
     if (is_numeric($params['geometry_b'])) {
-      $sql = $dualIntegerSQL . " AND a.id = %1";
+      $sql = $dualIntegerSQL . $dualIntegerWhere . " AND a.id = %1";
       $sql_params = [
         1 => [$params['geometry_a'], 'Positive'],
         2 => [$params['geometry_b'], 'Positive'],
       ];
     }
     else {
-      $sql = $singleIntergerSQL . " WHERE id = %2";
+      $sql = $singleIntegerSQL . $singleIntegerWhere . " AND cg.id = %2";
       $sql_params = [
         1 => [$params['geometry_b'], 'String'],
         2 => [$params['geometry_a'], 'Positive'],

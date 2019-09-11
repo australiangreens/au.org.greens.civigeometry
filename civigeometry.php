@@ -10,8 +10,7 @@ use CRM_Civigeometry_ExtensionUtil as E;
  */
 function civigeometry_civicrm_config(&$config) {
   _civigeometry_civix_civicrm_config($config);
-
-  Civi::service('dispatcher')->addListener('hook_civicrm_post', 'civigeometry_symfony_civicrm_post', -100);
+  Civi::service('dispatcher')->addListener('hook_civicrm_post', 'civigeometry_symfony_civicrm_post', -99);
 }
 
 /**

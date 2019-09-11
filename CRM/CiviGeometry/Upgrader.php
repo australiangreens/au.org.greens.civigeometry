@@ -99,6 +99,7 @@ end
   public function upgrade_4201() {
     $this->ctx->log->info('Applying update 4201 - Adding in AddressGeometry Table');
     $this->executeSqlFile('sql/address_geometry.sql');
+    return TRUE;
   }
 
   /**

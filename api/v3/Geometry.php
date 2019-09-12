@@ -158,14 +158,24 @@ function civicrm_api3_geometry_getcollection($params) {
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_geometry_getcollection_spec(&$spec) {
-  $spec['geometry_id']['title'] = E::ts('Geometry ID');
-  $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
-  $spec['collection_id']['title'] = E::ts('Collection IDs');
-  $spec['collection_id']['type'] = CRM_Utils_Type::T_INT;
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Geometry',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_Geometry',
+    'FKKeyColumn' => 'id',
+  ];
+  $spec['collection_id'] = [
+    'title' => E::ts('Collection IDs'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'GeometryCollection',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_GeometryCollection',
+    'FKKeyColumn' => 'id',
+  ];
 }
 
 /**
- * Geomety.aCollections
+ * Geomety.addcollection
  *
  * @param array $params
  * @return array API result descriptor
@@ -188,10 +198,20 @@ function civicrm_api3_geometry_addcollection($params) {
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_geometry_addcollection_spec(&$spec) {
-  $spec['geometry_id']['title'] = E::ts('Geometry');
-  $spec['geometry_id']['api.required'] = 1;
-  $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
-  $spec['collection_id']['title'] = E::ts('Collection IDs');
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Geometry',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_Geometry',
+    'FKKeyColumn' => 'id',
+    'api.required' => 1,
+  ];
+  $spec['collection_id'] = [
+    'title' => E::ts('Collection IDs'),
+    'FKApiName' => 'GeometryCollection',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_GeometryCollection',
+    'FKKeyColumn' => 'id',
+  ];
 }
 
 /**
@@ -213,11 +233,21 @@ function civicrm_api3_geometry_removecollection($params) {
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
  */
 function _civicrm_api3_geometry_removecollection_spec(&$spec) {
-  $spec['geometry_id']['title'] = E::ts('Geometry');
-  $spec['geometry_id']['api.required'] = 1;
-  $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
-  $spec['collection_id']['title'] = E::ts('Collection IDs');
-  $spec['collection_id']['api.required'] = 1;
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'FKApiName' => 'Geometry',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_Geometry',
+    'FKKeyColumn' => 'id',
+    'api.required' => 1,
+  ];
+  $spec['collection_id'] = [
+    'title' => E::ts('Collection IDs'),
+    'FKApiName' => 'GeometryCollection',
+    'FKClassName' => 'CRM_CiviGeometry_BAO_GeometryCollection',
+    'FKKeyColumn' => 'id',
+    'api.required' => 1,
+  ];
 }
 
 /**

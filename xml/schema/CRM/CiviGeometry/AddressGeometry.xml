@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/CiviGeometry</base>
+  <class>AddressGeometry</class>
+  <name>civigeometry_address_geometry</name>
+  <comment>Holds a static cache of geometry ids an address is within</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique AddressGeometry ID</comment>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>address_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Address Table</comment>
+    <required>true</required>
+  </field>
+  <foreignKey>
+    <name>address_id</name>
+    <table>civicrm_address</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <field>
+    <name>geometry_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Geometry Table</comment>
+    <required>true</required>
+  </field>
+  <foreignKey>
+    <name>geometry_id</name>
+    <table>civigeometry_geometry</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <index>
+    <name>UI_geometry_id_address_id</name>
+    <fieldName>geometry_id</fieldName>
+    <fieldName>address_id</fieldName>
+    <unique>true</unique>
+  </index>
+
+</table>

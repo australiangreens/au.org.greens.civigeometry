@@ -10,6 +10,7 @@ use CRM_Civigeometry_ExtensionUtil as E;
  */
 function civigeometry_civicrm_config(&$config) {
   _civigeometry_civix_civicrm_config($config);
+  Civi::service('dispatcher')->addListener('hook_civicrm_post', 'civigeometry_symfony_civicrm_post', -99);
 }
 
 /**
@@ -169,4 +170,57 @@ function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$
   $permissions['geometry_type']['create'] = $permissions['geometry_type']['delete'] = array(array('administer geometry', 'administer civicrm'));
   $permissions['geometry_type']['default'] = array('access geometry');
   $permissions['geometry_collection_type'] = $permissions['geometry_type'];
+}
+
+/**
+ * Implements hook_civicrm_post().
+ *
+ * This adds records to civigeometry_adddress_geometry whenever an address is updated or created
+ * also removes any records from the civigeomety_address_geometry table if the geometry gets archived.
+ */
+function civigeometry_symfony_civicrm_post($event) {
+  $hookValues = $event->getHookValues();
+  // Hook value keys are
+  // 0 = op
+  // 1 = objectName
+  // 2 = objectId
+  // 3 = objectREf
+  if ($hookValues[0] !== 'delete' && $hookValues[1] == 'Address') {
+    $id = $hookValues[2];
+    $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];
+    if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
+      $geometry_ids = civicrm_api3('Geometry', 'contains', [
+        'geometry_a' => 0,
+        'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',
+      ])['values'];
+      if (!empty($geometry_ids)) {
+        foreach ($geometry_ids as $geometry_id) {
+          civicrm_api3('Address', 'creategeometries', [
+            'address_id' => $id,
+            'geometry_id' => $geometry_id,
+          ]);
+        }
+      }
+    }
+  }
+  // If a geometry has been archived ensure that all records of it in the AddressGeometry table are removed.
+  if ($hookValues[0] == 'archive' && $hookValues[1] == 'Geometry') {
+    $id = $hookValues[2];
+    $dao = new CRM_CiviGeometry_DAO_AddressGeometry();
+    $dao->geometry_id = $id;
+    if ($dao->find()) {
+      while ($dao->fetch()) {
+        $dao->delete();
+      }
+    }
+  }
+  if ($hookValues[0] == 'create' && $hookValues[1] == 'Geometry') {
+    $matches = CRM_CiviGeometry_BAO_Geometry::getAddresses($hookValues[2]);
+    foreach ($matches as $match) {
+      civicrm_api3('Address', 'creategeometries', [
+        'geometry_id' => $match['geometry_id'],
+        'address_id' => $match['address_id'],
+      ]);
+    }
+  }
 }

@@ -470,6 +470,12 @@ function _civigeometry_civix_civicrm_alterSettingsFolders(&$metaDataFolders = NU
 
 function _civigeometry_civix_civicrm_entityTypes(&$entityTypes) {
   $entityTypes = array_merge($entityTypes, array (
+    'CRM_CiviGeometry_DAO_AddressGeometry' => 
+    array (
+      'name' => 'AddressGeometry',
+      'class' => 'CRM_CiviGeometry_DAO_AddressGeometry',
+      'table' => 'civicrm_address_geometry',
+    ),
     'CRM_CiviGeometry_DAO_Geometry' => 
     array (
       'name' => 'Geometry',

@@ -188,16 +188,18 @@ function civigeometry_symfony_civicrm_post($event) {
   if ($hookValues[0] !== 'delete' && $hookValues[1] == 'Address') {
     $id = $hookValues[2];
     $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];
-    $geometry_ids = civicrm_api3('Geometry', 'contains', [
-      'geometry_a' => 0,
-      'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',
-    ])['values'];
-    if (!empty($geometry_ids)) {
-      foreach ($geometry_ids as $geometry_id) {
-        civicrm_api3('Address', 'creategeometries', [
-          'address_id' => $id,
-          'geometry_id' => $geometry_id,
-        ]);
+    if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
+      $geometry_ids = civicrm_api3('Geometry', 'contains', [
+        'geometry_a' => 0,
+        'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',
+      ])['values'];
+      if (!empty($geometry_ids)) {
+        foreach ($geometry_ids as $geometry_id) {
+          civicrm_api3('Address', 'creategeometries', [
+            'address_id' => $id,
+            'geometry_id' => $geometry_id,
+          ]);
+        }
       }
     }
   }
@@ -210,6 +212,15 @@ function civigeometry_symfony_civicrm_post($event) {
       while ($dao->fetch()) {
         $dao->delete();
       }
+    }
+  }
+  if ($hookValues[0] == 'create' && $hookValues[1] == 'Geometry') {
+    $matches = CRM_CiviGeometry_BAO_Geometry::getAddresses($hookValues[2]);
+    foreach ($matches as $match) {
+      civicrm_api3('Address', 'creategeometries', [
+        'geometry_id' => $match['geometry_id'],
+        'address_id' => $match['address_id'],
+      ]);
     }
   }
 }

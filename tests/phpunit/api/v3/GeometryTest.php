@@ -704,8 +704,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
-   * Verify that MySQL/MariaDB is not using the Minimum Bounding Rectangle rather using the actual geometry
-   * when determining if a point is withing the geometry
+   * Test being able return a list of Adddresses for a Geometry
    */
   public function testgetAddressGeometry() {
     $timestart = microtime(TRUE);
@@ -745,10 +744,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geo_code_1' => '-42.9771098',
       'geo_code_2' => '147.2687833',
     ]);
-    // Return Geometry IDs for which this point from the address is in
+    // Return address IDs for which are in this specific geometry
     $result = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals($address['id'], $result['values'][$result['id']]['address_id']);
-    // Ensure that all records for a geomety are removed when it is archived
+    // Ensure that all records for a geometry are removed when it is archived
     $this->callAPISuccess('geometry', 'archive', ['id' => $upperHouseDistrict['id']]);
     $result2 = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals(0, $result2['count']);
@@ -756,6 +755,63 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $nonCacheResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id'], 'skip_cache' => 1]);
     $this->assertEquals(1, $nonCacheResult['count']);
     $this->assertEquals($upperHouseDistrict['id'], $nonCacheResult['values'][0]['geometry_id']);
+    $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection2['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
+  }
+
+  /**
+   * Test being able return a list of Addresses for a Geometry
+   */
+  public function testAddressGeometryCacheisUpdatedAfterGeometryisCreated() {
+    $timestart = microtime(TRUE);
+    // Create a collection
+    $UHCollectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    $UHCollectionParams['label'] = 'Tasmanian Upper House No MBR';
+    $UHCollection2 = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    // Create a geometry type
+    $UHGometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGometryTypeParams);
+    // Create a CiviCRM Address with a known point
+    $contact = $this->individualCreate();
+    $address = $this->callAPISuccess('Address', 'Create', [
+      'contact_id' => $contact,
+      'location_type_id' => 'Billing',
+      'street_address' => '123 Happy Place',
+      'city' => 'New York',
+      'skip_geocode' => 1,
+      'geo_code_1' => '-42.9771098',
+      'geo_code_2' => '147.2687833',
+    ]);
+    // Return Geometry IDs for which this point from the address is in
+    // At present that should be 0 because there is no geometries in the system
+    $result = $this->callAPISuccess('Address', 'getgeometries', ['address_id' => $address['id']]);
+    $this->assertEquals(0, $result['count']);
+    // upperHouseDistrict is a Tasmanian Upperhouse District as of November 2018
+    // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
+    // Differences between MBR and actual geometry easier.
+    // We are going to create 2 geometry records 1 being the geometry itself and the other being the MBR of the upperHouseDistrict Geometry
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
+      'geometry_type_id' => $UHGeometryType['id'],
+      'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
+      'geometry' => trim($upperHouseDistrictJSON),
+    ]);
+    // Now that we have geometries in the system confirm that the cache table has been properly populated
+    $result = $this->callAPISuccess('Address', 'getgeometries', ['address_id' => $address['id']]);
+    $this->assertEquals(1, $result['count']);
+    $this->assertEquals($upperHouseDistrict['id'], $result['values'][$result['id']]['geometry_id']);
+    // Esure that when we pass skip cache that we still return information back even if the geometry is archived.
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);

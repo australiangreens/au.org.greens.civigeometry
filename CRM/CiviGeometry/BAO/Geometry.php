@@ -95,7 +95,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
       $dualIntegerParams = [
-        2 => [$params['geometry_b'], 'Positive']
+        2 => [$params['geometry_b'], 'Positive'],
       ];
       $singleIntegerParams = [
         1 => [$params['geometry_b'], 'String'],

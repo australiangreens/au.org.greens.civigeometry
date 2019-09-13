@@ -189,6 +189,13 @@ function civigeometry_symfony_civicrm_post($event) {
     $id = $hookValues[2];
     $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];
     if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
+      $dao = new CRM_CiviGeometry_DAO_AddressGeometry();
+      $dao->address_id = $id;
+      if ($dao->find()) {
+        while ($dao->fetch()) {
+          $dao->delete();
+        }
+      }
       $geometry_ids = civicrm_api3('Geometry', 'contains', [
         'geometry_a' => 0,
         'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',

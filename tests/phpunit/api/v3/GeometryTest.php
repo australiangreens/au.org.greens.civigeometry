@@ -809,6 +809,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     // Now that we have geometries in the system confirm that the cache table has been properly populated
     $result = $this->callAPISuccess('Address', 'getgeometries', ['address_id' => $address['id']]);
+    // Ensure that editing an address does not cause a db error.
+    $testUpdateAddress = $this->callAPISuccess('Address', 'create', [
+      'skip_geocode' => 1,
+      'id' => $address['id'],
+      'city' => 'Hobart',
+    ]);
     $this->assertEquals(1, $result['count']);
     $this->assertEquals($upperHouseDistrict['id'], $result['values'][$result['id']]['geometry_id']);
     // Esure that when we pass skip cache that we still return information back even if the geometry is archived.

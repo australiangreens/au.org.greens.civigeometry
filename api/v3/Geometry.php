@@ -36,6 +36,9 @@ function civicrm_api3_geometry_create($params) {
   if (isset($params['geomety']) && empty($params['geometry'])) {
     throw new \API_Exception(E::ts('Geometry was empty'));
   }
+  if (isset($params['geometry_type_id']) && !CRM_Utils_Rule::Integer($params['geometry_type_id'])) {
+    throw new \API_Exception(E::ts('Only Integers are permitted for geometry_type_id field'));
+  }
   if (isset($params['geometry'])) {
     if (isset($params['format'])) {
       if ($params['format'] == 'gzip') {

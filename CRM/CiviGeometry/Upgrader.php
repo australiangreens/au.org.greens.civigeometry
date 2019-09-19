@@ -103,6 +103,19 @@ end
   }
 
   /**
+   * Alter index on civigeoemtry
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_4202() {
+    $this->ctx->log->info('Applying update 4201 - Adding in AddressGeometry Table');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP INDEX index_geometry_type_label");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD INDEX index_geometry_type_label_is_archived (`label`, `geometry_type_id`, `is_archived`)");
+    return TRUE;
+  }
+
+  /**
    * Example: Run an external SQL script.
    *
    * @return TRUE on success

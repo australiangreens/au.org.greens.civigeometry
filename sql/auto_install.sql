@@ -143,9 +143,10 @@ CREATE TABLE `civigeometry_geometry` (
 ,
         PRIMARY KEY (`id`)
  
-    ,     UNIQUE INDEX `index_geometry_type_label`(
+    ,     INDEX `index_geometry_type_label_is_archived`(
         geometry_type_id
       , label
+      , is_archived
   )
   
 ,          CONSTRAINT FK_civigeometry_geometry_geometry_type_id FOREIGN KEY (`geometry_type_id`) REFERENCES `civigeometry_geometry_type`(`id`) ON DELETE CASCADE  

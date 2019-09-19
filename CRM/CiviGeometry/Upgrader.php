@@ -109,7 +109,7 @@ end
    * @throws Exception
    */
   public function upgrade_4202() {
-    $this->ctx->log->info('Applying update 4201 - Adding in AddressGeometry Table');
+    $this->ctx->log->info('Applying update 4202 - Alter index on civigeometry_geometry to include is_archived column and not be unique');
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP INDEX index_geometry_type_label");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD INDEX index_geometry_type_label_is_archived (`label`, `geometry_type_id`, `is_archived`)");
     return TRUE;

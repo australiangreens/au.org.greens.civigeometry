@@ -13,6 +13,7 @@ function _civicrm_api3_geometry_create_spec(&$spec) {
   $spec['collection_id']['title'] = E::ts('Collection');
   $spec['collection_id']['api.required'] = 1;
   $spec['format']['title'] = E::ts('Geometry Data Format e.g. gzip');
+  $spec['feature_name_field']['title'] = E::ts('Name field within a feature that should be used as the geoemtry name');
 }
 
 /**
@@ -53,9 +54,24 @@ function civicrm_api3_geometry_create($params) {
         $params['geometry'] = file_get_contents($params['geometry']);
       }
     }
-    $json = json_decode($params['geometry']);
+    $json = json_decode($params['geometry'], TRUE);
     if ($json === NULL) {
       throw new \API_Exception(E::ts('Geometry is not proper GeoJSON'));
+    }
+    // If we have a feature collection we need to process it differently to other forms of GeoJSON.
+    if ($json['type'] == 'FeatureCollection') {
+      if (empty($params['feature_name_field'])) {
+        throw new \API_Exception(E::ts('If loading in a Feature Collection you need to supply the feature_name_field'));
+      }
+      // Now loop through all the features and add in geometries
+      $values = [];
+      foreach ($json['features'] as $feature) {
+        $params['label'] = $feature['properties'][$params['feature_name_field']];
+        $params['geometry'] = json_encode($feature['geometry']);
+        $result = CRM_CiviGeometry_BAO_Geometry::create($params);
+        _civicrm_api3_object_to_array($result, $values[$result->id]);
+      }
+      return civicrm_api3_create_success($values, $params, 'Geometry', 'create');
     }
   }
   return _civicrm_api3_basic_create(_civicrm_api3_get_BAO(__FUNCTION__), $params);

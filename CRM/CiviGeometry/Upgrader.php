@@ -110,8 +110,10 @@ end
    */
   public function upgrade_4202() {
     $this->ctx->log->info('Applying update 4202 - Alter index on civigeometry_geometry to include is_archived column and not be unique');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP CONSTRAINT FK_civigeometry_geometry_geometry_type_id");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP INDEX index_geometry_type_label");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD INDEX index_geometry_type_label_is_archived (`label`, `geometry_type_id`, `is_archived`)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD CONSTRAINT FK_civigeometry_geometry_geometry_type_id FOREIGN KEY (`geometry_type_id`) REFERENCES `civigeometry_geometry_type`(`id`) ON DELETE CASCADE");
     return TRUE;
   }
 

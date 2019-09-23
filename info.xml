@@ -14,8 +14,8 @@
     <url desc="Support">https://github.com/australiangreens/au.org.greens.civigeometry</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2019-09-20</releaseDate>
-  <version>1.2.0</version>
+  <releaseDate>2019-09-23</releaseDate>
+  <version>1.2.1</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>5.0</ver>

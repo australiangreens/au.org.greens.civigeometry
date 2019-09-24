@@ -24,7 +24,7 @@ class CRM_CiviGeometry_Tasks {
       if (!empty($geometry_ids)) {
         foreach ($geometry_ids as $geometry_id) {
           civicrm_api3('Address', 'creategeometries', [
-            'address_id' => $id,
+            'address_id' => $address['id'],
             'geometry_id' => $geometry_id,
           ]);
         }

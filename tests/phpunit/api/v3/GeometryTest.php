@@ -685,6 +685,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_a' => 0,
       'geometry_b' => 'POINT(' . $address['values'][$address['id']]['geo_code_2'] . ' ' . $address['values'][$address['id']]['geo_code_1'] . ')',
     ]);
+    // Process The Geometry Queue.
+    $this->callAPISuccess('Geometry', 'runqueue', []);
     $getResult = $this->callAPISuccess('Address', 'getgeometries', [
       'address_id' => $address['id'],
     ]);
@@ -744,6 +746,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geo_code_1' => '-42.9771098',
       'geo_code_2' => '147.2687833',
     ]);
+    // Process The Geometry Queue.
+    $this->callAPISuccess('Geometry', 'runqueue', []);
     // Return address IDs for which are in this specific geometry
     $result = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals($address['id'], $result['values'][$result['id']]['address_id']);
@@ -807,6 +811,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
       'geometry' => trim($upperHouseDistrictJSON),
     ]);
+    // Process The Geometry Queue.
+    $this->callAPISuccess('Geometry', 'runqueue', []);
     // Now that we have geometries in the system confirm that the cache table has been properly populated
     $result = $this->callAPISuccess('Address', 'getgeometries', ['address_id' => $address['id']]);
     // Ensure that editing an address does not cause a db error.

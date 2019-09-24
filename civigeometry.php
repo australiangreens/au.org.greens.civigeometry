@@ -186,24 +186,15 @@ function civigeometry_symfony_civicrm_post($event) {
   // 2 = objectId
   // 3 = objectREf
   if ($hookValues[0] !== 'delete' && $hookValues[1] == 'Address') {
+    $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
     $id = $hookValues[2];
     $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];
     if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
-      CRM_Core_DAO::executeQuery("DELETE FROM civigeometry_address_geometry WHERE address_id = %1", [
-        1 => [$address['id'], 'Positive'],
-      ]);
-      $geometry_ids = civicrm_api3('Geometry', 'contains', [
-        'geometry_a' => 0,
-        'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',
-      ])['values'];
-      if (!empty($geometry_ids)) {
-        foreach ($geometry_ids as $geometry_id) {
-          civicrm_api3('Address', 'creategeometries', [
-            'address_id' => $id,
-            'geometry_id' => $geometry_id,
-          ]);
-        }
-      }
+      $task = new CRM_Queue_Task(
+        ['CRM_CiviGeometry_Tasks', 'geoplaceAddress'],
+        [$id]
+      );
+      $queue->createItem($task);
     }
   }
   // If a geometry has been archived ensure that all records of it in the AddressGeometry table are removed.
@@ -218,12 +209,11 @@ function civigeometry_symfony_civicrm_post($event) {
     }
   }
   if ($hookValues[0] == 'create' && $hookValues[1] == 'Geometry') {
-    $matches = CRM_CiviGeometry_BAO_Geometry::getAddresses($hookValues[2]);
-    foreach ($matches as $match) {
-      civicrm_api3('Address', 'creategeometries', [
-        'geometry_id' => $match['geometry_id'],
-        'address_id' => $match['address_id'],
-      ]);
-    }
+    $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
+    $task = new CRM_Queue_Task(
+        ['CRM_CiviGeometry_Tasks', 'buildGeometryRelationships'],
+        [$hookValues[2]]
+    );
+    $queue->createItem($task);
   }
 }

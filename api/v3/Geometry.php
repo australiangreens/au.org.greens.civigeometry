@@ -521,3 +521,29 @@ function civicrm_api3_geometry_getbounds($params) {
   $apiResult[$params['id']] = CRM_CiviGeometry_BAO_Geometry::generateBounds($params['id']);
   return civicrm_api3_create_success($apiResult);
 }
+
+/**
+ * Process CiviGeometry Queue Tasks.
+ */
+function civicrm_api3_geometry_runqueue($params) {
+  $returnValues = array();
+  //retrieve the queue
+  $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
+  $runner = new CRM_Queue_Runner(array(
+    'title' => E::ts('Geometry Queue Runner'),
+    'queue' => $queue,
+    'errorMode' => CRM_Queue_Runner::ERROR_CONTINUE,
+  ));
+  // stop executing next item after 5 minutes
+  $maxRunTime = time() + 600;
+  $continue = TRUE;
+  while (time() < $maxRunTime && $continue) {
+    $result = $runner->runNext(FALSE);
+    if (!$result['is_continue']) {
+      // all items in the queue are processed
+      $continue = FALSE;
+    }
+    $returnValues[] = $result;
+  }
+  return civicrm_api3_create_success($returnValues, $params, 'Geometry', 'runqueue');
+}

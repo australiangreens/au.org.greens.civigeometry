@@ -130,7 +130,7 @@ end
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP CONSTRAINT FK_civigeometry_address_geometry_geometry_id");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP INDEX UI_geometry_id_address_id");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity CHANGE address_id entity_id int unsigned NOT NULL COMMENT 'entity id that is associated with this geometry'");
-    CRM_Core_DAO::executeQuery("ALTER TABLE civigeoemtry_geometry_entity ADD COLUMN entity_table varchar(255) NOT NULL COMMENT 'entity table that is associated with this geometry'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD COLUMN entity_table varchar(255) NOT NULL COMMENT 'entity table that is associated with this geometry'");
     CRM_Core_DAO::executeQuery("UPDATE civigeometry_geometry_entity SET entity_table = 'civicrm_address'");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD UNIQUE INDEX UI_geometry_id_entity_id_entity_table(geometry_id,entity_id,entity_table)");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD CONSTRAINT FK_civigeometry_geometry_entity_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE");

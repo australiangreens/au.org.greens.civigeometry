@@ -603,6 +603,43 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
+   * Test Generating an Overlap between 2 specific geometries is within 97 and 100%
+   */
+  public function test0OverlapGeneration() {
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
+    // Create SA1 Geometry
+    $sa1 = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'sample_sa1_geometry',
+      'geometry_type_id' => $this->sa1GeometryType['id'],
+      'collection_id' => [$this->sa1Collection['id']],
+      'geometry' => trim($sa1JSON),
+    ]);
+    // Create Collection for QLD Wards
+    $wardsCollection = $this->callAPISuccess('GeometryCollection', 'create', [
+      'label' => 'Queensland Wards',
+      'source' => 'QLD',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ]);
+    // Greate Geometry try
+    $wardGeometryType = $this->callAPISuccess('GeometryType', 'create', [
+      'label' => 'LGA Wards',
+    ]);
+    $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_qld_ward_geometry.json');
+    // Create ward Geometry
+    $cairns = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Queensland Ward',
+      'geometry_type_id' => $wardGeometryType['id'],
+      'collection_id' => [$wardsCollection['id']],
+      'geometry' => trim($cairnsJSON),
+    ]);
+    $overlapResult = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $sa1['id'],
+      'geometry_id_b' => $cairns['id'],
+    ]);
+    $this->assertEquals(0, $overlapResult['values'][$overlapResult['id']]['overlap']);
+  }
+
+  /**
    * Test getting a distance
    * @note Postgres reported 2,202 metres here however MySQL5.7 using native functions returned 2,197
    */

@@ -40,7 +40,7 @@ function _civicrm_api3_address_getgeometries_spec(&$spec) {
  */
 function civicrm_api3_address_getgeometries($params) {
   civicrm_api3_verify_one_mandatory($params, NULL, ['address_id', 'geometry_id']);
-  if ($params['skip_cache']) {
+  if (!empty($params['skip_cache'])) {
     if (!empty($params['address_id'])) {
       $address = civicrm_api3('Address', 'getsingle', ['id' => $params['address_id']]);
       $results = [];
@@ -65,5 +65,9 @@ function civicrm_api3_address_getgeometries($params) {
       return civicrm_api3_create_success(CRM_CiviGeometry_BAO_Geometry::getAddresses($params['geometry_id']), $params);
     }
   }
-  return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_AddressGeometry', $params);
+  $params['entity_table'] = 'civicrm_address';
+  if (!empty($params['address_id'])) {
+    $params['entity_id'] = $params['address_id'];
+  }
+  return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_GeometryEntity', $params);
 }

@@ -36,5 +36,7 @@ function _civicrm_api3_address_creategeometries_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_address_creategeometries($params) {
-  return _civicrm_api3_basic_create('CRM_CiviGeometry_DAO_AddressGeometry', $params);
+  $params['entity_id'] = $params['address_id'];
+  $params['entity_table'] = 'civicrm_address';
+  return _civicrm_api3_basic_create('CRM_CiviGeometry_DAO_GeometryEntity', $params);
 }

@@ -63,12 +63,12 @@
 SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS `civigeometry_geometry_overlap_cache`;
+DROP TABLE IF EXISTS `civigeometry_geometry_entity`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
 DROP TABLE IF EXISTS `civigeometry_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
-DROP TABLE IF EXISTS `civigeometry_address_geometry`;
 
 SET FOREIGN_KEY_CHECKS=1;
 -- /*******************************************************
@@ -206,6 +206,32 @@ CREATE TABLE `civigeometry_geometry_collection_geometry` (
 
 -- /*******************************************************
 -- *
+-- * civigeometry_geometry_entity
+-- *
+-- * Holds a static cache of geometry ids an address is within
+-- *
+-- *******************************************************/
+CREATE TABLE `civigeometry_geometry_entity` (
+
+
+     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique GeometryEntity ID',
+     `entity_id` int unsigned NOT NULL   COMMENT 'entity id that is associated with this geometry',
+     `entity_table` varchar(255) NOT NULL   COMMENT 'entity table that is associated with this geometry',
+     `geometry_id` int unsigned NOT NULL   COMMENT 'FK to Geometry Table' 
+,
+        PRIMARY KEY (`id`)
+ 
+    ,     UNIQUE INDEX `UI_geometry_id_entity_id_entity_table`(
+        geometry_id
+      , entity_id
+      , entity_table
+  )
+  
+,          CONSTRAINT FK_civigeometry_geometry_entity_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
+)    ;
+
+-- /*******************************************************
+-- *
 -- * civigeometry_geometry_overlap_cache
 -- *
 -- * Cache table containing overlaps between 2 geometries
@@ -231,27 +257,3 @@ CREATE TABLE `civigeometry_geometry_overlap_cache` (
 )    ;
 
  
--- /*******************************************************
--- *
--- * civigeometry_address_geometry
--- *
--- * Holds a static cache of geometry ids an address is within
--- *
--- *******************************************************/
-CREATE TABLE `civigeometry_address_geometry` (
-
-
-     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique AddressGeometry ID',
-     `address_id` int unsigned NOT NULL   COMMENT 'FK to Address Table',
-     `geometry_id` int unsigned NOT NULL   COMMENT 'FK to Geometry Table' 
-,
-        PRIMARY KEY (`id`)
- 
-    ,     UNIQUE INDEX `UI_geometry_id_address_id`(
-        geometry_id
-      , address_id
-  )
-  
-,          CONSTRAINT FK_civigeometry_address_geometry_address_id FOREIGN KEY (`address_id`) REFERENCES `civicrm_address`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_address_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
-)    ;
-

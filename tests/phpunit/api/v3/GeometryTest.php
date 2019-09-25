@@ -814,7 +814,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('Geometry', 'runqueue', []);
     // Return address IDs for which are in this specific geometry
     $result = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
-    $this->assertEquals($address['id'], $result['values'][$result['id']]['address_id']);
+    $entityResult = $this->callAPISuccess('geometry', 'getentity', [
+      'entity_id' => $address['id'],
+      'entity_table' => 'civicrm_address',
+    ]);
+    $this->assertEquals($address['id'], $result['values'][$result['id']]['entity_id']);
+    $this->assertEquals($upperHouseDistrict['id'], $entityResult['values'][$entityResult['id']]['geometry_id']);
     // Ensure that all records for a geometry are removed when it is archived
     $this->callAPISuccess('geometry', 'archive', ['id' => $upperHouseDistrict['id']]);
     $result2 = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);

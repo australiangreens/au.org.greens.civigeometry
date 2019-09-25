@@ -207,6 +207,48 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
+   * Check if geometry pair intersects or get all the geometries in the specified collection that intersects
+   * @param array $params
+   * @return array
+   *   - Array of geometries that intersect
+   *   - geometry_a
+   *   - geometry_b
+   */
+  public static function getGeometryIntesection($params) {
+    $values = [];
+    if (!empty($params['collection_id'])) {
+      $geometries = CRM_Core_DAO::executeQuery("SELECT b.id
+        FROM civigeometry_geometry a, civigeometry_geometry b
+        INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = b.id
+        WHERE a.id = %1 AND cgc.collection_id = %2 AND ST_Intersects(a.geometry, b.geometry) != 0", [
+          1 => [$params['geometry_a'], 'Positive'],
+          2 => [$params['collection_id'], 'Positive'],
+        ])->fetchAll();
+      foreach ($geometries as $geometry_id) {
+        $values[] = [
+          'geometry_a' => $params['geometry_a'],
+          'geometry_b' => $geometry_id['id'],
+        ];
+      }
+    }
+    else {
+      $intersection = CRM_Core_DAO::singleValueQuery("SELECT ST_Intersects(a.geometry, b.geometry)
+        FROM civigeometry_geometry a, civigeometry_geometry b
+        WHERE a.id = %1 AND b.id = %2", [
+          1 => [$params['geometry_a'], 'Positive'],
+          2 => [$params['geometry_b'], 'Positive'],
+        ]);
+      if ($intersection) {
+        $values[] = [
+          'geometry_a' => $params['geometry_a'],
+          'geometry_b' => $params['geometry_b'],
+        ];
+      }
+    }
+    return $values;
+  }
+
+  /**
    * Calculate Overlap between two geometries
    * @param array $params
    * @return array|bool
@@ -229,25 +271,15 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         ];
       }
     }
-    $checkIfIntesects = CRM_Core_DAO::singleValueQuery("
-      SELECT ST_Intersects(a.geometry, b.geometry)
-      FROM civigeometry_geometry a, civigeometry_geometry b
-      WHERE a.id = %1 AND b.id = %2", [
-        1 => [$params['geometry_id_a'], 'Positive'],
-        2 => [$params['geometry_id_b'], 'Positive'],
-      ]);
-    if (empty($checkIfIntesects)) {
-      $overlap = (int) 0;
-    }
-    $intersections = CRM_Core_DAO::executeQuery("
+    $intersectionArea = CRM_Core_DAO::executeQuery("
       SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
       FROM civigeometry_geometry a, civigeometry_geometry b
       WHERE a.id = %1 AND b.id = %2", [
         1 => [$params['geometry_id_a'], 'Positive'],
         2 => [$params['geometry_id_b'], 'Positive'],
       ]);
-    while ($intersections->fetch()) {
-      $overlap = (int) (100.0 * $intersections->intersection_area / $intersections->area);
+    while ($intersectionArea->fetch()) {
+      $overlap = (int) (100.0 * $intersectionArea->intersection_area / $intersectionArea->area);
     }
     $overlapCache = new CRM_CiviGeometry_DAO_GeometryOverlapCache();
     $overlapCache->geometry_id_a = $params['geometry_id_a'];

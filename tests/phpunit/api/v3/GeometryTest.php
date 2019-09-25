@@ -103,6 +103,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $geometryParams['geometry_type_id'] = "{$geometryType2['id']}, {$this->stateGeometryType['id']}";
     $this->callAPIFailure('Geometry', 'create', $geometryParams);
     $geometryParams['geometry_type_id'] = [$geometryType2['id'], $this->stateGeometryType['id']];
+    $this->callAPIFailure('Geometry', 'create', $geometryParams);
     $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry
     $sa1 = $this->callAPISuccess('Geometry', 'create', [
@@ -118,7 +119,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Check that if we pass in 2 geometry collection types then it will return both the SA1 and the Queensland Geometry
     $collectionGet2 = $this->callAPISuccess('Geometry', 'get', ['collection_id' => ['IN' => [$this->statesCollection['id'], $this->sa1Collection['id']]]]);
     $this->assertEquals(2, $collectionGet2['count']);
-    $this->callAPIFailure('Geometry', 'create', $geometryParams);
     // Tear down test data
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType2['id']]);
     // verify that we can delete geometries as well as archiving them.
@@ -445,6 +445,43 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Check that the archived date
     $this->assertEquals(0, $geometry['values'][$geometry['id']]['is_archived']);
     $this->assertFalse(isset($geometry['values'][$geometry['id']]['archived_date']));
+  }
+
+  /**
+   * Test get intersection
+   */
+  public function testGetIntersection() {
+    $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
+    // Create Queensland state geometry
+    $queensland = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Queensland',
+      'geometry_type_id' => $this->stateGeometryType['id'],
+      'collection_id' => [$this->statesCollection['id']],
+      'geometry' => trim($queenslandJSON),
+    ]);
+    // Create Collection for QLD Wards
+    $wardsCollection = $this->callAPISuccess('GeometryCollection', 'create', [
+      'label' => 'Queensland Wards',
+      'source' => 'QLD',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ]);
+    // Greate Geometry try
+    $wardGeometryType = $this->callAPISuccess('GeometryType', 'create', [
+      'label' => 'LGA Wards',
+    ]);
+    $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_qld_ward_geometry.json');
+    // Create ward Geometry
+    $cairns = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Queensland Ward',
+      'geometry_type_id' => $wardGeometryType['id'],
+      'collection_id' => [$wardsCollection['id']],
+      'geometry' => trim($cairnsJSON),
+    ]);
+    $result = $this->callAPISuccess('Geometry', 'getIntersection', [
+      'geometry_a' => $cairns['id'],
+      'collection_id' => $this->statesCollection['id'],
+    ]);
+    $this->assertEquals(['geometry_a' => $cairns['id'], 'geometry_b' => $queensland['id']], $result['values'][0]);
   }
 
   /**

@@ -445,6 +445,7 @@ function _civicrm_api3_geometry_unarchive_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_geometry_getintersection($params) {
+  civicrm_api3_verify_one_mandatory($params, NULL, ['geometry_b', 'collection_id']);
   $result = CRM_CiviGeometry_BAO_Geometry::getGeometryIntesection($params);
   return civicrm_api3_create_success($result, $params);
 }

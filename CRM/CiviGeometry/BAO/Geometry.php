@@ -391,14 +391,20 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ->where("geo_code_1 <= '#top_bound'", ['top_bound' => $bounds['top_bound']])
       ->where("geo_code_1 >= '#bottom_bound'", ['bottom_bound' => $bounds['bottom_bound']]);
     $addressResults = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+    $results = [];
     if (!empty($addressResults)) {
       $address_ids = CRM_Utils_Array::collect('id', $addressResults);
-      $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g, civicrm_address ca')
-        ->select("ca.id as address_id, g.id as geometry_id")
-        ->where("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) = 1")
-        ->where("g.id = #geometry_id", ['geometry_id' => $geometry_id])
-        ->where("ca.id in (#address_ids)", ['address_ids' => $address_ids]);
-      $results = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+      foreach ($address_ids as $address_id) {
+        $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g, civicrm_address ca')
+          ->select("ca.id as address_id, g.id as geometry_id")
+          ->where("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) = 1")
+          ->where("g.id = #geometry_id", ['geometry_id' => $geometry_id])
+          ->where("ca.id = #address_id", ['address_id' => $address_id]);
+        $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+        if (!empty($result)) {
+          $results[] = $result[0];
+        }
+      }
       return $results;
     }
     else {

@@ -88,10 +88,10 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   public static function contains($params) {
     $multipleResult = [];
     $dualIntegerSQL = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
-        FROM civigeometry_geometry a, civigeometry_geometry b";
+        FROM civigeometry_geometry a USE INDEX(`geometry`), civigeometry_geometry b USE INDEX(`geometry`)";
     $dualIntegerWhere = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
     $singleIntegerSQL = "SELECT cg.id, ST_Contains(cg.geometry, GeomFromText(%1, 4326)) as contains_result
-      FROM civigeometry_geometry cg";
+      FROM civigeometry_geometry cg USE INDEX(`geometry`)";
     $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
       $dualIntegerParams = [
@@ -231,7 +231,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $checkIfIntesects = CRM_Core_DAO::singleValueQuery("
       SELECT ST_Intersects(a.geometry, b.geometry)
-      FROM civigeometry_geometry a, civigeometry_geometry b
+      FROM civigeometry_geometry a USE INDEX(`geometry`), civigeometry_geometry b USE INDEX(`geometry`)
       WHERE a.id = %1 AND b.id = %2", [
         1 => [$params['geometry_id_a'], 'Positive'],
         2 => [$params['geometry_id_b'], 'Positive'],
@@ -241,7 +241,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $intersections = CRM_Core_DAO::executeQuery("
       SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
-      FROM civigeometry_geometry a, civigeometry_geometry b
+      FROM civigeometry_geometry a USE INDEX(`geometry`), civigeometry_geometry b USE INDEX(`geometry`)
       WHERE a.id = %1 AND b.id = %2", [
         1 => [$params['geometry_id_a'], 'Positive'],
         2 => [$params['geometry_id_b'], 'Positive'],
@@ -383,7 +383,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @return array
    */
   public static function getAddresses($geometry_id) {
-    $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g, civicrm_address ca')
+    $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g USE INDEX(`geometry`), civicrm_address ca')
       ->select("ca.id as address_id, g.id as geometry_id")
       ->where("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) = 1")
       ->where("g.id = #geometry_id", ['geometry_id' => $geometry_id]);

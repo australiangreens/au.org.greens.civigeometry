@@ -185,7 +185,7 @@ function civigeometry_symfony_civicrm_post($event) {
   // 1 = objectName
   // 2 = objectId
   // 3 = objectREf
-  if ($hookValues[0] !== 'delete' && $hookValues[1] == 'Address') {
+  if (($hookValues[0] !== 'delete' || $hookValues[0] !== 'geoplace') && $hookValues[1] == 'Address') {
     $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
     $id = $hookValues[2];
     $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];

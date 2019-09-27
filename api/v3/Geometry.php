@@ -438,6 +438,43 @@ function _civicrm_api3_geometry_unarchive_spec(&$spec) {
 }
 
 /**
+ * Geomety.getintersetion
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_getintersection($params) {
+  civicrm_api3_verify_one_mandatory($params, NULL, ['geometry_b', 'collection_id']);
+  $result = CRM_CiviGeometry_BAO_Geometry::getGeometryIntesection($params);
+  return civicrm_api3_create_success($result, $params);
+}
+
+/**
+ * Geometry.getintersection API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getintersection_spec(&$spec) {
+  $spec['geometry_a'] = [
+    'title' => E::ts('Geometry A'),
+    'api.required' => 1,
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['geometry_b'] = [
+    'title' => E::ts('Geometry B'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['collection_id'] = [
+    'title' => E::ts('Geometry B Collection ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+}
+
+/**
  * Geomety.getOverlap
  *
  * @param array $params

@@ -33,7 +33,7 @@ class CRM_CiviGeometry_Tasks {
       $addressObject->id = $address['id'];
       $addressObject->find(TRUE);
       // Trigger additional processing that might be needed following updates to the geoplacement of this address
-      CRM_Utils_Hook::post('geoplace', 'Address', $address['id'], $addressOjbect);
+      CRM_Utils_Hook::post('geoplace', 'Address', $address['id'], $addressObject);
     }
     return TRUE;
   }

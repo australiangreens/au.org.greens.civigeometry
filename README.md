@@ -55,9 +55,11 @@ Avaliable Entities and methods
     - CRUD
 - `Geometry`
   - A Geometry is a polygon that defines an enclosed spatial region. For example, state or province boundaries, council areas, electorates, etc.
+  - To create a Geometry you need to specify at least one collection and you need to pass it in an array e.g. `collection_id => [1]`
   - Operations
     - CRUD
       - When requesting or creating geometry the default format is GeoJSON. You can specify alternate output formats via the parameter format. Acceptable output formats are json (ie. GeoJSON), kml and wkt. 
+      - When you create a geometry a job is added to the queue to generate all the relationships between geocoded addresses (i.e. have a latitude and longditude) and the geometry polygon.
       - You can also specify an input format when creating a geometry. GeoJSOa (default), gzipped GeoJSON (`gzip`) and (server-side) file references (`file`) are acceptable input formats.
     - `archive`/`unarchive` - Archive or unarchive a single geometry
     - `getCollections` - Find out which collection a geometry belongs to, or find out the ids of all the geometries in a specific collection
@@ -65,6 +67,13 @@ Avaliable Entities and methods
     - `getBounds` - Return the min/max X and Y points of a geometry
     - `getDistance` - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`
     - `getOverlap` - Determine the overlap between two geometry shapes. Returned as a percentage
+    - `runqueue` - Runs the queued up address placement and geometry - address relationship creation jobs stored in the Geometry extension queue. 
+- `Address`
+  - Operations
+    - `creategeometries` - add relationship records between an address and a geometry into the `civigeometry_address_geometry` table
+    - `getgeometries` - get all geometries for a specific address or get all the addresses that are within a specific geometry.
+
+When an address is created in the system and it has been sucessfully geocoded there will be a job added to the queue created by the extension to then calculate what geometries is the lat and long point of the address within and store those relationships via the `address.creategeometries` API method.
 
 ## Known Issues
 

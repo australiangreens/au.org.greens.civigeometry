@@ -935,4 +935,35 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
   }
 
+  /**
+   * Test Creating an Entity Relationship between a contact and Geometry.
+   */
+  public function testCreateRelationshipBetweenContactAndGeometry() {
+    // Create a collection
+    $UHCollectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    $UHCollectionParams['label'] = 'Tasmanian Upper House No MBR';
+    $UHCollection2 = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    // Create a geometry type
+    $UHGometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGometryTypeParams);
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
+      'geometry_type_id' => $UHGeometryType['id'],
+      'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
+      'geometry' => trim($upperHouseDistrictJSON),
+    ]);
+    $contact = $this->individualCreate();
+    $this->callAPISuccess('Geometry', 'createEntity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
+    $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
+    $this->assertEquals($contact, $result['values'][$result['id']]['entity_id']);
+  }
+
 }

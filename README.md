@@ -34,6 +34,22 @@ git clone https://github.com/australiangreens/au.org.greens.civigeometry.git
 cv en civigeometry
 ```
 
+## Configuration
+
+This extension makes use of a queueing system to manage the work of calculating address-geometry relationships. More information is given in the Usage section below.
+
+For this to work you must configure a scheduled job that will be processed by the Civi cron on a regular basis.
+
+First, you must ensure your system has its cron properly setup. Refer to the Scheduled jobs section](https://docs.civicrm.org/sysadmin/en/latest/setup/jobs/) in the System Administrator Guide for further info.
+
+Second, you must create a scheduled job. The [Scheduled jobs section](https://docs.civicrm.org/user/en/latest/initial-set-up/scheduled-jobs/#configuring) of the CiviCRM User Guide has detailed information.
+
+The job details are:
+- Entity type: Geometry
+- Entity method: runqueue
+
+We recommend configuring the job to run hourly.
+
 ## Usage
 
 Users can create collections of geometries and can create polygons based on GeoJSON via the CiviCRM API

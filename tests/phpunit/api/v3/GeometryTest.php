@@ -184,6 +184,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Check that the geometry created matches that in the file.
     $this->assertEquals(json_decode(file_get_contents($geometryFile), TRUE), json_decode($geometry['values'][$geometry['id']]['geometry'], TRUE));
     $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $branchGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $NSWBranchesCollection['id']]);
   }
 
   /**

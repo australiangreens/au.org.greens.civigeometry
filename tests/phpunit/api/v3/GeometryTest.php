@@ -2,7 +2,6 @@
 
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
-use Civi\Test\TransactionalInterface;
 
 /**
  * This test class tests creating and returning Geometries and also geometry information such as overlap, point to geometry and testing if a point is in a geometry.
@@ -18,7 +17,7 @@ use Civi\Test\TransactionalInterface;
  *
  * @group headless
  */
-class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
 
   use \Civi\Test\Api3DocTrait;
   use \Civi\Test\GenericAssertionsTrait;
@@ -154,6 +153,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($geometry['values'][$geometry['id']]['geometry'], TRUE));
     $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']])['values'][$geometry['id']]['geometry'], TRUE));
     $this->assertEquals(1, $collectionsGeometryisIn['count']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
   }
 
   /**
@@ -183,6 +183,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     // Check that the geometry created matches that in the file.
     $this->assertEquals(json_decode(file_get_contents($geometryFile), TRUE), json_decode($geometry['values'][$geometry['id']]['geometry'], TRUE));
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
   }
 
   /**
@@ -377,6 +378,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Check that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
     $this->assertContains('147.29234219', $centroid['values']);
     $this->assertContains('-42.94807285', $centroid['values']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
   }
 
   /**
@@ -407,6 +411,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
     $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archived_date']);
     $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
   }
 
   /**
@@ -445,6 +452,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Check that the archived date
     $this->assertEquals(0, $geometry['values'][$geometry['id']]['is_archived']);
     $this->assertFalse(isset($geometry['values'][$geometry['id']]['archived_date']));
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
   }
 
   /**
@@ -482,6 +492,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => $this->statesCollection['id'],
     ]);
     $this->assertEquals(['geometry_a' => $cairns['id'], 'geometry_b' => $queensland['id']], $result['values'][0]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $wardsCollection['id']]);
   }
 
   /**
@@ -528,6 +542,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Verify calling the API again gets the same result and the cache has been used.
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $wardsCollection['id']]);
   }
 
   /**
@@ -576,6 +594,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     // Check that the result came from the cache for performance reasons.
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $sa1['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $nswWard['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $wardsCollection['id']]);
   }
 
   /**
@@ -636,6 +658,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals('56.236', $spatialData['values'][$geometry['id']]['square_km']);
     $bounds = $this->callAPISuccess('Geometry', 'getbounds', ['id' => $geometry['id']]);
     $this->assertEquals(['left_bound' => '151.126707616', 'bottom_bound' => '-33.853568996', 'top_bound' => '-33.778527002', 'right_bound' => '151.268936992'], $bounds['values'][$geometry['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $branchGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $NSWBranchesCollection['id']]);
   }
 
   /**
@@ -652,6 +677,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $getGeometry = $this->callAPISuccess('Geometry', 'get', ['format' => 'kml']);
     $this->assertEquals('<MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>151.18540272,-33.8022812055 151.185615104,-33.8022131255 151.186521952,-33.802339499 151.18660944,-33.8023522825 151.186400992,-33.8033745925 151.18620336,-33.8043426235 151.185657952,-33.8071025645 151.184443328,-33.806932827 151.184176192,-33.8065670635 151.183489312,-33.807019851 151.183223648,-33.807194824 151.18304544,-33.806998983 151.18288128,-33.8068107085 151.182722176,-33.806619178 151.18257024,-33.8064241509999 151.18244352,-33.8062482715 151.182426976,-33.8062253315 151.182289088,-33.806014191 151.182224928,-33.805905744 151.18216128,-33.8057982035 151.182068416,-33.8056292245 151.182040672,-33.805578775 151.18192512,-33.805357478 151.181736832,-33.8049863125 151.181663776,-33.8048362775001 151.181523008,-33.804534339 151.18145568,-33.804382491 151.181874016,-33.8041690195 151.18220064,-33.803836038 151.1829096,-33.8033327825 151.183241152,-33.8031041595 151.18357392,-33.8028830105 151.183727808,-33.802830822 151.184271168,-33.8026439905 151.18540272,-33.8022812055 </coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>',
       $getGeometry['values'][$getGeometry['id']]['geometry']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
   }
 
   /**
@@ -674,6 +700,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Assert that when we request geometry we get it back
     $geometryGet2 = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id'], 'return' => ['geometry']]);
     $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($geometryGet2['values'][$geometry['id']]['geometry'], TRUE));
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
   }
 
   /**

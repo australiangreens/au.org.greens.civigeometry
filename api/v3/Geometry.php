@@ -575,7 +575,7 @@ function civicrm_api3_geometry_runqueue($params) {
   $maxRunTime = time() + 600;
   $continue = TRUE;
   while (time() < $maxRunTime && $continue) {
-    $result = $runner->runNext(FALSE);
+    $result = $runner->runNext();
     if (!$result['is_continue']) {
       // all items in the queue are processed
       $continue = FALSE;

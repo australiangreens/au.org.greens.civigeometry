@@ -26,7 +26,7 @@ class CRM_CiviGeometry_Helper {
 
   private function __construct() {
     $this->queue = CRM_Queue_Service::singleton()->create(array(
-      'type' => 'Sql',
+      'type' => 'SqlGeom',
       'name' => self::QUEUE_NAME,
       // do not flush queue upon creation
       'reset' => FALSE,

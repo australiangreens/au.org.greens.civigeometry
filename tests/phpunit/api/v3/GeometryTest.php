@@ -68,12 +68,11 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   public function tearDown() {
-    $tables = ['civigeometry_address_geometry', 'civigeometry_geometry', 'civigeometry_geometry_collection', 'civigeometry_geometry_type', 'civigeometry_geometry_collection_type', 'civigeometry_address_geometry'];
-    CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 0");
-    foreach ($tables as $table) {
-      CRM_Core_DAO::executeQuery("TRUNCATE TABLE {$table}");
-    }
-    CRM_Core_DAO::executeQuery("SET FOREIGN_KEY_CHECKS = 1");
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $this->stateGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $this->statesCollection['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $this->sa1GeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $this->sa1Collection['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->externalCollectionType['id']]);  
     parent::tearDown();
   }
 
@@ -83,6 +82,27 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    */
   public function testCreateGeometry() {
     // Load geoJSON file and create a geometry
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
+    // Create SA1 Geometry
+    $sa1 = $this->callAPISuccess('Geometry', 'create', [
+      'label' => '1210113836',
+      'geometry_type_id' => $this->sa1GeometryType['id'],
+      'collection_id' => [$this->sa1Collection['id']],
+      'geometry' => trim($sa1JSON),
+    ]);
+    // RULE: A Geometry can be assigned to one or more collections but never 0
+    $geometryCollectionCount = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $sa1['id']]);
+    $this->assertEquals(1, $geometryCollectionCount['count']);
+    $this->assertEquals($this->sa1Collection['id'], $geometryCollectionCount['values'][$geometryCollectionCount['id']]['collection_id']);
+    // Check that the returned geometry matches what was set to be stored. use json_decode function to convert to an array, so that white space is not an issue
+    $this->assertEquals(json_decode($sa1JSON, TRUE), json_decode($sa1['values'][$sa1['id']]['geometry'], TRUE));
+    $this->assertEquals(json_decode($sa1JSON, TRUE), json_decode($this->callAPISuccess('Geometry', 'get', ['id' => $sa1['id']])['values'][$sa1['id']]['geometry'], TRUE));
+    // RULE: Geometries can only have 1 type associated.
+    $geometryType2 = $this->callAPISuccess('GeometryType', 'Create', ['label' => 'Australian States']);
+    $geometryParams['geometry_type_id'] = "{$geometryType2['id']}, {$this->sa1Collection['id']}";
+    $this->callAPIFailure('Geometry', 'create', $geometryParams);
+    $geometryParams['geometry_type_id'] = [$geometryType2['id'], $this->sa1Collection['id']];
+    $this->callAPIFailure('Geometry', 'create', $geometryParams);
     $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
     $geometryParams = [
       'label' => 'Queensland',
@@ -92,28 +112,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => $queenslandJSON,
     ];
     $queensland = $this->callAPISuccess('Geometry', 'create', $geometryParams);
-    // RULE: A Geometry can be assigned to one or more collections but never 0
-    $geometryCollectionCount = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $queensland['id']]);
-    $this->assertEquals(1, $geometryCollectionCount['count']);
-    $this->assertEquals($this->statesCollection['id'], $geometryCollectionCount['values'][$geometryCollectionCount['id']]['collection_id']);
-    // Check that the returned geometry matches what was set to be stored. use json_decode function to convert to an array, so that white space is not an issue
-    $this->assertEquals(json_decode($queenslandJSON, TRUE), json_decode($queensland['values'][$queensland['id']]['geometry'], TRUE));
-    $this->assertEquals(json_decode($queenslandJSON, TRUE), json_decode($this->callAPISuccess('Geometry', 'get', ['id' => $queensland['id']])['values'][$queensland['id']]['geometry'], TRUE));
-    // RULE: Geometries can only have 1 type associated.
-    $geometryType2 = $this->callAPISuccess('GeometryType', 'Create', ['label' => 'Australian States']);
-    $geometryParams['geometry_type_id'] = "{$geometryType2['id']}, {$this->stateGeometryType['id']}";
-    $this->callAPIFailure('Geometry', 'create', $geometryParams);
-    $geometryParams['geometry_type_id'] = [$geometryType2['id'], $this->stateGeometryType['id']];
-    $this->callAPIFailure('Geometry', 'create', $geometryParams);
-    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
-    // Create SA1 Geometry
-    $sa1 = $this->callAPISuccess('Geometry', 'create', [
-      'label' => '1210113836',
-      'geometry_type_id' => $this->sa1GeometryType['id'],
-      'collection_id' => [$this->sa1Collection['id']],
-      'geometry' => trim($sa1JSON),
-    ]);
-    // Test that calling geometry.get returns all geoemtry in the colletion
     $collectionGet = $this->callAPISuccess('Geometry', 'get', ['collection_id' => $this->statesCollection['id']]);
     // We should find 1 geometry
     $this->assertEquals(1, $collectionGet['count']);
@@ -124,6 +122,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType2['id']]);
     // verify that we can delete geometries as well as archiving them.
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $sa1['id']]);
   }
 
   /**
@@ -806,7 +805,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    * Test being able return a list of Addresses for a Geometry
    */
   public function testAddressGeometryCacheisUpdatedAfterGeometryisCreated() {
-    $timestart = microtime(TRUE);
     // Create a collection
     $UHCollectionParams = [
       'label' => 'Tasmanian Upper House',

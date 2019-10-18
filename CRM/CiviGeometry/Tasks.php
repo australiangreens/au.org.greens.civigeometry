@@ -14,7 +14,7 @@ class CRM_CiviGeometry_Tasks {
       $address = FALSE;
     }
     if ($address) {
-      CRM_Core_DAO::executeQuery("DELETE FROM civigeometry_address_geometry WHERE address_id = %1", [
+      CRM_Core_DAO::executeQuery("DELETE FROM civigeometry_geometry_entity WHERE entity_id = %1 AND entity_table = 'civicrm_address'", [
         1 => [$address['id'], 'Positive'],
       ]);
       $geometry_ids = civicrm_api3('Geometry', 'contains', [

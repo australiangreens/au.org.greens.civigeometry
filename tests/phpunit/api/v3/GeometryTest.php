@@ -637,6 +637,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_b' => $cairns['id'],
     ]);
     $this->assertEquals(0, $overlapResult['values'][$overlapResult['id']]['overlap']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $sa1['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $wardsCollection['id']]);
   }
 
   /**

@@ -950,8 +950,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_collection_type_id' => $this->externalCollectionType['id'],
     ];
     $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
-    $UHCollectionParams['label'] = 'Tasmanian Upper House No MBR';
-    $UHCollection2 = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
     // Create a geometry type
     $UHGometryTypeParams = [
       'label' => 'Upper House Districts',
@@ -961,13 +959,17 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'Sample Tasmanian Upper House ',
       'geometry_type_id' => $UHGeometryType['id'],
-      'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
+      'collection_id' => $UHCollection['id'],
       'geometry' => trim($upperHouseDistrictJSON),
     ]);
     $contact = $this->individualCreate();
     $this->callAPISuccess('Geometry', 'createEntity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
     $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals($contact, $result['values'][$result['id']]['entity_id']);
+    $this->callAPISuccess('Contact', 'delete', ['id' => $contact, 'skip_undelete']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
   }
 
 }

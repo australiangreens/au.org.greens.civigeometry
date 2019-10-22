@@ -197,11 +197,12 @@ function civigeometry_symfony_civicrm_post($event) {
       $queue->createItem($task);
     }
   }
-  // If a geometry has been archived ensure that all records of it in the AddressGeometry table are removed.
+  // If a geometry has been archived ensure that all address records of it in the GeometryEntity table are removed.
   if ($hookValues[0] == 'archive' && $hookValues[1] == 'Geometry') {
     $id = $hookValues[2];
-    $dao = new CRM_CiviGeometry_DAO_AddressGeometry();
+    $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
     $dao->geometry_id = $id;
+    $dao->entity_table = 'civicrm_address';
     if ($dao->find()) {
       while ($dao->fetch()) {
         $dao->delete();

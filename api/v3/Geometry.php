@@ -584,3 +584,73 @@ function civicrm_api3_geometry_runqueue($params) {
   }
   return civicrm_api3_create_success($returnValues, $params, 'Geometry', 'runqueue');
 }
+
+/**
+ * Geometry.getentity API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getentity_spec(&$spec) {
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['entity_id'] = [
+    'title' => E::ts('Entity ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['entity_table'] = [
+    'title' => E::ts('Entity Table'),
+    'type' => CRM_Utils_Type::T_STRING,
+  ];
+}
+
+/**
+ * Return the entity relationships for this geometry
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_getentity($params) {
+  if (empty($params['geometry_id'])) {
+    civicrm_api3_verify_mandatory($params, NULL, ['entity_id', 'entity_table']);
+  }
+  return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_GeometryEntity', $params);
+}
+
+/**
+ * Geometry.createentity API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_createentity_spec(&$spec) {
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 1,
+  ];
+  $spec['entity_id'] = [
+    'title' => E::ts('Entity ID'),
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 1,
+  ];
+  $spec['entity_table'] = [
+    'title' => E::ts('Entity Table'),
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
+  ];
+}
+
+/**
+ * Return the entity relationships for this geometry
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_createentity($params) {
+  return _civicrm_api3_basic_create('CRM_CiviGeometry_DAO_GeometryEntity', $params);
+}

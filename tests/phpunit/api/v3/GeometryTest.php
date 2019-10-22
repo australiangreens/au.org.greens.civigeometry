@@ -603,6 +603,47 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
+   * Test Generating an Overlap between 2 specific geometries is within 97 and 100%
+   */
+  public function test0OverlapGeneration() {
+    $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
+    // Create SA1 Geometry
+    $sa1 = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'sample_sa1_geometry',
+      'geometry_type_id' => $this->sa1GeometryType['id'],
+      'collection_id' => [$this->sa1Collection['id']],
+      'geometry' => trim($sa1JSON),
+    ]);
+    // Create Collection for QLD Wards
+    $wardsCollection = $this->callAPISuccess('GeometryCollection', 'create', [
+      'label' => 'Queensland Wards',
+      'source' => 'QLD',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ]);
+    // Greate Geometry try
+    $wardGeometryType = $this->callAPISuccess('GeometryType', 'create', [
+      'label' => 'LGA Wards',
+    ]);
+    $cairnsJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_qld_ward_geometry.json');
+    // Create ward Geometry
+    $cairns = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Queensland Ward',
+      'geometry_type_id' => $wardGeometryType['id'],
+      'collection_id' => [$wardsCollection['id']],
+      'geometry' => trim($cairnsJSON),
+    ]);
+    $overlapResult = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $sa1['id'],
+      'geometry_id_b' => $cairns['id'],
+    ]);
+    $this->assertEquals(0, $overlapResult['values'][$overlapResult['id']]['overlap']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $sa1['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $wardsCollection['id']]);
+  }
+
+  /**
    * Test getting a distance
    * @note Postgres reported 2,202 metres here however MySQL5.7 using native functions returned 2,197
    */
@@ -814,7 +855,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('Geometry', 'runqueue', []);
     // Return address IDs for which are in this specific geometry
     $result = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
-    $this->assertEquals($address['id'], $result['values'][$result['id']]['address_id']);
+    $entityResult = $this->callAPISuccess('geometry', 'getentity', [
+      'entity_id' => $address['id'],
+      'entity_table' => 'civicrm_address',
+    ]);
+    $this->assertEquals($address['id'], $result['values'][$result['id']]['entity_id']);
+    $this->assertEquals($upperHouseDistrict['id'], $entityResult['values'][$entityResult['id']]['geometry_id']);
     // Ensure that all records for a geometry are removed when it is archived
     $this->callAPISuccess('geometry', 'archive', ['id' => $upperHouseDistrict['id']]);
     $result2 = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
@@ -888,6 +934,39 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals($upperHouseDistrict['id'], $result['values'][$result['id']]['geometry_id']);
     // Esure that when we pass skip cache that we still return information back even if the geometry is archived.
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
+  }
+
+  /**
+   * Test Creating an Entity Relationship between a contact and Geometry.
+   */
+  public function testCreateRelationshipBetweenContactAndGeometry() {
+    // Create a collection
+    $UHCollectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    // Create a geometry type
+    $UHGometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGometryTypeParams);
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
+      'geometry_type_id' => $UHGeometryType['id'],
+      'collection_id' => $UHCollection['id'],
+      'geometry' => trim($upperHouseDistrictJSON),
+    ]);
+    $contact = $this->individualCreate();
+    $this->callAPISuccess('Geometry', 'createEntity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
+    $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
+    $this->assertEquals($contact, $result['values'][$result['id']]['entity_id']);
+    $this->callAPISuccess('Contact', 'delete', ['id' => $contact, 'skip_undelete']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);

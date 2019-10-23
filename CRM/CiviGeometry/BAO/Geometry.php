@@ -444,4 +444,35 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
   }
 
+  /**
+   * Get Geometries that are within a specified distance
+   * @param array $params
+   * @return array
+   */
+  public static function getNearestGeometries($params) {
+    $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g')
+      ->select("g.id")
+      ->where("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326)) <= #distance", [
+        'point' => $params['point'],
+        'distance' => $params['distance']
+      ]);
+    if (!empty($params['collection_id'])) {
+      $select->join("gcg", 'INNER JOIN civigeoemtry_geometry_collection_geometry cgc ON cgc.geometry_id = g.id');
+      $select->where('gcg.collection_id = #collection_id', ['collection_id' => $params['collection_id']]);
+    }
+    if (!empty($params['geometry_id'])) {
+      $value = $params['geometry_id'];
+      $operator = is_array($value) ? \CRM_Utils_Array::first(array_keys($value)) : NULL;
+      if (!in_array($operator, \CRM_Core_DAO::acceptedSQLOperators(), TRUE)) {
+        $value = ['=' => $value];
+      }
+      $select->where(CRM_Core_DAO::createSQLFilter('g.id', $value));
+    }
+    $results = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+    if (!empty($results)) {
+      return $results;
+    }
+    return [];
+  }
+
 }

@@ -656,7 +656,7 @@ function civicrm_api3_geometry_createentity($params) {
 }
 
 /**
- * Geometry.createentity API specification (optional)
+ * Geometry.deleteentity API specification (optional)
  * This is used for documentation and validation.
  *
  * @param array $spec description of fields supported by this API call
@@ -702,4 +702,43 @@ function civicrm_api3_geometry_deleteentity($params) {
   else {
     throw new API_Exception('Could not delete entity geometry relationship with params ' . json_encode($params));
   }
+}
+
+/**
+ * Geometry.getnearest API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getnearest_spec(&$spec) {
+  $spec['point'] = [
+    'title' => E::ts('A String representing the starting point for distance'),
+    'type' => CRM_Utils_Type::T_STRING,
+    'api.required' => 1,
+  ];
+  $spec['distance'] = [
+    'title' => E::ts('Maximum distance in KM between center of the geometry and point'),
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 1,
+  ];
+  $spec['collection_id'] = [
+    'title' => E::ts('Limit to geometries within this collection ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['geometry_id'] = [
+    'title' => E::ts('Limit to these specific geometries'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+}
+
+/**
+ * Return the nearest Geometries to a point limited by a specific distance
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_getnearest($params) {
+  $result = CRM_CiviGeometry_BAO_Geometry::getNearestGeometries($params);
+  return civicrm_api3_create_success($result, $params, 'Geometry', 'getnearest');
 }

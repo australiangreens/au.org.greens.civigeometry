@@ -654,3 +654,52 @@ function _civicrm_api3_geometry_createentity_spec(&$spec) {
 function civicrm_api3_geometry_createentity($params) {
   return _civicrm_api3_basic_create('CRM_CiviGeometry_DAO_GeometryEntity', $params);
 }
+
+/**
+ * Geometry.createentity API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_deleteentity_spec(&$spec) {
+  $spec['id'] = [
+    'title' => E::ts('Geometry Entity ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['geometry_id'] = [
+    'title' => E::ts('Geometry ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['entity_id'] = [
+    'title' => E::ts('Entity ID'),
+    'type' => CRM_Utils_Type::T_INT,
+  ];
+  $spec['entity_table'] = [
+    'title' => E::ts('Entity Table'),
+    'type' => CRM_Utils_Type::T_STRING,
+  ];
+}
+
+/**
+ * Remove an entity geometry relationship
+ * @param array $params
+ * @return array
+ */
+function civicrm_api3_geometry_deleteentity($params) {
+  if (empty($params['id'])) {
+    civicrm_api3_verify_mandatory($params, NULL, ['entity_id', 'entity_table', 'geometry_id']);
+  }
+  $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
+  $dao->copyValues($params);
+  if ($dao->find()) {
+    while ($dao->fetch()) {
+      $dao->delete();
+      return civicrm_api3_create_success();
+    }
+  }
+  else {
+    throw new API_Exception('Could not delete entity geometry relationship with params ' . json_encode($params));
+  }
+}

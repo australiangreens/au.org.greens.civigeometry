@@ -966,6 +966,20 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('Geometry', 'createEntity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
     $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals($contact, $result['values'][$result['id']]['entity_id']);
+    // Test that we can delete the geometry entity relationship using the id of the table
+    $this->callAPISuccess('Geometry', 'deleteentity', ['id' => $result['id']]);
+    $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
+    // Confirm that we have removed the row from the database
+    $this->assertEquals([], $result['values']);
+    // Re-create the entity geometry relationship
+    $this->callAPISuccess('Geometry', 'createEntity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
+    // Check that if we don't supply an id in the entity relationship delete method then we need to supply all 3 params entity_id, entity_table and geometry_id
+    $this->callAPIFailure('Geometry', 'deleteentity', ['entity_id' => $contact, 'geometry_id' => $upperHouseDistrict['id']]);
+    // Confirm that when we do supply all 3 it succeeds
+    $this->callAPISuccess('Geometry', 'deleteentity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
+    // Confirm that we have removed the row from the database
+    $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
+    $this->assertEquals([], $result['values']);
     $this->callAPISuccess('Contact', 'delete', ['id' => $contact, 'skip_undelete']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);

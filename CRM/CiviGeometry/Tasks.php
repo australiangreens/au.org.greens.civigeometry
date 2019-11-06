@@ -17,8 +17,10 @@ class CRM_CiviGeometry_Tasks {
       civicrm_api3('Geometry', 'getentity', [
         'entity_id' => $address['id'],
         'entity_table' => 'civicrm_address',
-        'api.geometry.deleteentity', [
-          'id' => '$value.id',
+        'api.Geometry.deleteentity' => [
+          'entity_id' => "\$value.entity_id",
+          'entity_table' => "\$value.entity_table",
+          'geometry_id' => "\$value.geometry_id",
         ],
       ]);
       $geometry_ids = civicrm_api3('Geometry', 'contains', [

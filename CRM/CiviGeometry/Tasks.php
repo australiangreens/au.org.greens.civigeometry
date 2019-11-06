@@ -14,17 +14,13 @@ class CRM_CiviGeometry_Tasks {
       $address = FALSE;
     }
     if ($address) {
-      $geometryEntities = civicrm_api3('Geometry', 'getentity', [
+      civicrm_api3('Geometry', 'getentity', [
         'entity_id' => $address['id'],
         'entity_table' => 'civicrm_address',
+        'api.geometry.deleteentity', [
+          'id' => '$value.id',
+        ],
       ]);
-      if ($geometryEntities['count']) {
-        foreach ($geometryEntities['values'] as $geometryEntity) {
-          civicrm_api3('Geometry', 'deleteentity', [
-            'id' => $geometryEntity['id'],
-          ]);
-        }
-      }
       $geometry_ids = civicrm_api3('Geometry', 'contains', [
         'geometry_a' => 0,
         'geometry_b' => 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')',

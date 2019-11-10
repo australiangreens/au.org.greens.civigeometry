@@ -446,6 +446,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
 
   /**
    * Get Geometries that are within a specified distance
+   * We use the centroid of geometries in an effort to ensure that we have a stable point to check the distance against
+   * ST_Distance in MySQL is not as perfect as in PostGis
    * @param array $params
    * @return array
    */

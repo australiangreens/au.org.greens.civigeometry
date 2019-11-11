@@ -457,6 +457,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ->where("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326)) <= #distance", [
         'point' => $params['point'],
         'distance' => $params['distance']
+      ])
+      ->orderBy("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326))", [
+        'point' => $params['point'],
       ]);
     if (!empty($params['collection_id'])) {
       $select->join("gcg", 'INNER JOIN civigeoemtry_geometry_collection_geometry cgc ON cgc.geometry_id = g.id');
@@ -470,6 +473,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       }
       $select->where(CRM_Core_DAO::createSQLFilter('g.id', $value));
     }
+    $options = _civicrm_api3_get_options_from_params($params);
+    $select->limit($options['limit'], $options['offset']);
     $results = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
     if (!empty($results)) {
       return $results;

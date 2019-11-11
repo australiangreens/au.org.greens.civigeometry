@@ -986,4 +986,60 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
   }
 
+  /**
+   * Test finding geometry ids that are within 5 KM of the a specific point
+   */
+  public function testGetNearestGeometry() {
+    // Create a collection
+    $collectionParams = [
+      'label' => 'NSW Branches',
+      'source' => 'Greens NSW',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $NSWBranchesCollection = $this->callAPISuccess('GeometryCollection', 'create', $collectionParams);
+    // Create a geometry type
+    $geometryTypeParams = [
+      'label' => 'Branch',
+    ];
+    $branchGeometryType = $this->callAPISuccess('GeometryType', 'create', $geometryTypeParams);
+    $geometryFile = \CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_nsw_branch_geometry.json';
+    // Create Geometry specifying file as the format
+    $geometry = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample NSW Branch Geometry',
+      'geometry_type_id' => $branchGeometryType['id'],
+      'collection_id' => [$NSWBranchesCollection['id']],
+      'geometry' => $geometryFile,
+      'format' => 'file',
+    ]);
+    // Test a point that is less than 5KM from the centroid of the branch poly.
+    $result = $this->callAPISuccess('Geometry', 'getnearest', [
+      'point' => 'POINT(151.1847511 -33.8044045)',
+      'distance' => 5,
+    ]);
+    $this->assertEquals($geometry['id'], $result['values'][0]['id']);
+    // Test Passing in geometry_id.
+    $result = $this->callAPISuccess('Geometry', 'getnearest', [
+      'point' => 'POINT(151.1847511 -33.8044045)',
+      'geometry_id' => $geometry['id'],
+      'distance' => 5,
+    ]);
+    $this->assertEquals($geometry['id'], $result['values'][0]['id']);
+    // Test Passing in geometry_id using IN format.
+    $result = $this->callAPISuccess('Geometry', 'getnearest', [
+      'point' => 'POINT(151.1847511 -33.8044045)',
+      'geometry_id' => ['IN' => [$geometry['id']]],
+      'distance' => 5,
+    ]);
+    $this->assertEquals($geometry['id'], $result['values'][0]['id']);
+    // Test a point that is > 5KM from the centroid of the branch poly.
+    $result = $this->callAPISuccess('Geometry', 'getnearest', [
+      'point' => 'POINT(147.2687833 -42.9771098)',
+      'distance' => 5,
+    ]);
+    $this->assertEquals([], $result['values']);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $branchGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $NSWBranchesCollection['id']]);
+  }
+
 }

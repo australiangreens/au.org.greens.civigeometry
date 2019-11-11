@@ -474,8 +474,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $select->where(CRM_Core_DAO::createSQLFilter('g.id', $value));
     }
     $options = _civicrm_api3_get_options_from_params($params);
-    $select->limit = $options['limit'];
-    $select->offset = $options['offset'];
+    $select->limit($options['limit'], $options['offset']);
     $results = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
     if (!empty($results)) {
       return $results;

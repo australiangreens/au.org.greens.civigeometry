@@ -85,9 +85,13 @@ Avaliable Entities and methods
     - `getDistance` - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`
     - `getOverlap` - Determine the overlap between two geometry shapes. Returned as a percentage
     - `runqueue` - Runs the queued up address placement and geometry - address relationship creation jobs stored in the Geometry extension queue. 
+    - `getentity` - Get Entity Geometry relationships, must supply either a `geometry_id` or the combination of entity_id and entity_table
+    - `createentity` - Create an Entity Geometry relationship, must supply an `entity_id`, `entity_table` = match to MySQL table name and a `geometry_id`.
+    - `deleteentity` - Delete an Entity Geometry relationship, must supply either the id of the civigeometry_geoemtry_entity table or a combination of `entity_id`, `entity_table`, `geometry_id`.
+    - `getnearest` - Find the nearest Geometries to a point, able to set a maximum distance to consider and limit to a specific collection. Also orders by distance. This uses the center of polygons to get the distance from to the point.
 - `Address`
   - Operations
-    - `creategeometries` - add relationship records between an address and a geometry into the `civigeometry_address_geometry` table
+    - `creategeometries` - add relationship records between an address and a geometry into the `civigeometry_geometry_entity` table, API prefills in `entity_table` with `civicrm_address`
     - `getgeometries` - get all geometries for a specific address or get all the addresses that are within a specific geometry.
 
 When an address is created in the system and it has been sucessfully geocoded there will be a job added to the queue created by the extension to then calculate what geometries is the lat and long point of the address within and store those relationships via the `address.creategeometries` API method.

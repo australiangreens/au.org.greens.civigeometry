@@ -494,6 +494,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => $this->statesCollection['id'],
     ]);
     $this->assertEquals(['geometry_a' => $cairns['id'], 'geometry_b' => $queensland['id']], $result['values'][0]);
+    // Test that when we flip it and pass in geometry b and the wards collection we get the same result
+    $result2 = $this->callAPISuccess('Geometry', 'getIntersection', [
+      'geometry_b' => $queensland['id'],
+      'collection_id' => $wardsCollection['id'],
+    ]);
+    $this->assertEquals(['geometry_a' => $cairns['id'], 'geometry_b' => $queensland['id']], $result2['values'][0]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
@@ -544,6 +550,13 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Verify calling the API again gets the same result and the cache has been used.
     $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
     $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
+    // Check that when we supply a minimum overlap to be returned that it correctly filters results.
+    $cacheResutlMinOverlap = $this->callAPISuccess('Geometry', 'getoverlap', [
+      'geometry_id_a' => $cairns['id'],
+      'geometry_id_b' => $queensland['id'],
+      'overlap' => 10,
+    ]);
+    $this->assertTrue(empty($cacheResutlMinOverlap['values']));
     $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);

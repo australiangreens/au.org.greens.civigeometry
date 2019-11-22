@@ -217,18 +217,36 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   public static function getGeometryIntesection($params) {
     $values = [];
     if (!empty($params['collection_id'])) {
-      $geometries = CRM_Core_DAO::executeQuery("SELECT b.id
-        FROM civigeometry_geometry a, civigeometry_geometry b
-        INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = b.id
-        WHERE a.id = %1 AND cgc.collection_id = %2 AND ST_Intersects(a.geometry, b.geometry) != 0", [
-          1 => [$params['geometry_a'], 'Positive'],
-          2 => [$params['collection_id'], 'Positive'],
-        ])->fetchAll();
+      $select_table = 'b';
+      $where_table = 'a';
+      if (!empty($params['geometry_b']) && empty($params['geometry_a'])) {
+        $select_table = 'a';
+        $where_table = 'b';
+      }
+      $query_params = [2 => [$params['collection_id'], 'Positive']];
+      if ($select_table === 'a') {
+        $query_params[1] = [$params['geometry_b'], 'Positive'];
+      }
+      else {
+        $query_params[1] = [$params['geometry_a'], 'Positive'];
+      }
+      $geometries = CRM_Core_DAO::executeQuery("SELECT {$select_table}.id
+        FROM civigeometry_geometry {$where_table}, civigeometry_geometry as {$select_table}
+        INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = {$select_table}.id
+        WHERE {$where_table}.id = %1 AND cgc.collection_id = %2 AND ST_Intersects(a.geometry, b.geometry) != 0", $query_params)->fetchAll();
       foreach ($geometries as $geometry_id) {
-        $values[] = [
-          'geometry_a' => $params['geometry_a'],
-          'geometry_b' => $geometry_id['id'],
-        ];
+        if ($select_table === 'a') {
+          $values[] = [
+            'geometry_a' => $geometry_id['id'],
+            'geometry_b' => $params['geometry_b'],
+          ];
+        }
+        else {
+          $values[] = [
+            'geometry_a' => $params['geometry_a'],
+            'geometry_b' => $geometry_id['id'],
+          ];
+        }
       }
     }
     else {
@@ -262,13 +280,17 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $checkCache->find();
     if ($checkCache->N == 1) {
       while ($checkCache->fetch()) {
-        return [
-          'id' => $checkCache->id,
-          'geometry_id_a' => $checkCache->geometry_id_a,
-          'geometry_id_b' => $checkCache->geometry_id_b,
-          'overlap' => $checkCache->overlap,
-          'cache_used' => TRUE,
-        ];
+        $overlap = (int) $checkCache->overlap;
+        if (empty($params['overlap']) || (!empty($params['overlap']) && $overlap >= (int) $params['overlap'])) { 
+          return [
+            'id' => $checkCache->id,
+            'geometry_id_a' => $checkCache->geometry_id_a,
+            'geometry_id_b' => $checkCache->geometry_id_b,
+            'overlap' => $checkCache->overlap,
+            'cache_used' => TRUE,
+          ];
+        }
+        return [];
       }
     }
     $intersectionArea = CRM_Core_DAO::executeQuery("
@@ -290,13 +312,16 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $overlapCache->overlap = $overlap;
     $overlapCache->save();
-    return [
-      'id' => $overlapCache->id,
-      'geometry_id_a' => $params['geometry_id_a'],
-      'geometry_id_b' => $params['geometry_id_b'],
-      'overlap' => $overlap,
-      'cache_used' => FALSE,
-    ];
+    if (empty($params['overlap']) || (!empty($params['overlap']) && (int) $overlap >= (int) $params['overlap'])) {
+      return [
+        'id' => $overlapCache->id,
+        'geometry_id_a' => $params['geometry_id_a'],
+        'geometry_id_b' => $params['geometry_id_b'],
+        'overlap' => $overlap,
+        'cache_used' => FALSE,
+      ];
+    }
+    return [];
   }
 
   /**

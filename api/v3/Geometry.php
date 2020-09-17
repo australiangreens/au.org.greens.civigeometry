@@ -478,7 +478,7 @@ function _civicrm_api3_geometry_getintersection_spec(&$spec) {
   ];
   $spec['collection_id'] = [
     'title' => E::ts('Geometry B/A Collection ID'),
-    'description' => E::ts('Limit the results to a specfiic Collection ID, this will be for the geometry that has not been supplied e.g. if you supply Geometry A it will be the b and visa versa'),
+    'description' => E::ts('Limit the results to a specific Collection ID, for the geometry that has not been supplied e.g. if you supply Geometry A it will be the B and visa versa'),
     'type' => CRM_Utils_Type::T_INT,
   ];
 }

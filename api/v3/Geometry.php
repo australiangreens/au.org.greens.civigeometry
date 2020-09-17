@@ -445,7 +445,16 @@ function _civicrm_api3_geometry_unarchive_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_geometry_getintersection($params) {
-  civicrm_api3_verify_one_mandatory($params, NULL, ['geometry_b', 'collection_id']);
+  // Ensure that we have at least geometry_a or geometry_b
+  civicrm_api3_verify_one_mandatory($params, NULL, ['geometry_a', 'geometry_b']);
+  if (!empty($params['geometry_a'])) {
+    $test = 'b';
+  }
+  else {
+    $test = 'a';
+  }
+  // Check that we have either the other geometry or a collection id.
+  civicrm_api3_verify_one_mandatory($params, NULL, ['geometry_' . $test, 'collection_id']);
   $result = CRM_CiviGeometry_BAO_Geometry::getGeometryIntesection($params);
   return civicrm_api3_create_success($result, $params);
 }
@@ -461,7 +470,6 @@ function civicrm_api3_geometry_getintersection($params) {
 function _civicrm_api3_geometry_getintersection_spec(&$spec) {
   $spec['geometry_a'] = [
     'title' => E::ts('Geometry A'),
-    'api.required' => 1,
     'type' => CRM_Utils_Type::T_INT,
   ];
   $spec['geometry_b'] = [
@@ -469,7 +477,8 @@ function _civicrm_api3_geometry_getintersection_spec(&$spec) {
     'type' => CRM_Utils_Type::T_INT,
   ];
   $spec['collection_id'] = [
-    'title' => E::ts('Geometry B Collection ID'),
+    'title' => E::ts('Geometry B/A Collection ID'),
+    'description' => E::ts('Limit the results to a specific Collection ID, for the geometry that has not been supplied e.g. if you supply Geometry A it will be the B and visa versa'),
     'type' => CRM_Utils_Type::T_INT,
   ];
 }
@@ -484,7 +493,9 @@ function _civicrm_api3_geometry_getintersection_spec(&$spec) {
 function civicrm_api3_geometry_getoverlap($params) {
   $result = [];
   $overlapResult = CRM_CiviGeometry_BAO_Geometry::calculateOverlapGeometry($params);
-  $result[$overlapResult['id']] = $overlapResult;
+  if (!empty($overlapResult)) {
+    $result[$overlapResult['id']] = $overlapResult;
+  }
   return civicrm_api3_create_success($result, $params);
 }
 
@@ -503,6 +514,8 @@ function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
   $spec['geometry_id_b']['title'] = E::ts('Geometry ID B');
   $spec['geometry_id_b']['api.required'] = 1;
   $spec['geometry_id_b']['type'] = CRM_Utils_Type::T_INT;
+  $spec['overlap']['title'] = E::ts('Minimum overlap');
+  $spec['overlap']['type'] = CRM_Utils_Type::T_INT;
 }
 
 /**

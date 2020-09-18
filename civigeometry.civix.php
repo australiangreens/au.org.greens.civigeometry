@@ -24,9 +24,9 @@ class CRM_CiviGeometry_ExtensionUtil {
    *   Translated text.
    * @see ts
    */
-  public static function ts($text, $params = array()) {
+  public static function ts($text, $params = []) {
     if (!array_key_exists('domain', $params)) {
-      $params['domain'] = array(self::LONG_NAME, NULL);
+      $params['domain'] = [self::LONG_NAME, NULL];
     }
     return ts($text, $params);
   }
@@ -100,7 +100,7 @@ function _civigeometry_civix_civicrm_config(&$config = NULL) {
     array_unshift($template->template_dir, $extDir);
   }
   else {
-    $template->template_dir = array($extDir, $template->template_dir);
+    $template->template_dir = [$extDir, $template->template_dir];
   }
 
   $include_path = $extRoot . PATH_SEPARATOR . get_include_path();
@@ -140,7 +140,7 @@ function _civigeometry_civix_civicrm_install() {
 function _civigeometry_civix_civicrm_postInstall() {
   _civigeometry_civix_civicrm_config();
   if ($upgrader = _civigeometry_civix_upgrader()) {
-    if (is_callable(array($upgrader, 'onPostInstall'))) {
+    if (is_callable([$upgrader, 'onPostInstall'])) {
       $upgrader->onPostInstall();
     }
   }
@@ -166,7 +166,7 @@ function _civigeometry_civix_civicrm_uninstall() {
 function _civigeometry_civix_civicrm_enable() {
   _civigeometry_civix_civicrm_config();
   if ($upgrader = _civigeometry_civix_upgrader()) {
-    if (is_callable(array($upgrader, 'onEnable'))) {
+    if (is_callable([$upgrader, 'onEnable'])) {
       $upgrader->onEnable();
     }
   }
@@ -181,7 +181,7 @@ function _civigeometry_civix_civicrm_enable() {
 function _civigeometry_civix_civicrm_disable() {
   _civigeometry_civix_civicrm_config();
   if ($upgrader = _civigeometry_civix_upgrader()) {
-    if (is_callable(array($upgrader, 'onDisable'))) {
+    if (is_callable([$upgrader, 'onDisable'])) {
       $upgrader->onDisable();
     }
   }
@@ -193,8 +193,9 @@ function _civigeometry_civix_civicrm_disable() {
  * @param $op string, the type of operation being performed; 'check' or 'enqueue'
  * @param $queue CRM_Queue_Queue, (for 'enqueue') the modifiable list of pending up upgrade tasks
  *
- * @return mixed  based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
- *                for 'enqueue', returns void
+ * @return mixed
+ *   based on op. for 'check', returns array(boolean) (TRUE if upgrades are pending)
+ *   for 'enqueue', returns void
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_upgrade
  */
@@ -217,22 +218,23 @@ function _civigeometry_civix_upgrader() {
 }
 
 /**
- * Search directory tree for files which match a glob pattern
+ * Search directory tree for files which match a glob pattern.
  *
  * Note: Dot-directories (like "..", ".git", or ".svn") will be ignored.
  * Note: In Civi 4.3+, delegate to CRM_Utils_File::findFiles()
  *
- * @param $dir string, base dir
- * @param $pattern string, glob pattern, eg "*.txt"
- * @return array(string)
+ * @param string $dir base dir
+ * @param string $pattern , glob pattern, eg "*.txt"
+ *
+ * @return array
  */
 function _civigeometry_civix_find_files($dir, $pattern) {
-  if (is_callable(array('CRM_Utils_File', 'findFiles'))) {
+  if (is_callable(['CRM_Utils_File', 'findFiles'])) {
     return CRM_Utils_File::findFiles($dir, $pattern);
   }
 
-  $todos = array($dir);
-  $result = array();
+  $todos = [$dir];
+  $result = [];
   while (!empty($todos)) {
     $subdir = array_shift($todos);
     foreach (_civigeometry_civix_glob("$subdir/$pattern") as $match) {
@@ -243,7 +245,7 @@ function _civigeometry_civix_find_files($dir, $pattern) {
     if ($dh = opendir($subdir)) {
       while (FALSE !== ($entry = readdir($dh))) {
         $path = $subdir . DIRECTORY_SEPARATOR . $entry;
-        if ($entry{0} == '.') {
+        if ($entry[0] == '.') {
         }
         elseif (is_dir($path)) {
           $todos[] = $path;
@@ -254,6 +256,7 @@ function _civigeometry_civix_find_files($dir, $pattern) {
   }
   return $result;
 }
+
 /**
  * (Delegated) Implements hook_civicrm_managed().
  *
@@ -296,14 +299,13 @@ function _civigeometry_civix_civicrm_caseTypes(&$caseTypes) {
     $name = preg_replace('/\.xml$/', '', basename($file));
     if ($name != CRM_Case_XMLProcessor::mungeCaseType($name)) {
       $errorMessage = sprintf("Case-type file name is malformed (%s vs %s)", $name, CRM_Case_XMLProcessor::mungeCaseType($name));
-      CRM_Core_Error::fatal($errorMessage);
-      // throw new CRM_Core_Exception($errorMessage);
+      throw new CRM_Core_Exception($errorMessage);
     }
-    $caseTypes[$name] = array(
+    $caseTypes[$name] = [
       'module' => E::LONG_NAME,
       'name' => $name,
       'file' => $file,
-    );
+    ];
   }
 }
 
@@ -361,11 +363,12 @@ function _civigeometry_civix_civicrm_themes(&$themes) {
  *
  * @link http://php.net/glob
  * @param string $pattern
- * @return array, possibly empty
+ *
+ * @return array
  */
 function _civigeometry_civix_glob($pattern) {
   $result = glob($pattern);
-  return is_array($result) ? $result : array();
+  return is_array($result) ? $result : [];
 }
 
 /**
@@ -376,16 +379,18 @@ function _civigeometry_civix_glob($pattern) {
  *    'Mailing', or 'Administer/System Settings'
  * @param array $item - the item to insert (parent/child attributes will be
  *    filled for you)
+ *
+ * @return bool
  */
 function _civigeometry_civix_insert_navigation_menu(&$menu, $path, $item) {
   // If we are done going down the path, insert menu
   if (empty($path)) {
-    $menu[] = array(
-      'attributes' => array_merge(array(
+    $menu[] = [
+      'attributes' => array_merge([
         'label'      => CRM_Utils_Array::value('name', $item),
         'active'     => 1,
-      ), $item),
-    );
+      ], $item),
+    ];
     return TRUE;
   }
   else {
@@ -396,9 +401,9 @@ function _civigeometry_civix_insert_navigation_menu(&$menu, $path, $item) {
     foreach ($menu as $key => &$entry) {
       if ($entry['attributes']['name'] == $first) {
         if (!isset($entry['child'])) {
-          $entry['child'] = array();
+          $entry['child'] = [];
         }
-        $found = _civigeometry_civix_insert_navigation_menu($entry['child'], implode('/', $path), $item, $key);
+        $found = _civigeometry_civix_insert_navigation_menu($entry['child'], implode('/', $path), $item);
       }
     }
     return $found;
@@ -409,7 +414,7 @@ function _civigeometry_civix_insert_navigation_menu(&$menu, $path, $item) {
  * (Delegated) Implements hook_civicrm_navigationMenu().
  */
 function _civigeometry_civix_navigationMenu(&$nodes) {
-  if (!is_callable(array('CRM_Core_BAO_Navigation', 'fixNavigationMenu'))) {
+  if (!is_callable(['CRM_Core_BAO_Navigation', 'fixNavigationMenu'])) {
     _civigeometry_civix_fixNavigationMenu($nodes);
   }
 }
@@ -467,50 +472,42 @@ function _civigeometry_civix_civicrm_alterSettingsFolders(&$metaDataFolders = NU
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
  */
-
 function _civigeometry_civix_civicrm_entityTypes(&$entityTypes) {
-  $entityTypes = array_merge($entityTypes, array (
-    'CRM_CiviGeometry_DAO_Geometry' => 
-    array (
+  $entityTypes = array_merge($entityTypes, [
+    'CRM_CiviGeometry_DAO_Geometry' => [
       'name' => 'Geometry',
       'class' => 'CRM_CiviGeometry_DAO_Geometry',
       'table' => 'civigeometry_geometry',
-    ),
-    'CRM_CiviGeometry_DAO_GeometryCollection' => 
-    array (
+    ],
+    'CRM_CiviGeometry_DAO_GeometryCollection' => [
       'name' => 'GeometryCollection',
       'class' => 'CRM_CiviGeometry_DAO_GeometryCollection',
       'table' => 'civigeometry_geometry_collection',
-    ),
-    'CRM_CiviGeometry_DAO_GeometryCollectionGeometry' => 
-    array (
+    ],
+    'CRM_CiviGeometry_DAO_GeometryCollectionGeometry' => [
       'name' => 'GeometryCollectionGeometry',
       'class' => 'CRM_CiviGeometry_DAO_GeometryCollectionGeometry',
       'table' => 'civigeometry_geometry_collection_geometry',
-    ),
-    'CRM_CiviGeometry_DAO_GeometryCollectionType' => 
-    array (
+    ],
+    'CRM_CiviGeometry_DAO_GeometryCollectionType' => [
       'name' => 'GeometryCollectionType',
       'class' => 'CRM_CiviGeometry_DAO_GeometryCollectionType',
       'table' => 'civigeometry_geometry_collection_type',
-    ),
-    'CRM_CiviGeometry_DAO_GeometryEntity' => 
-    array (
+    ],
+    'CRM_CiviGeometry_DAO_GeometryEntity' => [
       'name' => 'GeometryEntity',
       'class' => 'CRM_CiviGeometry_DAO_GeometryEntity',
       'table' => 'civigeometry_geometry_entity',
-    ),
-    'CRM_CiviGeometry_DAO_GeometryOverlapCache' => 
-    array (
+    ],
+    'CRM_CiviGeometry_DAO_GeometryOverlapCache' => [
       'name' => 'GeometryOverlapCache',
       'class' => 'CRM_CiviGeometry_DAO_GeometryOverlapCache',
       'table' => 'civigeometry_geometry_overlap_cache',
-    ),
-    'CRM_CiviGeometry_DAO_GeometryType' => 
-    array (
+    ],
+    'CRM_CiviGeometry_DAO_GeometryType' => [
       'name' => 'GeometryType',
       'class' => 'CRM_CiviGeometry_DAO_GeometryType',
       'table' => 'civigeometry_geometry_type',
-    ),
-  ));
+    ],
+  ]);
 }

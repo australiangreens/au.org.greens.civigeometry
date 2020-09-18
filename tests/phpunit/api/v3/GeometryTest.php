@@ -71,7 +71,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $this->statesCollection['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $this->sa1GeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $this->sa1Collection['id']]);
-    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->externalCollectionType['id']]);  
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->externalCollectionType['id']]);
     parent::tearDown();
   }
 

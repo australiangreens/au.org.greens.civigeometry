@@ -214,7 +214,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *   - geometry_a
    *   - geometry_b
    */
-  public static function getGeometryIntesection($params) {
+  public static function getGeometryIntersection($params) {
     $values = [];
     if (!empty($params['collection_id'])) {
       $select_table = 'b';

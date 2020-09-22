@@ -455,7 +455,7 @@ function civicrm_api3_geometry_getintersection($params) {
   }
   // Check that we have either the other geometry or a collection id.
   civicrm_api3_verify_one_mandatory($params, NULL, ['geometry_' . $test, 'collection_id']);
-  $result = CRM_CiviGeometry_BAO_Geometry::getGeometryIntesection($params);
+  $result = CRM_CiviGeometry_BAO_Geometry::getGeometryIntersection($params);
   return civicrm_api3_create_success($result, $params);
 }
 

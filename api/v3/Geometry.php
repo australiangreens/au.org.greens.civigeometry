@@ -165,7 +165,7 @@ function civicrm_api3_geometry_get($params) {
  * @throws API_Exception
  */
 function civicrm_api3_geometry_getcollection($params) {
-  return _civicrm_api3_basic_get('CRM_CiviGeometry_BAO_GeometryCollectionGeometry', $params);
+  return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_GeometryCollectionGeometry', $params);
 }
 
 /**

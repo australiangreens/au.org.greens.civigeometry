@@ -281,7 +281,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     if ($checkCache->N == 1) {
       while ($checkCache->fetch()) {
         $overlap = (int) $checkCache->overlap;
-        if (empty($params['overlap']) || (!empty($params['overlap']) && $overlap >= (int) $params['overlap'])) { 
+        if (empty($params['overlap']) || (!empty($params['overlap']) && $overlap >= (int) $params['overlap'])) {
           return [
             'id' => $checkCache->id,
             'geometry_id_a' => $checkCache->geometry_id_a,
@@ -481,7 +481,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ->select("g.id")
       ->where("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326)) <= #distance", [
         'point' => $params['point'],
-        'distance' => $params['distance']
+        'distance' => $params['distance'],
       ])
       ->orderBy("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326))", [
         'point' => $params['point'],

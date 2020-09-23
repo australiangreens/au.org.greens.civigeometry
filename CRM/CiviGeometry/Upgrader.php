@@ -137,7 +137,6 @@ end
     return TRUE;
   }
 
-
   /**
    * Example: Run a slow upgrade process by breaking it up into smaller chunk.
    *

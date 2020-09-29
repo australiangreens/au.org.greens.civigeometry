@@ -276,7 +276,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $checkCache = new CRM_CiviGeometry_DAO_GeometryOverlapCache();
     $checkCache->geometry_id_a = $params['geometry_id_a'];
     $checkCache->geometry_id_b = $params['geometry_id_b'];
-    $checkCache->addWhere("cache_date >= DATE_SUB(NOW(), INTERVAL 1 Month)");
     $checkCache->find();
     if ($checkCache->N == 1) {
       while ($checkCache->fetch()) {

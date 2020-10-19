@@ -440,14 +440,54 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    */
   public static function getAddresses($geometry_id) {
     $bounds = civicrm_api3('Geometry', 'getbounds', ['id' => $geometry_id])['values'][$geometry_id];
-    $select = CRM_Utils_SQL_Select::from('civicrm_address')
-      ->select("id")
-      ->where("geo_code_2 >= '#left_bound'", ['left_bound' => $bounds['left_bound']])
-      ->where("geo_code_2 <= '#right_bound'", ['right_bound' => $bounds['right_bound']])
-      ->where("geo_code_1 <= '#top_bound'", ['top_bound' => $bounds['top_bound']])
-      ->where("geo_code_1 >= '#bottom_bound'", ['bottom_bound' => $bounds['bottom_bound']]);
-    $addressResults = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+    // Use a table to store a potentially very large number of addresses
+    // But we are not using a temp table as we may exhaust memory, etc.
+    $tempTableName = CRM_Utils_SQL_TempTable::getName();
+    $query <<<EOQ
+      CREATE TABLE %1
+      SELECT address_id, 0 as is_contained FROM civicrm_address
+      WHERE geo_code_2 >= %2
+      AND geo_code_2 <= %3
+      AND geo_code_1 <= %4
+      AND geo_code_1 >= %5
+      ORDER BY id
+EOQ;
+    CRM_Core_DAO::executeQuery($query, [1 => $tempTableName,
+      2 => $bounds['left_bound'],
+      3 => $bounds['right_bound'],
+      4 => $bounds['top_bound'],
+      5 => $bounds['bottom_bounds'],
+    ]);
+    $numAddresses =  CRM_Core_DAO::singleValueQuery('SELECT COUNT(*) FROM %1', [1 => $tempTableName]);
     $results = [];
+    if ($numAddresses > 0) {
+      $rowCount = 5000;
+      $numBatches = $numAddresses / $rowCount;
+      $offset = 0;
+      while ( $numBatches-- > 0) {
+        $dao = CRM_Utils_SQL_Select::from('%1', [1 => $tempTableName])
+          ->select('address_id')
+          ->orderBy('address_id')
+          ->limit($rowCount, $offset)
+          ->execute();
+        while ($dao->fetch()) {
+          // Do ST_Contains test
+          // If answer is 1, store id in array
+        }
+        // Update addresses in our temp table
+        // Update offset
+        $offset += $rowCount;
+      }
+      // drop table
+      // return results
+      return $result;
+    }
+    else {
+      return [];
+    }
+  }
+
+    // this block will go once the refactored code above is complete
     if (!empty($addressResults)) {
       $address_ids = CRM_Utils_Array::collect('id', $addressResults);
       foreach ($address_ids as $address_id) {

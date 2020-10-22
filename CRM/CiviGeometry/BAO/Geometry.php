@@ -433,11 +433,70 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $kml;
   }
 
+  /**
+   * Helper method for getAddresses. Fetches set of address_id values from $candidateTable
+   *
+   * @param  string  $candidateTable The name of the table holding the candidate ids
+   * @param  integer $offset        Current offset
+   * @param  integer $batchSize     The batch size
+   * @return array                  The next batch of civicrm_address ids
+   */
+  public static function getAddressesFetchCandidateBatch($candidateTable, $offset, $batchSize) {
+    $dao = CRM_Core_DAO::executeQuery("
+        SELECT ct.address_id
+        FROM $candidateTable ct
+        ORDER BY address_id
+        LIMIT %1
+        OFFSET %2
+      ", [
+        1 => [$batchSize, 'Integer'],
+        2 => [$offset, 'Integer'],
+      ]);
+
+      $results = $dao->fetchAll();
+
+      return $results;
+  }
 
   /**
-   * [getAddressesAsGenerator description]
+   * Helper method for getAddresses. Checks if specified geometry contains civicrm_address with id.
+   *
+   * @param  integer $geometryId    Id of the geometry to check against
+   * @param  integer $addressId     Id of the civicrm_address
+   * @return boolean
+   */
+  public static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
+    $select = CRM_Utils_SQL_Select::from($self::getTableName() . ' g, civicrm_address ca')
+      ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
+      ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
+      ->where("ca.id = #address_id", ['address_id' => $addressId]);
+    $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+
+
+    $result = CRM_Core_DAO::singleValueQuery("
+      SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
+      FROM civicrm_address ca, $geomTableName g
+      WHERE g.id = %1 AND ca.id = %2
+    ", [
+      1 => [$geometryId, 'Integer'],
+      2 => [$addressId, 'Integer'],
+    ]);
+
+    return boolval($result);
+  }
+
+  /**
+   * Get an Iterator that provides the address ids that are contained by a specific geometry_id.
+   *
+   * Uses the geometry bounds to generate a list of candidates before doing a more detailed
+   * ST_Contains confirmation.
+   *
+   * By default if a civicrm_address already has an entry in civigeometry_geometry_entity against
+   * the specified geometry, it will be skipped over. This is controlled by the
+   * precheck_relationships key in $params.
+   *
    * @param  integer $geometry_id
-   *         The id of the geometry
+   *   The id of the geometry
    *
    * @param  array  $params
    *   - batch_size: Integer. Default 100
@@ -518,52 +577,14 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
 
     $numCandidates = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $tempTableName");
 
-    function fetchCandidateBatch($candidateTable, $offset, $batchSize) {
-      $dao = CRM_Core_DAO::executeQuery("
-          SELECT ct.address_id
-          FROM $candidateTable ct
-          ORDER BY address_id
-          LIMIT %1
-          OFFSET %2
-        ", [
-          1 => [$batchSize, 'Integer'],
-          2 => [$offset, 'Integer'],
-        ]);
-
-        $results = $dao->fetchAll();
-
-        return $results;
-    }
-
-    function geometryContainsCandidate($geometryId, $addressId, $geomTableName) {
-      $select = CRM_Utils_SQL_Select::from($geomTableName . ' g, civicrm_address ca')
-        ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
-        ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
-        ->where("ca.id = #address_id", ['address_id' => $addressId]);
-      $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
-
-
-      $result = CRM_Core_DAO::singleValueQuery("
-        SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
-        FROM civicrm_address ca, $geomTableName g
-        WHERE g.id = %1 AND ca.id = %2
-      ", [
-        1 => [$geometryId, 'Integer'],
-        2 => [$addressId, 'Integer'],
-      ]);
-
-      return boolval($result);
-    }
-
     $numBatches = ceil($numCandidates / $params['batch_size']);
     $offset = 0;
-    $geomTableName = self::getTableName();
     for ($batchN=1; $batchN <= $numBatches; $batchN++) {
-      $candidates = fetchCandidateBatch($tempTableName, $offset, $params['batch_size']);
+      $candidates = self::getAddressesFetchCandidateBatch($tempTableName, $offset, $params['batch_size']);
 
       if (count($candidates)) {
         foreach ($candidates as $candidate) {
-          if (geometryContainsCandidate($geometry_id, $candidate['address_id'], $geomTableName)) {
+          if (self::getAddressesGeometryContainsCandidate($geometry_id, $candidate['address_id'])) {
             yield ['geometry_id' => $geometry_id, 'address_id' => $candidate['address_id']];
           }
         }

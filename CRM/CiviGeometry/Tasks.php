@@ -48,7 +48,7 @@ class CRM_CiviGeometry_Tasks {
    * Get all the Addresses for this geometry
    */
   public static function buildGeometryRelationships(CRM_Queue_TaskContext $ctx, $geometry_id) {
-    foreach (CRM_CiviGeometry_BAO_Geometry::getAddresses($geometry_id, []) as $match) {
+    foreach (CRM_CiviGeometry_BAO_Geometry::getAddresses($geometry_id) as $match) {
       civicrm_api3('Address', 'creategeometries', [
         'geometry_id' => $match['geometry_id'],
         'address_id' => $match['address_id'],

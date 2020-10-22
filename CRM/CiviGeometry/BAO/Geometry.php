@@ -462,7 +462,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $tmpTbl = CRM_Utils_SQL_TempTable::build();
     if ($params['keep_temp_table']) {
       $tmpTbl->setDurable();
-    } else {
+    }
+    else {
       $tmpTbl->setAutodrop(true);
     }
     $tmpTbl->createWithColumns('address_id INT');
@@ -495,7 +496,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         4 => [$bounds['bottom_bound'], 'Float'],
         5 => [$geometry_id, 'Integer']
       ]);
-    } else {
+    }
+    else {
       CRM_Core_DAO::executeQuery("
         INSERT INTO $tempTableName (address_id)
         SELECT ca.id
@@ -567,13 +569,11 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         }
 
         $offset += $params['batch_size'];
-      } else {
+      }
+      else {
         throw new Exception("count <= 0, but haven't finish yet. That doesn't make any sense");
       }
     }
-
-    // TODO: Probably not necessary since autodrop is set?
-    if (!$params['keep_temp_table']) $tmpTbl->drop();
   }
 
   /**

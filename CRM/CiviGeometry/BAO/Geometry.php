@@ -433,79 +433,147 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $kml;
   }
 
-  /**
-   * Get an an array of address ids for a specific geometry_id
-   * @param int $geometry_id
-   * @return array
-   */
-  public static function getAddresses($geometry_id) {
-    $bounds = civicrm_api3('Geometry', 'getbounds', ['id' => $geometry_id])['values'][$geometry_id];
-    // Use a table to store a potentially very large number of addresses
-    // But we are not using a temp table as we may exhaust memory, etc.
-    $tempTableName = CRM_Utils_SQL_TempTable::getName();
-    $query <<<EOQ
-      CREATE TABLE %1
-      SELECT address_id, 0 as is_contained FROM civicrm_address
-      WHERE geo_code_2 >= %2
-      AND geo_code_2 <= %3
-      AND geo_code_1 <= %4
-      AND geo_code_1 >= %5
-      ORDER BY id
-EOQ;
-    CRM_Core_DAO::executeQuery($query, [1 => $tempTableName,
-      2 => $bounds['left_bound'],
-      3 => $bounds['right_bound'],
-      4 => $bounds['top_bound'],
-      5 => $bounds['bottom_bounds'],
-    ]);
-    $numAddresses =  CRM_Core_DAO::singleValueQuery('SELECT COUNT(*) FROM %1', [1 => $tempTableName]);
-    $results = [];
-    if ($numAddresses > 0) {
-      $rowCount = 5000;
-      $numBatches = $numAddresses / $rowCount;
-      $offset = 0;
-      while ( $numBatches-- > 0) {
-        $dao = CRM_Utils_SQL_Select::from('%1', [1 => $tempTableName])
-          ->select('address_id')
-          ->orderBy('address_id')
-          ->limit($rowCount, $offset)
-          ->execute();
-        while ($dao->fetch()) {
-          // Do ST_Contains test
-          // If answer is 1, store id in array
-        }
-        // Update addresses in our temp table
-        // Update offset
-        $offset += $rowCount;
-      }
-      // drop table
-      // return results
-      return $result;
-    }
-    else {
-      return [];
-    }
-  }
 
-    // this block will go once the refactored code above is complete
-    if (!empty($addressResults)) {
-      $address_ids = CRM_Utils_Array::collect('id', $addressResults);
-      foreach ($address_ids as $address_id) {
-        $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g, civicrm_address ca')
-          ->select("ca.id as address_id, g.id as geometry_id")
-          ->where("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) = 1")
-          ->where("g.id = #geometry_id", ['geometry_id' => $geometry_id])
-          ->where("ca.id = #address_id", ['address_id' => $address_id]);
-        $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
-        if (!empty($result)) {
-          $results[] = $result[0];
+  /**
+   * [getAddressesAsGenerator description]
+   * @param  integer $geometry_id
+   *         The id of the geometry
+   *
+   * @param  array  $params
+   *   - batch_size: Integer. Default 100
+   *   - keep_temp_table: Boolean. Default false.
+   *   - precheck_relationships: Boolean. Default true.
+   *
+   * @return Iterator
+   *         Each item retrieved from the iterator will be an array of [geometry_id => integer,
+   *         address_id => integer]
+   */
+  function getAddresses($geometry_id, $params = []) {
+    $defaultParams = [
+      'batch_size' => 100,
+      'keep_temp_table' => false,
+      'precheck_relationships' => true,
+    ];
+    $params = $params + $defaultParams;
+
+    // Step 1. Find all the candidate addresses within the bounds of the geometry Use a table to
+    // store a potentially very large number of addresses
+    $bounds = civicrm_api3('Geometry', 'getbounds', ['id' => $geometry_id])['values'][$geometry_id];
+    $tmpTbl = CRM_Utils_SQL_TempTable::build();
+    if ($params['keep_temp_table']) {
+      $tmpTbl->setDurable();
+    } else {
+      $tmpTbl->setAutodrop(true);
+    }
+    $tmpTbl->createWithColumns('address_id INT');
+
+    $tempTableName = $tmpTbl->getName();
+    if ($params['precheck_relationships']) {
+      CRM_Core_DAO::executeQuery("
+        INSERT INTO $tempTableName (address_id)
+        SELECT ca.id
+        FROM
+          civicrm_address ca
+        WHERE
+              ca.geo_code_2 >= %1
+          AND ca.geo_code_2 <= %2
+          AND ca.geo_code_1 <= %3
+          AND ca.geo_code_1 >= %4
+          AND NOT EXISTS (
+            SELECT *
+            FROM civigeometry_geometry_entity cge
+            WHERE
+              cge.entity_id = ca.id
+              AND cge.geometry_id = %5
+              AND cge.entity_table = 'civicrm_address'
+          )
+        ORDER BY ca.id
+      ", [
+        1 => [$bounds['left_bound'], 'Float'],
+        2 => [$bounds['right_bound'], 'Float'],
+        3 => [$bounds['top_bound'], 'Float'],
+        4 => [$bounds['bottom_bound'], 'Float'],
+        5 => [$geometry_id, 'Integer']
+      ]);
+    } else {
+      CRM_Core_DAO::executeQuery("
+        INSERT INTO $tempTableName (address_id)
+        SELECT ca.id
+        FROM civicrm_address ca
+        WHERE
+              ca.geo_code_2 >= %1
+          AND ca.geo_code_2 <= %2
+          AND ca.geo_code_1 <= %3
+          AND ca.geo_code_1 >= %4
+        ORDER BY ca.id
+      ", [
+        1 => [$bounds['left_bound'], 'Float'],
+        2 => [$bounds['right_bound'], 'Float'],
+        3 => [$bounds['top_bound'], 'Float'],
+        4 => [$bounds['bottom_bound'], 'Float'],
+      ]);
+    }
+
+    $numCandidates = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $tempTableName");
+
+    function fetchCandidateBatch($candidateTable, $offset, $batchSize) {
+      $dao = CRM_Core_DAO::executeQuery("
+          SELECT ct.address_id
+          FROM $candidateTable ct
+          ORDER BY address_id
+          LIMIT %1
+          OFFSET %2
+        ", [
+          1 => [$batchSize, 'Integer'],
+          2 => [$offset, 'Integer'],
+        ]);
+
+        $results = $dao->fetchAll();
+
+        return $results;
+    }
+
+    function geometryContainsCandidate($geometryId, $addressId, $geomTableName) {
+      $select = CRM_Utils_SQL_Select::from($geomTableName . ' g, civicrm_address ca')
+        ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
+        ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
+        ->where("ca.id = #address_id", ['address_id' => $addressId]);
+      $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+
+
+      $result = CRM_Core_DAO::singleValueQuery("
+        SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
+        FROM civicrm_address ca, $geomTableName g
+        WHERE g.id = %1 AND ca.id = %2
+      ", [
+        1 => [$geometryId, 'Integer'],
+        2 => [$addressId, 'Integer'],
+      ]);
+
+      return boolval($result);
+    }
+
+    $numBatches = ceil($numCandidates / $params['batch_size']);
+    $offset = 0;
+    $geomTableName = self::getTableName();
+    for ($batchN=1; $batchN <= $numBatches; $batchN++) {
+      $candidates = fetchCandidateBatch($tempTableName, $offset, $params['batch_size']);
+
+      if (count($candidates)) {
+        foreach ($candidates as $candidate) {
+          if (geometryContainsCandidate($geometry_id, $candidate['address_id'], $geomTableName)) {
+            yield ['geometry_id' => $geometry_id, 'address_id' => $candidate['address_id']];
+          }
         }
+
+        $offset += $params['batch_size'];
+      } else {
+        throw new Exception("count <= 0, but haven't finish yet. That doesn't make any sense");
       }
-      return $results;
     }
-    else {
-      return [];
-    }
+
+    // TODO: Probably not necessary since autodrop is set?
+    if (!$params['keep_temp_table']) $tmpTbl->drop();
   }
 
   /**

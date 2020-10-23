@@ -62,7 +62,8 @@ function civicrm_api3_address_getgeometries($params) {
       return civicrm_api3_create_success(0);
     }
     else {
-      return civicrm_api3_create_success(CRM_CiviGeometry_BAO_Geometry::getAddresses($params['geometry_id']), $params);
+      $results = CRM_CiviGeometry_BAO_Geometry::getAddresses($params['geometry_id']);
+      return civicrm_api3_create_success(iterator_to_array($results), $params);
     }
   }
   $params['entity_table'] = 'civicrm_address';

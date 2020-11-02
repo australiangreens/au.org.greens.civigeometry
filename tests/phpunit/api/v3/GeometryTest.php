@@ -956,29 +956,38 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Process The Geometry Queue.
     $this->callAPISuccess('Geometry', 'runqueue', []);
 
-    // Return the geometries that each address is in
-    $addressGetGeometriesResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
+    // Return the geometry,address entity relationships for geometry via Address api
+    $addressApiGetGeometriesResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
 
 
     // Test that it found every address that was within
-    foreach ($addressesWithin as $id => $address) {
-      $this->assertArrayHaskey($id, $addressGetGeometriesResult['values'], "Address '" . $addressesWithin[$id]['street_address'] . "' not found in geometry.");
-      // Has correct geometry
-      $this->assertEquals($upperHouseDistrict['id'], $entityResult['values'][$id]['geometry_id']);
+    foreach ($addressesWithin as $addrId => $address) {
+      $hasKey = $this->assertArrayHaskey($addrId, $addressApiGetGeometriesResult['values'], "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry.");
+      if ($hasKey) {
+        // Has correct geometry
+        $this->assertEquals($upperHouseDistrict['id'], $addressApiGetGeometriesResult['values'][$addrId]['geometry_id']);
+      }
     }
 
     // Test that it it did NOT find any of the addresses not within
     foreach ($addressesNotWithin as $id => $address) {
-      $this->assertArrayNotHasKey($id, $entityResult['values'], "Address '" . $addressesNotWithin[$id]['street_address'] . "' found within geometry, but it is outside.");
+      $this->assertArrayNotHasKey($id, $addressApiGetGeometriesResult['values'], "Address '" . $addressesNotWithin[$id]['street_address'] . "' should not be within geometry.");
     }
 
-    // Return address IDs for which are in this specific geometry
-    // $entityResult = $this->callAPISuccess('geometry', 'getentity', [
-    //   'entity_id' => $address['id'],
-    //   'entity_table' => 'civicrm_address',
-    //   'sequential' => 1,
-    // ]);
+    // Return geometry,address entity relationships for each address via the Geometry api
+    // TODO: Is this required? Its basically the same call to
+    // _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_GeometryEntity', $params);
+    foreach ($addressesWithin as $addrId => $address) {
+      $geometryGetEntityResult = $this->callAPISuccess('geometry', 'getentity', [
+        'entity_id' => $addrId,
+        'entity_table' => 'civicrm_address',
+      ]);
 
+      $hasKey = $this->assertArrayHaskey($addrId, $geometryGetEntityResult['values'], "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry.");
+      if ($hasKey) {
+        $this->assertEquals($upperHouseDistrict['id'], $geometryGetEntityResult['values'][$addrId]['geometry_id']);
+      }
+    }
 
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);

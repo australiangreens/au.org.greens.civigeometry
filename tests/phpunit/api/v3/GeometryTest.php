@@ -970,8 +970,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     }
 
     // Test that it it did NOT find any of the addresses not within
-    foreach ($addressesNotWithin as $id => $address) {
-      $this->assertArrayNotHasKey($id, $addressApiGetGeometriesResult['values'], "Address '" . $addressesNotWithin[$id]['street_address'] . "' should not be within geometry.");
+    foreach ($addressesNotWithin as $addrId => $address) {
+      $this->assertArrayNotHasKey($addrId, $addressApiGetGeometriesResult['values'], "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
     }
 
     // Return geometry,address entity relationships for each address via the Geometry api
@@ -987,6 +987,16 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       if ($hasKey) {
         $this->assertEquals($upperHouseDistrict['id'], $geometryGetEntityResult['values'][$addrId]['geometry_id']);
       }
+    }
+
+    // Test that it it did NOT find any of the addresses not within
+    foreach ($addressesNotWithin as $addrId => $address) {
+      $geometryGetEntityResult = $this->callAPISuccess('geometry', 'getentity', [
+        'entity_id' => $addrId,
+        'entity_table' => 'civicrm_address',
+      ]);
+
+      $this->assertArrayNotHasKey($addrId, $geometryGetEntityResult['values'], "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
     }
 
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);

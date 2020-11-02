@@ -436,26 +436,26 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   /**
    * Helper method for getAddresses. Fetches set of address_id values from $candidateTable
    *
-   * @param  string  $candidateTable The name of the table holding the candidate ids
+   * @param  string $candidateTable The name of the table holding the candidate ids
    * @param  integer $offset        Current offset
    * @param  integer $batchSize     The batch size
    * @return array                  The next batch of civicrm_address ids
    */
   public static function getAddressesFetchCandidateBatch($candidateTable, $offset, $batchSize) {
     $dao = CRM_Core_DAO::executeQuery("
-        SELECT ct.address_id
-        FROM $candidateTable ct
-        ORDER BY address_id
-        LIMIT %1
-        OFFSET %2
-      ", [
-        1 => [$batchSize, 'Integer'],
-        2 => [$offset, 'Integer'],
-      ]);
+      SELECT ct.address_id
+      FROM $candidateTable ct
+      ORDER BY address_id
+      LIMIT %1
+      OFFSET %2
+    ", [
+      1 => [$batchSize, 'Integer'],
+      2 => [$offset, 'Integer'],
+    ]);
 
-      $results = $dao->fetchAll();
+    $results = $dao->fetchAll();
 
-      return $results;
+    return $results;
   }
 
   /**
@@ -472,7 +472,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
       ->where("ca.id = #address_id", ['address_id' => $addressId]);
     $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
-
 
     $result = CRM_Core_DAO::singleValueQuery("
       SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
@@ -499,20 +498,16 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @param  integer $geometry_id
    *   The id of the geometry
    *
-   * @param  array  $params
+   * @param  array $params
    *   - batch_size: Integer. Default 100
-   *   - keep_temp_table: Boolean. Default false.
-   *   - precheck_relationships: Boolean. Default true.
-   *
-   * @return Iterator
-   *         Each item retrieved from the iterator will be an array of [geometry_id => integer,
-   *         address_id => integer]
+   *   - keep_temp_table: Boolean. Default FALSE.
+   *   - precheck_relationships: Boolean. Default TRUE.
    */
-  function getAddresses($geometry_id, $params = []) {
+  private function getAddresses($geometry_id, $params = []) {
     $defaultParams = [
       'batch_size' => 100,
-      'keep_temp_table' => false,
-      'precheck_relationships' => true,
+      'keep_temp_table' => FALSE,
+      'precheck_relationships' => TRUE,
     ];
     $params = $params + $defaultParams;
 
@@ -524,7 +519,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $tmpTbl->setDurable();
     }
     else {
-      $tmpTbl->setAutodrop(true);
+      $tmpTbl->setAutodrop(TRUE);
     }
     $tmpTbl->createWithColumns('address_id INT');
 
@@ -554,7 +549,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         2 => [$bounds['right_bound'], 'Float'],
         3 => [$bounds['top_bound'], 'Float'],
         4 => [$bounds['bottom_bound'], 'Float'],
-        5 => [$geometry_id, 'Integer']
+        5 => [$geometry_id, 'Integer'],
       ]);
     }
     else {
@@ -580,7 +575,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
 
     $numBatches = ceil($numCandidates / $params['batch_size']);
     $offset = 0;
-    for ($batchN=1; $batchN <= $numBatches; $batchN++) {
+    for ($batchN = 1; $batchN <= $numBatches; $batchN++) {
       $candidates = self::getAddressesFetchCandidateBatch($tempTableName, $offset, $params['batch_size']);
 
       if (count($candidates)) {

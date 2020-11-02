@@ -926,7 +926,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
     // Create a CiviCRM Addresses with a known points
     $addressesJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'tasmanian_upper_house_geometry_addresses.geojson');
-    $addressesCollection = json_decode($addressesJSON, true);
+    $addressesCollection = json_decode($addressesJSON, TRUE);
     $addressFeatures = $addressesCollection['features'];
 
     $addressesWithin = [];
@@ -943,8 +943,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
         'geo_code_2' => $addressFeature['geometry']['coordinates'][0],
       ]);
 
-      if ($addressFeature['properties']['within']) $addressesWithin[$address['id']] = $address;
-      else $addressesNotWithin[$address['id']] = $address;
+      if ($addressFeature['properties']['within']) {
+        $addressesWithin[$address['id']] = $address;
+      }
+      else {
+        $addressesNotWithin[$address['id']] = $address;
+      }
     }
 
     // Process The Geometry Queue.

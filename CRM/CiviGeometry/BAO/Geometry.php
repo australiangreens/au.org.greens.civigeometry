@@ -466,7 +466,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @return boolean
    */
   public static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
-    $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g, civicrm_address ca')
+    $geomTableName = self::getTableName();
+    $select = CRM_Utils_SQL_Select::from($geomTableName . ' g, civicrm_address ca')
       ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
       ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
       ->where("ca.id = #address_id", ['address_id' => $addressId]);

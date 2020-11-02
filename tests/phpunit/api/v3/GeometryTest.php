@@ -824,7 +824,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   }
 
   /**
-   * Test being able return a list of Adddresses for a Geometry
+   * Test being able return a list of Adddresses for a Geometry, tested using a single address
    */
   public function testgetAddressGeometry() {
     $timestart = microtime(TRUE);
@@ -882,6 +882,94 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $nonCacheResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id'], 'skip_cache' => 1]);
     $this->assertEquals(1, $nonCacheResult['count']);
     $this->assertEquals($upperHouseDistrict['id'], $nonCacheResult['values'][0]['geometry_id']);
+    $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
+    $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
+    $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection2['id']]);
+    $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
+  }
+
+  /**
+   * Test being able return a list of Adddresses for a Geometry, tested using multiple addresses.
+   * Includes testing that some addresses are NOT within the geometry, despite being within the
+   * bounding box.
+   *
+   * This is similar to testgetAddressGeometry but tests against multiple addresses to ensure the
+   * new iterator based getAddresses introduced PR #39 works as intended.
+   */
+  public function testMultipleGetAddressGeometry() {
+    $timestart = microtime(TRUE);
+    // Create a collection
+    $UHCollectionParams = [
+      'label' => 'Tasmanian Upper House',
+      'source' => 'TasEC',
+      'geometry_collection_type_id' => $this->externalCollectionType['id'],
+    ];
+    $UHCollection = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    $UHCollectionParams['label'] = 'Tasmanian Upper House No MBR';
+    $UHCollection2 = $this->callAPISuccess('GeometryCollection', 'create', $UHCollectionParams);
+    // Create a geometry type
+    $UHGometryTypeParams = [
+      'label' => 'Upper House Districts',
+    ];
+    $UHGeometryType = $this->callAPISuccess('GeometryType', 'create', $UHGometryTypeParams);
+    // upperHouseDistrict is a Tasmanian Upperhouse District as of November 2018
+    // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
+    // Differences between MBR and actual geometry easier.
+    $upperHouseDistrictJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_tasmanian_upper_house_geometry.json');
+    $upperHouseDistrict = $this->callAPISuccess('Geometry', 'create', [
+      'label' => 'Sample Tasmanian Upper House ',
+      'geometry_type_id' => $UHGeometryType['id'],
+      'collection_id' => [$UHCollection['id'], $UHCollection2['id']],
+      'geometry' => trim($upperHouseDistrictJSON),
+    ]);
+
+    // Create a CiviCRM Addresses with a known points
+    $addressesJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'tasmanian_upper_house_geometry_addresses.geojson');
+    $addressesCollection = json_decode($addressesJSON, true);
+    $addressFeatures = $addressesCollection['features'];
+
+    $addressesWithin = [];
+    $addressesNotWithin = [];
+    foreach ($addressFeatures as $addressFeature) {
+      $contact = $this->individualCreate();
+      $address = $this->callAPISuccess('Address', 'Create', [
+        'contact_id' => $contact,
+        'location_type_id' => 'Billing',
+        'street_address' => $addressFeature['properties']['street_address'],
+        'city' => $addressFeature['properties']['city'],
+        'skip_geocode' => 1,
+        'geo_code_1' => $addressFeature['geometry']['coordinates'][1],
+        'geo_code_2' => $addressFeature['geometry']['coordinates'][0],
+      ]);
+
+      if ($addressFeature['properties']['within']) $addressesWithin[$address['id']] = $address;
+      else $addressesNotWithin[$address['id']] = $address;
+    }
+
+    // Process The Geometry Queue.
+    $this->callAPISuccess('Geometry', 'runqueue', []);
+
+    // Return address IDs for which are in this specific geometry
+    $result = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
+    $entityResult = $this->callAPISuccess('geometry', 'getentity', [
+      'entity_id' => $address['id'],
+      'entity_table' => 'civicrm_address',
+      'sequential' => 1,
+    ]);
+
+    // Test that it found every address that was within
+    foreach ($addressesWithin as $id => $address) {
+      $this->assertArrayHaskey($id, $entityResult['values'], "Address '" . $addressesWithin[$id]['properties']['street_address'] . "' not found in geometry.");
+      // Has correct geometry
+      $this->assertEquals($upperHouseDistrict['id'], $entityResult['values'][$id]['geometry_id']);
+    }
+
+    // Test that it it did NOT find any of the addresses not within
+    foreach ($addressesNotWithin as $id => $address) {
+      $this->assertArrayNotHasKey($id, $entityResult['values'], "Address '" . $addressesNotWithin[$id]['properties']['street_address'] . "' found within geometry, but it is outside.");
+    }
+
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);

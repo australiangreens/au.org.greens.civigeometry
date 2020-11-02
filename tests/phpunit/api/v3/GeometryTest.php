@@ -752,7 +752,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertEquals($geometry['id'], $geometryGet['values'][$geometry['id']]['id']);
     $this->assertEquals($this->sa1GeometryType['id'], $geometryGet['values'][$geometry['id']]['geometry_type_id']);
     // Assert that we haven't returned geometry.
-    $this->assertTRUE(!isset($geometryGet['values'][$geometry['id']]['geometry']));
+    $this->assertTrue(!isset($geometryGet['values'][$geometry['id']]['geometry']));
     // Assert that when we request geometry we get it back
     $geometryGet2 = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id'], 'return' => ['geometry']]);
     $this->assertEquals(json_decode($geometryJSON, TRUE), json_decode($geometryGet2['values'][$geometry['id']]['geometry'], TRUE));
@@ -965,13 +965,13 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertNotEmpty($addressApiGetGeometriesResult['values']);
 
     // Re-index to use entity_id as the key
-    $relationshipsA = array_column($addressApiGetGeometriesResult['values'], null, 'entity_id');
+    $relationshipsA = array_column($addressApiGetGeometriesResult['values'], NULL, 'entity_id');
 
     // Test that it found every address that was within
     foreach ($addressesWithin as $addrId => $address) {
-      $addressInGeom = false;
+      $addressInGeom = FALSE;
 
-      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsA, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsA: " . print_r($relationshipsA, true));
+      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsA, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsA: " . print_r($relationshipsA, TRUE));
       if ($hasKey) {
         // Has correct geometry
         $this->assertEquals($upperHouseDistrict['id'], $relationshipsA[$addrId]['geometry_id']);
@@ -990,9 +990,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
         'entity_table' => 'civicrm_address',
       ]);
 
-      $relationshipsB = array_column($geometryGetEntityResult['values'], null, 'entity_id');
+      $relationshipsB = array_column($geometryGetEntityResult['values'], NULL, 'entity_id');
 
-      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsB, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsB: " . print_r($relationshipsB, true));
+      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsB, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsB: " . print_r($relationshipsB, TRUE));
       if ($hasKey) {
         $this->assertEquals($upperHouseDistrict['id'], $relationshipsB[$addrId]['geometry_id']);
       }
@@ -1005,7 +1005,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
         'entity_table' => 'civicrm_address',
       ]);
 
-      $relationshipsC = array_column($geometryGetEntityResult['values'], null, 'entity_id');
+      $relationshipsC = array_column($geometryGetEntityResult['values'], NULL, 'entity_id');
 
       $this->assertArrayNotHasKey($addrId, $relationshipsC, "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
     }

@@ -593,7 +593,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         $offset += $params['batch_size'];
       }
       else {
-        throw new CRM_Core_ExecptionException(E::ts("No candidate addresses, but batches still remaining to process. That doesn't make any sense."));
+        throw new CRM_Core_Exception(E::ts("No candidate addresses, but batches still remaining to process. That doesn't make any sense."));
       }
     }
   }

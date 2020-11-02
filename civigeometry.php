@@ -175,8 +175,12 @@ function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$
 /**
  * Implements hook_civicrm_post().
  *
- * This adds records to civigeometry_adddress_geometry whenever an address is updated or created
- * also removes any records from the civigeomety_address_geometry table if the geometry gets archived.
+ * This adds records to civigeometry_address_geometry when:
+ * 1. Whenever an address is updated or created
+ * 2. Whenever a geometry is created
+ *
+ * Removes any records from the civigeomety_address_geometry table when:
+ * 1. A geometry gets archived.
  */
 function civigeometry_symfony_civicrm_post($event) {
   $hookValues = $event->getHookValues();

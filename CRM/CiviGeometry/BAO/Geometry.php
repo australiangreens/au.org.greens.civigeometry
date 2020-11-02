@@ -441,7 +441,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @param  integer $batchSize     The batch size
    * @return array                  The next batch of civicrm_address ids
    */
-  public static function getAddressesFetchCandidateBatch($candidateTable, $offset, $batchSize) {
+  protected static function getAddressesFetchCandidateBatch($candidateTable, $offset, $batchSize) {
     $dao = CRM_Core_DAO::executeQuery("
       SELECT ct.address_id
       FROM $candidateTable ct
@@ -465,7 +465,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @param  integer $addressId     Id of the civicrm_address
    * @return boolean
    */
-  public static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
+  protected static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
     $geomTableName = self::getTableName();
     $select = CRM_Utils_SQL_Select::from($geomTableName . ' g, civicrm_address ca')
       ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
@@ -503,7 +503,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *   - keep_temp_table: Boolean. Default FALSE.
    *   - precheck_relationships: Boolean. Default TRUE.
    */
-  private function getAddresses($geometry_id, $params = []) {
+  public function getAddresses($geometry_id, $params = []) {
     $defaultParams = [
       'batch_size' => 100,
       'keep_temp_table' => FALSE,

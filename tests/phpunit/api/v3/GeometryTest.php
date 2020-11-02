@@ -971,7 +971,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     foreach ($addressesWithin as $addrId => $address) {
       $addressInGeom = false;
 
-      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsA, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsA: " . print_r( $relationshipsA['values'], true));
+      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsA, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsA: " . print_r($relationshipsA, true));
       if ($hasKey) {
         // Has correct geometry
         $this->assertEquals($upperHouseDistrict['id'], $relationshipsA[$addrId]['geometry_id']);
@@ -992,7 +992,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
       $relationshipsB = array_column($geometryGetEntityResult['values'], null, 'entity_id');
 
-      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsB, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsB: " . print_r( $relationshipsB['values'], true));
+      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsB, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsB: " . print_r($relationshipsB, true));
       if ($hasKey) {
         $this->assertEquals($upperHouseDistrict['id'], $relationshipsB[$addrId]['geometry_id']);
       }

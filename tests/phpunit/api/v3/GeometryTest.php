@@ -959,6 +959,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Return the geometry,address entity relationships for geometry via Address api
     $addressApiGetGeometriesResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
 
+    $this->assertNotEmpty($addressApiGetGeometriesResult['values']);
 
     // Test that it found every address that was within
     foreach ($addressesWithin as $addrId => $address) {

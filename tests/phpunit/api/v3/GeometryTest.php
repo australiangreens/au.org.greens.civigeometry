@@ -957,36 +957,44 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('Geometry', 'runqueue', []);
 
     // Return the geometry,address entity relationships for geometry via Address api
-    $addressApiGetGeometriesResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
+    $addressApiGetGeometriesResult = $this->callAPISuccess('Address', 'getgeometries', [
+      'geometry_id' => $upperHouseDistrict['id'],
+      'sequential' => 1,
+    ]);
 
     $this->assertNotEmpty($addressApiGetGeometriesResult['values']);
 
+    // Re-index to use entity_id as the key
+    $relationshipsA = array_column($addressApiGetGeometriesResult['values'], null, 'entity_id');
+
     // Test that it found every address that was within
     foreach ($addressesWithin as $addrId => $address) {
-      $hasKey = $this->assertArrayHaskey($addrId, $addressApiGetGeometriesResult['values'], "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$addressApiGetGeometriesResult: " . print_r( $addressApiGetGeometriesResult['values'], true));
+      $addressInGeom = false;
+
+      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsA, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsA: " . print_r( $relationshipsA['values'], true));
       if ($hasKey) {
         // Has correct geometry
-        $this->assertEquals($upperHouseDistrict['id'], $addressApiGetGeometriesResult['values'][$addrId]['geometry_id']);
+        $this->assertEquals($upperHouseDistrict['id'], $relationshipsA[$addrId]['geometry_id']);
       }
     }
 
     // Test that it it did NOT find any of the addresses not within
     foreach ($addressesNotWithin as $addrId => $address) {
-      $this->assertArrayNotHasKey($addrId, $addressApiGetGeometriesResult['values'], "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
+      $this->assertArrayNotHasKey($addrId, $relationshipsA, "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
     }
 
     // Return geometry,address entity relationships for each address via the Geometry api
-    // TODO: Is this required? Its basically the same call to
-    // _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_GeometryEntity', $params);
     foreach ($addressesWithin as $addrId => $address) {
       $geometryGetEntityResult = $this->callAPISuccess('geometry', 'getentity', [
         'entity_id' => $addrId,
         'entity_table' => 'civicrm_address',
       ]);
 
-      $hasKey = $this->assertArrayHaskey($addrId, $geometryGetEntityResult['values'], "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$geometryGetEntityResult: " . print_r( $geometryGetEntityResult['values'], true));
+      $relationshipsB = array_column($geometryGetEntityResult['values'], null, 'entity_id');
+
+      $hasKey = $this->assertArrayHasKey($addrId, $relationshipsB, "Address '" . $addressesWithin[$addrId]['street_address'] . "' should be within geometry. \$relationshipsB: " . print_r( $relationshipsB['values'], true));
       if ($hasKey) {
-        $this->assertEquals($upperHouseDistrict['id'], $geometryGetEntityResult['values'][$addrId]['geometry_id']);
+        $this->assertEquals($upperHouseDistrict['id'], $relationshipsB[$addrId]['geometry_id']);
       }
     }
 
@@ -997,7 +1005,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
         'entity_table' => 'civicrm_address',
       ]);
 
-      $this->assertArrayNotHasKey($addrId, $geometryGetEntityResult['values'], "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
+      $relationshipsC = array_column($geometryGetEntityResult['values'], null, 'entity_id');
+
+      $this->assertArrayNotHasKey($addrId, $relationshipsC, "Address '" . $addressesNotWithin[$addrId]['street_address'] . "' should not be within geometry.");
     }
 
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);

@@ -114,9 +114,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
       }
       while ($res->fetch()) {
-        if ($res->contains_result) {
-          $multipleResult[] = $res->id;
-        }
+        $multipleResult[] = $res->id;
       }
       return $multipleResult;
     }

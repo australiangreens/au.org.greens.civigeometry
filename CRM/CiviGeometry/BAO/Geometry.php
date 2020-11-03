@@ -90,8 +90,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $dualIntegerSQL = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
         FROM civigeometry_geometry a, civigeometry_geometry b";
     $dualIntegerWhere = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
-    $singleIntegerSQL = "SELECT cg.id FROM civigeometry_geometry cg";
-    $singleIntegerWhere = " WHERE ST_Contains(cg.geometry, GeomFromText(%1, 4326)) AND cg.is_archived = 0";
+    $singleIntegerSQL = "SELECT cg.id, ST_Contains(cg.geometry, GeomFromText(%1, 4326)) as contains_result
+      FROM civigeometry_geometry cg";
+    $singleIntegerWhere = " WHERE cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
       $dualIntegerParams = [
         2 => [$params['geometry_b'], 'Positive'],
@@ -109,12 +110,24 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       }
       if (is_numeric($params['geometry_b'])) {
         $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, $dualIntegerParams);
+
+        while ($res->fetch()) {
+          if ($res->contains_result) {
+            $multipleResult[] = $res->id;
+          }
+        }
       }
       else {
+        // In this scenario, we can move the ST_Contains into the where clause, and just get the
+        // results directly. This also allows the spatial (r-tree) index to be used on geometry col
+        $singleIntegerSQL = "SELECT cg.id FROM civigeometry_geometry cg";
+        $singleIntegerWhere = " WHERE ST_Contains(cg.geometry, GeomFromText(%1, 4326)) AND cg.is_archived = 0";
+
         $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
-      }
-      while ($res->fetch()) {
-        $multipleResult[] = $res->id;
+
+        while ($res->fetch()) {
+          $multipleResult[] = $res->id;
+        }
       }
       return $multipleResult;
     }

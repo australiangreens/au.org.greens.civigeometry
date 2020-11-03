@@ -90,9 +90,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $dualIntegerSQL = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
         FROM civigeometry_geometry a, civigeometry_geometry b";
     $dualIntegerWhere = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
-    $singleIntegerSQL = "SELECT cg.id, ST_Contains(cg.geometry, GeomFromText(%1, 4326)) as contains_result
-      FROM civigeometry_geometry cg";
-    $singleIntegerWhere = " WHERE cg.is_archived = 0";
+    $singleIntegerSQL = "SELECT cg.id FROM civigeometry_geometry cg";
+    $singleIntegerWhere = " WHERE ST_Contains(cg.geometry, GeomFromText(%1, 4326)) AND cg.is_archived = 0";
     if ($params['geometry_a'] == 0) {
       $dualIntegerParams = [
         2 => [$params['geometry_b'], 'Positive'],

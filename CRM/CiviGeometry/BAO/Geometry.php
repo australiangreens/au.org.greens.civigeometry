@@ -100,32 +100,36 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $singleIntegerParams = [
         1 => [$params['geometry_b'], 'String'],
       ];
-      if (!empty($params['geometry_a_collection_id'])) {
-        $singleIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
-        $singleIntegerWhere = " AND cgc.collection_id = %2";
-        $singleIntegerParams[2] = [$params['geometry_a_collection_id'], 'Positive'];
-        $dualIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = a.id";
-        $dualIntegerWhere .= " AND cgc.collection_id = %1";
-        $dualIntegerParams[1] = [$params['geometry_a_collection_id'], 'Positive'];
-      }
-      if (is_numeric($params['geometry_b'])) {
-        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, $dualIntegerParams);
 
-        while ($res->fetch()) {
-          if ($res->contains_result) {
-            $multipleResult[] = $res->id;
-          }
+      if (is_numeric($params['geometry_b'])) {
+        if (!empty($params['geometry_a_collection_id'])) {
+          $dualIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = a.id";
+          $dualIntegerWhere .= " AND cgc.collection_id = %1";
+          $dualIntegerParams[1] = [$params['geometry_a_collection_id'], 'Positive'];
         }
+
+        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, $dualIntegerParams);
       }
       else {
-        // In this scenario, we can move the ST_Contains into the where clause, and just get the
-        // results directly. This also allows the spatial (r-tree) index to be used on geometry col
-        $singleIntegerSQL = "SELECT cg.id FROM civigeometry_geometry cg";
+        // In this scenario, we can move the ST_Contains into the where clause. This means that A.)
+        // we don't need to fetch results for all geometries and B.) it can use the spatial (r-tree)
+        // index on the geometry column
+        // TODO: This is really just to test the idea. Function could be refactored to be easier to
+        //       follow and this approach could be used in some of the other scenarios.
+        $singleIntegerSQL = "SELECT cg.id, 1 AS contains_result FROM civigeometry_geometry cg";
         $singleIntegerWhere = " WHERE ST_Contains(cg.geometry, GeomFromText(%1, 4326)) AND cg.is_archived = 0";
 
-        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
+        if (!empty($params['geometry_a_collection_id'])) {
+          $singleIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
+          $singleIntegerWhere .= " AND cgc.collection_id = %2";
+          $singleIntegerParams[2] = [$params['geometry_a_collection_id'], 'Positive'];
+        }
 
-        while ($res->fetch()) {
+        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
+      }
+
+      while ($res->fetch()) {
+        if ($res->contains_result) {
           $multipleResult[] = $res->id;
         }
       }

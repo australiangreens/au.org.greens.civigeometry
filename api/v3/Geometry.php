@@ -345,6 +345,37 @@ function _civicrm_api3_geometry_contains_spec(&$spec) {
  * @return array API result descriptor
  * @throws API_Exception
  */
+
+
+/**
+ * Use ST_Contains to determine if geometry b is within geometry a OR find the geometries that
+ * geometry b is contained by (if 0 is specified for geometry a).
+ *
+ * PARAMS
+ * - geometry_a (integer):
+ *     The id of the geometry to check if geometry_b is within. A value of 0 will be treated as
+ *     a wildcard, and all geometries that contain geometry_b will be returned.
+ *
+ * - geometry_b (integer|string):
+ *     Either the id of a geometry, or WKT representation of a geometry, which will be handled
+ *     as SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an
+ *     id is provided and the geometry is archived, the returned result will always be 0 or
+ *     empty.
+ *
+ * - geometry_a_collection_id (integer):
+ *     Optional. If specified, must be the id of a geometry collection. If geometry_a = 0, will
+ *     only find geometries containing geometry_b that have that collection id set. If geometry_b
+ *     != 0, will simply be ignored.
+ *
+ * @param array $params
+ *   The parameters, see above
+ *
+ * @return ApiResult
+ *   If geometry_a = 0, returned values will be an array of geometry ids that contain geometry_b.
+ *   Otherwise will return '1' if geometry_a contains geometry_b or '0' if it does not.
+ *
+ * @throws  API_Exception
+ */
 function civicrm_api3_geometry_contains($params) {
   $paramsToTest = ['geometry_a', 'geometry_b'];
   foreach ($params as $key => $geometry) {
@@ -365,15 +396,22 @@ function civicrm_api3_geometry_contains($params) {
       }
     }
   }
-  $result = CRM_CiviGeometry_BAO_Geometry::contains($params);
-  if (empty($result)) {
-    return civicrm_api3_create_success(0);
-  }
-  elseif (is_array($result)) {
-    return civicrm_api3_create_success($result);
+
+  if ($params['geometry_a'] == 0) {
+    // Wildcard. Find all the geometries that contain geometry_b
+    // Result will be array of id strings, or empty array []
+    $geomsContainingB = empty($params['geometry_a_collection_id'])
+      ? CRM_CiviGeometry_BAO_Geometry::geometriesContaining($params['geometry_b'])
+      : CRM_CiviGeometry_BAO_Geometry::geometriesContaining($params['geometry_b'], $params['geometry_a_collection_id']);
+
+    return empty($geomsContainingB)
+      ? civicrm_api3_create_success(0)
+      : civicrm_api3_create_success($geomsContainingB);
   }
   else {
-    return civicrm_api3_create_success(1);
+    // Check if the geometry_a contains geometry_b
+    $aContainsB = CRM_CiviGeometry_BAO_Geometry::contains($params['geometry_a'], $params['geometry_b']);
+    return civicrm_api3_create_success($aContainsB ? 1 : 0);
   }
 }
 

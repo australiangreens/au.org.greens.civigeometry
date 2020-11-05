@@ -80,45 +80,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $result;
   }
 
-  /**
-   * Use ST_Contains to determine if geometry b is within geometry a OR find the geometries that
-   * geometry b is contained by (if 0 is specified for geometry a).
-   *
-   * PARAMS
-   * - geometry_a (integer):
-   *     The id of the geometry to check if geometry_b is within. A value of 0 will be treated as
-   *     a wildcard, and all geometries that contain geometry_b will be returned.
-   *
-   * - geometry_b (integer|string):
-   *     Either the id of a geometry, or WKT representation of a geometry, which will be handled
-   *     as SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an
-   *     id is provided and the geometry is archived, the returned result will always be 0 or
-   *     empty.
-   *
-   * - geometry_a_collection_id (integer):
-   *     Optional. If specified, must be the id of a geometry collection. If geometry_a = 0, will
-   *     only find geometries containing geometry_b that have that collection id set. If geometry_b
-   *     != 0, will simply be ignored.
-   *
-   * @param array $params
-   *   The parameters, see  above
-   *
-   * @return string|array
-   *   If geometry_a = 0, will be an array of geometry ids that contain geometry_b. Otherwise will
-   *   return '1' if geometry_a contains geometry_b or '0' if it does not.
-   */
-  public static function contains($params) {
-    if ($params['geometry_a'] == 0) {
-      // Wildcard. Find all the geometries that contain geometry_b
-      return empty($params['geometry_a_collection_id'])
-        ? self::findGeomsContaining($params['geometry_b'])
-        : self::findGeomsContaining($params['geometry_b'], $params['geometry_a_collection_id']);
-    }
-    else {
-      // Check if the geometry_a contains geometry_b
-      return self::checkContainsGeom($params['geometry_a'], $params['geometry_b']);
-    }
-  }
 
   /**
    * Checks if the geometry with id $geomAId contains $geomB.
@@ -131,10 +92,10 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *   SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an id is
    *   provided and the geometry is archived, results will always be empty.
    *
-   * @return string
-   *   '1' if $geomB is within $geomAId, otherwise '0'.
+   * @return boolean
+   *   true if $geomB is within $geomAId, otherwise false.
    */
-  protected static function checkContainsGeom($geomAId, $geomB) {
+  public static function contains($geomAId, $geomB) {
     if (is_numeric($geomB)) {
       $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, cg_b.geometry) AS contains_result";
       $fromStr = "civigeometry_geometry cg_a, civigeometry_geometry cg_b";
@@ -146,7 +107,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ];
     }
     else {
-      $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, GeomFromText(%1, 4326)) as contains_result";
+      $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, GeomFromText(%1, 4326)) AS contains_result";
       $fromStr = "civigeometry_geometry cg_a";
       $whereStr = "cg_a.is_archived = 0 AND cg_a.id = %2";
 
@@ -158,7 +119,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
 
     $result = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $sqlParams);
     while ($result->fetch()) {
-      return $result->contains_result;
+      return $result->contains_result == '1';
     }
   }
 
@@ -174,10 +135,10 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *   Optional. If specified, must be the id of a geometry collection. Will only find geometries
    *   containing $innerGeom that have a matching geometry_collection_id.
    *
-   * @return array<integer>
+   * @return array<string>
    *   The ids of geometries containing $innerGeom, optionally filtered by $geometryCollectionId.
    */
-  protected static function findGeomsContaining($innerGeom, $geometryCollectionId = NULL) {
+  public static function geometriesContaining($innerGeom, $geometryCollectionId = NULL) {
     $selectStr = "cg_outer.id";
 
     if (is_numeric($innerGeom)) {

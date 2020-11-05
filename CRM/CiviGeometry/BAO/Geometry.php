@@ -101,11 +101,11 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *     != 0, will simply be ignored.
    *
    * @param array $params
-   *        The parameters, see  above
+   *   The parameters, see  above
    *
    * @return string|array
-   *         If geometry_a = 0, will be an array of geometry ids that contain geometry_b. Otherwise
-   *         will return '1' if geometry_a contains geometry_b or '0' if it does not.
+   *   If geometry_a = 0, will be an array of geometry ids that contain geometry_b. Otherwise will
+   *   return '1' if geometry_a contains geometry_b or '0' if it does not.
    */
   public static function contains($params) {
     if ($params['geometry_a'] == 0) {
@@ -147,63 +147,52 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * Find all geometries containing $innerGeom.
    *
    * @param  integer|string $innerGeom
-   *         Either the id of a geometry, or WKT representation of a geometry, which will be handled
-   *         as SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If
-   *         an id is provided and the geometry is archived, results will always be empty.
+   *   Either the id of a geometry, or WKT representation of a geometry, which will be handled as
+   *   SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an id is
+   *   provided and the geometry is archived, results will always be empty.
    *
    * @param  integer|null $geometryCollectionId
-   *         Optional. If specified, must be the id of a geometry collection. Will only find
-   *         geometries containing $innerGeom that have a matching geometry_collection_id.
+   *   Optional. If specified, must be the id of a geometry collection. Will only find geometries
+   *   containing $innerGeom that have a matching geometry_collection_id.
    *
    * @return array
-   *         The ids of geometries containing $innerGeom, optionally filtered by
-   *         $geometryCollectionId.
+   *   The ids of geometries containing $innerGeom, optionally filtered by $geometryCollectionId.
    */
-  protected static function findGeomsContaining($innerGeom, $geometryCollectionId = null) {
+  protected static function findGeomsContaining($innerGeom, $geometryCollectionId = NULL) {
+    $selectClause = "cg_outer.id";
+
     if (is_numeric($innerGeom)) {
-      $selectFromClause = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
-          FROM civigeometry_geometry a, civigeometry_geometry b";
-      $whereClause = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
+      $fromClause = "civigeometry_geometry cg_outer, civigeometry_geometry cg_b";
+      $whereClause = "ST_Contains(cg_outer.geometry, cg_b.geometry) AND cg_b.id = %1 AND cg_outer.is_archived = 0 AND cg_b.is_archived = 0";
 
       $queryParams = [
-        2 => [$innerGeom, 'Positive'],
+        1 => [$innerGeom, 'Positive'],
       ];
 
-      if ($geometryCollectionId !== null) {
-        $selectFromClause .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = a.id";
-        $whereClause .= " AND cgc.collection_id = %1";
-        $queryParams[1] = [$geometryCollectionId, 'Positive'];
+      if ($geometryCollectionId !== NULL) {
+        $fromClause .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg_outer.id";
+        $whereClause .= " AND cgc.collection_id = %2";
+        $queryParams[2] = [$geometryCollectionId, 'Positive'];
       }
     }
     else {
-      // In this scenario, we can move the ST_Contains into the where clause. This means that A.)
-      // we don't need to fetch results for all geometries and B.) it can use the spatial (r-tree)
-      // index on the geometry column
-      // TODO: This is really just to test the idea. Function could be refactored to be easier to
-      //       follow and this approach could be used in some of the other scenarios.
-      $selectFromClause = "SELECT cg.id, 1 AS contains_result FROM civigeometry_geometry cg";
-      $whereClause = " WHERE ST_Contains(cg.geometry, GeomFromText(%1, 4326)) AND cg.is_archived = 0";
+      $fromClause = "civigeometry_geometry cg_outer";
+      $whereClause = "ST_Contains(cg_outer.geometry, GeomFromText(%1, 4326)) AND cg_outer.is_archived = 0";
 
       $queryParams = [
         1 => [$innerGeom, 'String'],
       ];
 
-      if ($geometryCollectionId !== null) {
-        $selectFromClause .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
+      if ($geometryCollectionId !== NULL) {
+        $fromClause .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg_outer.id";
         $whereClause .= " AND cgc.collection_id = %2";
         $queryParams[2] = [$geometryCollectionId, 'Positive'];
       }
     }
 
-    $res = CRM_Core_DAO::executeQuery($selectFromClause . $whereClause, $queryParams);
+    $res = CRM_Core_DAO::executeQuery("SELECT $selectClause FROM $fromClause WHERE $whereClause", $queryParams);
 
-    $outerGeomIds = [];
-    while ($res->fetch()) {
-      if ($res->contains_result) {
-        $outerGeomIds[] = $res->id;
-      }
-    }
-    return $outerGeomIds;
+    return array_column($res->fetchAll(), 'id');
   }
 
   /**

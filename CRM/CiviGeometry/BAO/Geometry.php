@@ -81,9 +81,29 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
-   * Use ST_Contains to determine if geometry b is within geometry.
+   * Use ST_Contains to determine if geometry b is within geometry a OR find the geometries that
+   * geometry b is contained by (if 0 is specified for geometry a).
+   *
+   * PARAMS
+   * - geometry_a (integer):
+   *     The id of the geometry to check if geometry_b is within. A value of 0 will be treated as
+   *     a wildcard, and all geometries that contain geometry_b will be returned.
+   *
+   * - geometry_b (integer|string):
+   *     Either the id of a geometry, or WKT representation of a geometry, which will be handled
+   *     as SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'
+   *
+   * - geometry_a_collection_id (integer):
+   *     Optional. If specified, must be the id of a geometry collection. If geometry_a = 0, will
+   *     only find geometries containing geometry_b that have that collection id set. If geometry_b
+   *     != 0, will simply be ignored.
+   *
    * @param array $params
+   *        The parameters, see  above
+   *
    * @return string|array
+   *         If geometry_a = 0, will be an array of geometry ids that contain geometry_b. Otherwise
+   *         will return '1' if geometry_a contains geometry_b or '0' if it does not.
    */
   public static function contains($params) {
     $multipleResult = [];

@@ -340,14 +340,6 @@ function _civicrm_api3_geometry_contains_spec(&$spec) {
 }
 
 /**
- * Geometry.contains
- * @param array $params
- * @return array API result descriptor
- * @throws API_Exception
- */
-
-
-/**
  * Use ST_Contains to determine if geometry b is within geometry a OR find the geometries that
  * geometry b is contained by (if 0 is specified for geometry a).
  *

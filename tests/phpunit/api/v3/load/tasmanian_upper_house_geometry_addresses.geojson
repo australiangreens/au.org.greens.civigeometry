@@ -1,0 +1,167 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "within": true,
+        "street_address": "120 Within St",
+        "city": "Springfield",
+        "marker-color": "#00ff00",
+        "marker-size": "medium",
+        "marker-symbol": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.25301742553708,
+          -42.984903469297315
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": true,
+        "street_address": "121 Within St",
+        "city": "Springfield",
+        "marker-color": "#00ff00",
+        "marker-size": "medium",
+        "marker-symbol": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.33318328857422,
+          -42.894925286977134
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": true,
+        "street_address": "122 Within St",
+        "city": "Springfield",
+        "marker-color": "#00ff00",
+        "marker-size": "medium",
+        "marker-symbol": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.19542503356934,
+          -42.98229771153605
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": true,
+        "street_address": "123 Within St",
+        "city": "Springfield",
+        "marker-color": "#00ff00",
+        "marker-size": "medium",
+        "marker-symbol": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.32666015624997,
+          -42.98870202671632
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": true,
+        "street_address": "125 Within St",
+        "city": "Springfield",
+        "marker-color": "#00ff00",
+        "marker-size": "medium",
+        "marker-symbol": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.30125427246094,
+          -42.94436044696629
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": false,
+        "street_address": "1 Outside St",
+        "city": "Shelbyville",
+        "marker-color": "#ff0000",
+        "marker-size": "medium",
+        "marker-symbol": "cross"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.2450888156891,
+          -42.96879623439108
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": false,
+        "street_address": "2 Outside St",
+        "city": "Shelbyville",
+        "marker-color": "#ff0000",
+        "marker-size": "medium",
+        "marker-symbol": "cross"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.28958129882812,
+          -42.98945543169632
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": false,
+        "street_address": "3 Outside St",
+        "city": "Shelbyville",
+        "marker-color": "#ff0000",
+        "marker-size": "medium",
+        "marker-symbol": "cross"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.2519874572754,
+          -42.91551499483697
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "within": false,
+        "street_address": "4 Outside St",
+        "city": "Shelbyville",
+        "marker-color": "#ff0000",
+        "marker-size": "medium",
+        "marker-symbol": "cross"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          147.34966278076172,
+          -42.95692504577837
+        ]
+      }
+    }
+  ]
+}

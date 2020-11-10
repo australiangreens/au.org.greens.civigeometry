@@ -80,65 +80,101 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $result;
   }
 
+
   /**
-   * Use ST_Contains to determine if geometry b is within geometry.
-   * @param array $params
-   * @return string|array
+   * Checks if the geometry with id $geomAId contains $geomB.
+   *
+   * @param  integer $geomAId
+   *   The id of the outer geometry.
+   *
+   * @param  integer|string $geomB
+   *   Either the id of a geometry, or WKT representation of a geometry, which will be handled as
+   *   SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an id is
+   *   provided and the geometry is archived, results will always be empty.
+   *
+   * @return boolean
+   *   true if $geomB is within $geomAId, otherwise false.
    */
-  public static function contains($params) {
-    $multipleResult = [];
-    $dualIntegerSQL = "SELECT a.id, ST_Contains(a.geometry, b.geometry) as contains_result
-        FROM civigeometry_geometry a, civigeometry_geometry b";
-    $dualIntegerWhere = " WHERE b.id = %2 AND a.is_archived = 0 AND b.is_archived = 0";
-    $singleIntegerSQL = "SELECT cg.id, ST_Contains(cg.geometry, GeomFromText(%1, 4326)) as contains_result
-      FROM civigeometry_geometry cg";
-    $singleIntegerWhere = " WHERE cg.is_archived = 0";
-    if ($params['geometry_a'] == 0) {
-      $dualIntegerParams = [
-        2 => [$params['geometry_b'], 'Positive'],
-      ];
-      $singleIntegerParams = [
-        1 => [$params['geometry_b'], 'String'],
-      ];
-      if (!empty($params['geometry_a_collection_id'])) {
-        $singleIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg.id";
-        $singleIntegerWhere = " AND cgc.collection_id = %2";
-        $singleIntegerParams[2] = [$params['geometry_a_collection_id'], 'Positive'];
-        $dualIntegerSQL .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = a.id";
-        $dualIntegerWhere .= " AND cgc.collection_id = %1";
-        $dualIntegerParams[1] = [$params['geometry_a_collection_id'], 'Positive'];
-      }
-      if (is_numeric($params['geometry_b'])) {
-        $res = CRM_Core_DAO::executeQuery($dualIntegerSQL . $dualIntegerWhere, $dualIntegerParams);
-      }
-      else {
-        $res = CRM_Core_DAO::executeQuery($singleIntegerSQL . $singleIntegerWhere, $singleIntegerParams);
-      }
-      while ($res->fetch()) {
-        if ($res->contains_result) {
-          $multipleResult[] = $res->id;
-        }
-      }
-      return $multipleResult;
-    }
-    if (is_numeric($params['geometry_b'])) {
-      $sql = $dualIntegerSQL . $dualIntegerWhere . " AND a.id = %1";
-      $sql_params = [
-        1 => [$params['geometry_a'], 'Positive'],
-        2 => [$params['geometry_b'], 'Positive'],
+  public static function contains($geomAId, $geomB) {
+    if (is_numeric($geomB)) {
+      $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, cg_b.geometry) AS contains_result";
+      $fromStr = "civigeometry_geometry cg_a, civigeometry_geometry cg_b";
+      $whereStr = "cg_a.id = %1 AND cg_b.id = %2 AND cg_a.is_archived = 0 AND cg_b.is_archived = 0";
+
+      $sqlParams = [
+        1 => [$geomAId, 'Positive'],
+        2 => [$geomB, 'Positive'],
       ];
     }
     else {
-      $sql = $singleIntegerSQL . $singleIntegerWhere . " AND cg.id = %2";
-      $sql_params = [
-        1 => [$params['geometry_b'], 'String'],
-        2 => [$params['geometry_a'], 'Positive'],
+      $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, GeomFromText(%1, 4326)) AS contains_result";
+      $fromStr = "civigeometry_geometry cg_a";
+      $whereStr = "cg_a.is_archived = 0 AND cg_a.id = %2";
+
+      $sqlParams = [
+        1 => [$geomB, 'String'],
+        2 => [$geomAId, 'Positive'],
       ];
     }
-    $result = CRM_Core_DAO::executeQuery($sql, $sql_params);
-    while ($result->fetch()) {
-      return $result->contains_result;
+
+    $result = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $sqlParams);
+
+    // The above query will return a single result if both geoms exist, 0 results if one does not
+    return $result->fetch()
+      ? $result->contains_result == '1'
+      : false;
+  }
+
+  /**
+   * Find all geometries containing $innerGeom.
+   *
+   * @param  integer|string $innerGeom
+   *   Either the id of a geometry, or WKT representation of a geometry, which will be handled as
+   *   SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an id is
+   *   provided and the geometry is archived, results will always be empty.
+   *
+   * @param  integer|null $geometryCollectionId
+   *   Optional. If specified, must be the id of a geometry collection. Will only find geometries
+   *   containing $innerGeom that have a matching geometry_collection_id.
+   *
+   * @return array<string>
+   *   The ids of geometries containing $innerGeom, optionally filtered by $geometryCollectionId.
+   */
+  public static function geometriesContaining($innerGeom, $geometryCollectionId = NULL) {
+    $selectStr = "cg_outer.id";
+
+    if (is_numeric($innerGeom)) {
+      $fromStr = "civigeometry_geometry cg_outer, civigeometry_geometry cg_inner";
+      $whereStr = "ST_Contains(cg_outer.geometry, cg_inner.geometry) AND cg_inner.id = %1 AND cg_outer.is_archived = 0 AND cg_inner.is_archived = 0";
+
+      $queryParams = [
+        1 => [$innerGeom, 'Positive'],
+      ];
+
+      if ($geometryCollectionId !== NULL) {
+        $fromStr .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg_outer.id";
+        $whereStr .= " AND cgc.collection_id = %2";
+        $queryParams[2] = [$geometryCollectionId, 'Positive'];
+      }
     }
+    else {
+      $fromStr = "civigeometry_geometry cg_outer";
+      $whereStr = "ST_Contains(cg_outer.geometry, GeomFromText(%1, 4326)) AND cg_outer.is_archived = 0";
+
+      $queryParams = [
+        1 => [$innerGeom, 'String'],
+      ];
+
+      if ($geometryCollectionId !== NULL) {
+        $fromStr .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg_outer.id";
+        $whereStr .= " AND cgc.collection_id = %2";
+        $queryParams[2] = [$geometryCollectionId, 'Positive'];
+      }
+    }
+
+    $res = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $queryParams);
+
+    return array_column($res->fetchAll(), 'id');
   }
 
   /**

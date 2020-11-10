@@ -237,7 +237,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
     $this->assertEquals(0, $nonMBRResult['values']);
-    // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the MBR geometry
+    // Prove that a point that is within the MBR but not the actual geometry returns 1 for an ST_contains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
       'geometry_a' => $upperHouseDistrictMBR['id'],
       'geometry_b' => 'POINT(147.243 -42.983)',
@@ -271,6 +271,16 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
+
+    // Check that providing an id for either geometry that doesn't exist fails
+   $this->callAPIFailure('Geometry', 'contains', [
+      'geometry_a' => 99999,
+      'geometry_b' => $upperHouseDistrict['id'],
+    ], 'Geometry #99999 Does not exist in the database');
+   $this->callAPIFailure('Geometry', 'contains', [
+      'geometry_a' => 0,
+      'geometry_b' => 88888,
+    ], 'Geometry #88888 Does not exist in the database');
   }
 
   /**

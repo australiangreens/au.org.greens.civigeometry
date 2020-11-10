@@ -276,11 +276,11 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    $this->callAPIFailure('Geometry', 'contains', [
       'geometry_a' => 99999,
       'geometry_b' => $upperHouseDistrict['id'],
-    ], 'Geometry 99999 Does not exist in the database');
+    ], 'Geometry #99999 Does not exist in the database');
    $this->callAPIFailure('Geometry', 'contains', [
       'geometry_a' => 0,
       'geometry_b' => 88888,
-    ], 'Geometry 88888 Does not exist in the database');
+    ], 'Geometry #88888 Does not exist in the database');
   }
 
   /**

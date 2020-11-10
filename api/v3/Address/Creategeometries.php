@@ -27,7 +27,7 @@ function _civicrm_api3_address_creategeometries_spec(&$spec) {
 }
 
 /**
- * Address.Getgeometries API
+ * Address.creategeometries API
  *
  * @param array $params
  * @return array API result descriptor

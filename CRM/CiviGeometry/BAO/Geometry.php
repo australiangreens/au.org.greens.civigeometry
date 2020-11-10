@@ -118,9 +118,11 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
 
     $result = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $sqlParams);
-    while ($result->fetch()) {
-      return $result->contains_result == '1';
-    }
+
+    // The above query will return a single result if both geoms exist, 0 results if one does not
+    return $result->fetch()
+      ? $result->contains_result == '1'
+      : false;
   }
 
   /**

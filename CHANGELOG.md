@@ -1,7 +1,15 @@
-# Changelog 
+# Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
-## [Unreleased]
+## [1.6.0] - 2020-11-10
+### Changed
+ - Improved performance of contains API, particular if memory is limited some situations
+ - Refactored implementation of contains to be easier to follow.
+
+###Fixed
+ - Memory exhaustion issue when finding addresses in a geometry. Now uses a generator function
+   internally rather than a large array. The refactor also uses a temporary table and is more
+   performant.
 
 ## [1.5.2] - 2020-09-29
 ### Added
@@ -15,7 +23,7 @@ All notable changes for the CiviGeometry extension will be noted here.
 ### Added
  - This changelog.
 
-### Changed 
+### Changed
  - Updated to latest version of civix generate version of files
  - Linting improvements
 

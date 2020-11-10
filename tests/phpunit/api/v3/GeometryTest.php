@@ -271,6 +271,16 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
+
+    // Check that providing an id for either geometry that doesn't exist fails
+   $this->callAPIFailure('Geometry', 'contains', [
+      'geometry_a' => 99999,
+      'geometry_b' => $upperHouseDistrict['id'],
+    ], 'Geometry 99999 Does not exist in the database');
+   $this->callAPIFailure('Geometry', 'contains', [
+      'geometry_a' => 0,
+      'geometry_b' => 88888,
+    ], 'Geometry 88888 Does not exist in the database');
   }
 
   /**

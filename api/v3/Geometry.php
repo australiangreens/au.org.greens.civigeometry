@@ -377,7 +377,7 @@ function civicrm_api3_geometry_contains($params) {
           civicrm_api3('Geometry', 'getSingle', ['id' => $geometry]);
         }
         catch (Exception $e) {
-          throw new API_Exception("Geometrty #{$geometry} Does not exist in the database");
+          throw new API_Exception("Geometry #{$geometry} Does not exist in the database");
         }
       }
       elseif ($geometry != 0) {

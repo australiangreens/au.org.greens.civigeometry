@@ -50,5 +50,15 @@
     <fieldName>entity_table</fieldName>
     <unique>true</unique>
   </index>
-
+  <field>
+    <name>expiry_date</name>
+    <type>timestamp</type>
+    <comment>When Should this geometry entity relationship expire</comment>
+    <required>false</required>
+    <default>NULL</default>
+  </field>
+  <index>
+     <name>index_expiry_date</name>
+     <fieldName>expiry_date</fieldName>
+  </index>
 </table>

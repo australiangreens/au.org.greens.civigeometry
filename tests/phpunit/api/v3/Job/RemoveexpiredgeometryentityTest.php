@@ -2,7 +2,6 @@
 
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
-use Civi\Test\TransactionalInterface;
 
 /**
  * Job.Removeexpiredgeometryentity API Test Case
@@ -10,12 +9,12 @@ use Civi\Test\TransactionalInterface;
  * @group headless
  */
 class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
-  
+
   use \Civi\Test\Api3DocTrait;
   use \Civi\Test\GenericAssertionsTrait;
   use \Civi\Test\ContactTestTrait;
 
-  private $jsonDirectoryStore = __DIR__ . DIRECTORY_SEPARATOR . '..'. DIRECTORY_SEPARATOR . 'load';
+  private $jsonDirectoryStore = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'load';
 
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
@@ -96,7 +95,7 @@ class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\Test
       'expiry_date' => date('Y-m-d H:m:s', strtotime('-1 month')),
     ]);
     $currentGeometryEntities = $this->callAPISuccess('Geometry', 'getentity', ['geometry_id' => $sa1['id']]);
-    $this->assertEquals(2, $currentGeometryEntities['count']); 
+    $this->assertEquals(2, $currentGeometryEntities['count']);
     $result = civicrm_api3('Job', 'removeexpiredgeometryentity');
     $currentGeometryEntities = $this->callAPISuccess('Geometry', 'getentity', ['geometry_id' => $sa1['id']]);
     $this->assertEquals(1, $currentGeometryEntities['count']);

@@ -80,7 +80,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     return $result;
   }
 
-
   /**
    * Checks if the geometry with id $geomAId contains $geomB.
    *
@@ -122,7 +121,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     // The above query will return a single result if both geoms exist, 0 results if one does not
     return $result->fetch()
       ? $result->contains_result == '1'
-      : false;
+      : FALSE;
   }
 
   /**

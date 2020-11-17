@@ -14,7 +14,7 @@
     {
       "name": "John Twyman",
       "email": "john.twyman@greens.org.au"
-    },
+    }
   ],
   "require": {
     "composer/installers": "~1.0"

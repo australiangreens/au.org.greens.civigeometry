@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_CiviGeometry_ExtensionUtil {
-  const SHORT_NAME = "civigeometry";
-  const LONG_NAME = "au.org.greens.civigeometry";
-  const CLASS_PREFIX = "CRM_CiviGeometry";
+  const SHORT_NAME = 'civigeometry';
+  const LONG_NAME = 'au.org.greens.civigeometry';
+  const CLASS_PREFIX = 'CRM_CiviGeometry';
 
   /**
    * Translate a string using the extension's domain.

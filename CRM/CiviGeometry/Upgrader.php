@@ -138,6 +138,17 @@ end
   }
 
   /**
+   * Add in expiry date column onto the geometry_entity table
+   * @return TRUE on succes
+   * @throws Exception
+   */
+  public function upgrade_4204() {
+    $this->ctx->log->info('Applying update 4204 - Add in expiry_date column onto the geometry entity table');
+    $this->executeSqlFile('sql/geometry_entity_expiry_date.sql');
+    return TRUE;
+  }
+
+  /**
    * Example: Run a slow upgrade process by breaking it up into smaller chunk.
    *
    * @return TRUE on success

@@ -649,6 +649,10 @@ function _civicrm_api3_geometry_getentity_spec(&$spec) {
     'title' => E::ts('Entity Table'),
     'type' => CRM_Utils_Type::T_STRING,
   ];
+  $spec['expiry_date'] = [
+    'title' => E::ts('Expiry Date'),
+    'type' => CRM_Utils_Type::T_TIMESTAMP,
+  ];
 }
 
 /**
@@ -657,7 +661,7 @@ function _civicrm_api3_geometry_getentity_spec(&$spec) {
  * @return array
  */
 function civicrm_api3_geometry_getentity($params) {
-  if (empty($params['geometry_id'])) {
+  if (empty($params['geometry_id']) && empty($params['expiry_date'])) {
     civicrm_api3_verify_mandatory($params, NULL, ['entity_id', 'entity_table']);
   }
   return _civicrm_api3_basic_get('CRM_CiviGeometry_DAO_GeometryEntity', $params);
@@ -686,6 +690,10 @@ function _civicrm_api3_geometry_createentity_spec(&$spec) {
     'title' => E::ts('Entity Table'),
     'type' => CRM_Utils_Type::T_STRING,
     'api.required' => 1,
+  ];
+  $spec['expiry_date'] = [
+    'title' => E::ts('Expiry Date'),
+    'type' => CRM_Utils_Type::T_TIMESTAMP,
   ];
 }
 

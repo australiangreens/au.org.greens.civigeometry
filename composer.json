@@ -4,13 +4,17 @@
   "type": "drupal-module",
   "authors": [
     {
+      "name": "Anthony Blond",
+      "email": "anthony.blond@greens.org.au"
+    },
+    {
       "name": "Seamus Lee",
-      "email": "seamus.lee@greens.org.au"
+      "email": "seamuslee001@gmail.com"
     },
     {
       "name": "John Twyman",
       "email": "john.twyman@greens.org.au"
-    }
+    },
   ],
   "require": {
     "composer/installers": "~1.0"

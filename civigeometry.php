@@ -222,3 +222,21 @@ function civigeometry_symfony_civicrm_post($event) {
     $queue->createItem($task);
   }
 }
+
+/**
+ * Implements hook_civicrm_merge().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_merge/
+ */
+function civigeometry_civicrm_merge($type, &$data, $mainId = NULL, $otherId = NULL, $tables = NULL) {
+  switch ($type) {
+    case 'eidRefs':
+      $data['civigeometry_geometry_entity'] = ['entity_table' => 'entity_id'];
+      break;
+
+    case 'sqls':
+      $data[] = "DELETE FROM civigeometry_geometry_entity WHERE entity_id NOT IN (SELECT id FROM civicrm_address) AND entity_table = 'civicrm_address'";
+      break;
+
+  }
+}

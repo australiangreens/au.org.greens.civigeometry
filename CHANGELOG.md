@@ -1,12 +1,17 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.7.0] - 2020-11-17
+### Added
+ - Optional expiry date added to geometry-entity relationships
+ - API Job to remove expired geometry-entity relationships
+
 ## [1.6.0] - 2020-11-10
 ### Changed
  - Improved performance of contains API, particular if memory is limited some situations
  - Refactored implementation of contains to be easier to follow.
 
-###Fixed
+### Fixed
  - Memory exhaustion issue when finding addresses in a geometry. Now uses a generator function
    internally rather than a large array. The refactor also uses a temporary table and is more
    performant.

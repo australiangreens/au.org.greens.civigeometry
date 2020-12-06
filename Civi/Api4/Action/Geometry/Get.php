@@ -38,7 +38,7 @@ class Get extends \Civi\Api4\Generic\DAOGetAction {
     }
     $collection = !empty($this->collectionId);
     if ($collection) {
-      $collectionResults = \Civi\Api4\Geometry::getCollection(FALSE)->addWhere('collection_id', '=', $this->collectionId);
+      $collectionResults = \Civi\Api4\Geometry::getCollection(FALSE)->addWhere('collection_id', '=', $this->collectionId)->execute();
       $this->addWhere('id', 'IN', \CRM_Utils_Array::collect('geometry_id', $collectionResults));
     }
     $this->setDefaultWhereClause();

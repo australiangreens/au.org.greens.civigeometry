@@ -238,19 +238,19 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_a' => $upperHouseDistrict['id'],
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
-    $this->assertEquals(1, $individualResult['values']);
+    $this->assertEquals(1, ($apiVersion == 4 ? $individualResult['values'][0] : $individualResult['values']));
     // Prove that a point that is within the MBR but not the actual geometry returns 0 for an ST_contains on the actual geometry (test RMDS isn't using MBR to do the ST_Contains).
     $nonMBRResult = $this->callAPISuccess('geometry', 'contains', [
       'geometry_a' => $upperHouseDistrict['id'],
       'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
-    $this->assertEquals(0, $nonMBRResult['values']);
+    $this->assertEquals(0,  ($apiVersion == 4 ? $nonMBRResult['values'][0] : $nonMBRResult['values']));
     // Prove that a point that is within the MBR but not the actual geometry returns 1 for an ST_contains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
       'geometry_a' => $upperHouseDistrictMBR['id'],
       'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
-    $this->assertEquals(1, $mbrResult['values']);
+    $this->assertEquals(1, ($apiVersion == 4 ? $mbrResult['values'][0] : $mbrResult['values']));
     // Test that when no geometry is specified that this point is found in both the original poly and the MBR geometry
     $results = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => 0,

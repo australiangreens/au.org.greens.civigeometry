@@ -40,7 +40,7 @@ class Contains extends \Civi\Api4\Generic\AbstractAction {
     foreach ($params as $key => $geometry) {
       if (is_numeric($geometry) && $geometry != 0) {
         try {
-          $geometry_test = \Civi\Api4\Geometry::get(FALSE)->addWhere('id', '=', $geometry)->execute();
+          $geometry_test = \Civi\Api4\Geometry::get(FALSE)->addWhere('id', '=', $geometry)->execute()->getArrayCopy();
           if (empty($geometry_test)) {
             throw new \API_Exception("Geometry #{$geometry} Does not exist in the database");
           }

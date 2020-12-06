@@ -19,7 +19,7 @@ class GetCollection extends \Civi\Api4\Generic\AbstractGetAction {
         if (!empty($where)) {
           $where .= ' AND ';
         }
-        $where .= $field . $whereClause[1] . $whereClause[2];
+        $where .= $field . ' IN (' . (is_array($whereClause[2]) ? implode(',', $whereClause[2]) : $whereClause[2]) . ')';
       }
     }
     if (!empty($where)) {

@@ -22,7 +22,7 @@ class Get extends \Civi\Api4\Generic\DAOGetAction {
 
   /**
    * Collection ID to limit geometries to
-   * @var int
+   * @var int|array
    */
   protected $collectionId;
 
@@ -38,7 +38,15 @@ class Get extends \Civi\Api4\Generic\DAOGetAction {
     }
     $collection = !empty($this->collectionId);
     if ($collection) {
-      $collectionResults = \Civi\Api4\Geometry::getCollection(FALSE)->addWhere('collection_id', '=', $this->collectionId)->execute()->getArrayCopy();
+      if (is_array($this->collectionId)) {
+        $operator = key($this->collectionId);
+        $value = $this->collectionId[$operator];
+      }
+      else {
+        $operator = '=';
+        $value = $this->collectionId;
+      }
+      $collectionResults = \Civi\Api4\Geometry::getCollection(FALSE)->addWhere('collection_id', $operator, $value)->execute()->getArrayCopy();
       $this->addWhere('id', 'IN', \CRM_Utils_Array::collect('geometry_id', $collectionResults));
     }
     $this->setDefaultWhereClause();

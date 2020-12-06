@@ -244,7 +244,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_a' => $upperHouseDistrict['id'],
       'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
-    $this->assertEquals(0,  ($apiVersion == 4 ? $nonMBRResult['values'][0] : $nonMBRResult['values']));
+    $this->assertEquals(0, ($apiVersion == 4 ? $nonMBRResult['values'][0] : $nonMBRResult['values']));
     // Prove that a point that is within the MBR but not the actual geometry returns 1 for an ST_contains on the MBR geometry
     $mbrResult = $this->callAPISuccess('geometry', 'contains', [
       'geometry_a' => $upperHouseDistrictMBR['id'],

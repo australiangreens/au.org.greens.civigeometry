@@ -78,8 +78,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   /**
    * Test Creating a geometry in the database.
    * Ensure that we can handle passing an array of collection ids and that we require at least one collection, a geometry type and that the geometry is specified.
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometry() {
+  public function testCreateGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Load geoJSON file and create a geometry
     $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry
@@ -92,7 +94,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // RULE: A Geometry can be assigned to one or more collections but never 0
     $geometryCollectionCount = $this->callAPISuccess('Geometry', 'getCollection', ['geometry_id' => $sa1['id']]);
     $this->assertEquals(1, $geometryCollectionCount['count']);
-    $this->assertEquals($this->sa1Collection['id'], $geometryCollectionCount['values'][$geometryCollectionCount['id']]['collection_id']);
+    $this->assertEquals($this->sa1Collection['id'], $geometryCollectionCount['values'][$apiVersion === 4 ? 0 : $geometryCollectionCount['id']]['collection_id']);
     // Check that the returned geometry matches what was set to be stored. use json_decode function to convert to an array, so that white space is not an issue
     $this->assertEquals(json_decode($sa1JSON, TRUE), json_decode($sa1['values'][$sa1['id']]['geometry'], TRUE));
     $this->assertEquals(json_decode($sa1JSON, TRUE), json_decode($this->callAPISuccess('Geometry', 'get', ['id' => $sa1['id']])['values'][$sa1['id']]['geometry'], TRUE));
@@ -134,8 +136,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test creating geometry using gzip data
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateGzipedGeometry() {
+  public function testCreateGzipedGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     $geometryJSONForGzipping = str_replace('"', "'", $geometryJSON);
     $gzipedGeometryJSON = gzencode($geometryJSONForGzipping);
@@ -158,8 +162,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test creating geometry using a specified file as the geometry.
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometryFromFile() {
+  public function testCreateGeometryFromFile($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $collectionParams = [
       'label' => 'NSW Branches',
@@ -191,8 +197,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   /**
    * Verify that MySQL/MariaDB is not using the Minimum Bounding Rectangle rather using the actual geometry
    * when determining if a point is withing the geometry
+   * @dataProvider versionThreeAndFour
    */
-  public function testMySQLSTContains() {
+  public function testMySQLSTContains($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $UHCollectionParams = [
       'label' => 'Tasmanian Upper House',
@@ -286,8 +294,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   /**
    * Test removing collection fails when geometry only belongs in one collection.
    * This is expected to fail as geometry has to be in a collection.
+   * @dataProvider versionThreeAndFour
    */
-  public function testRemoveOnlyCollection() {
+  public function testRemoveOnlyCollection($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $UHCollectionParams = [
       'label' => 'Tasmanian Upper House',
       'source' => 'TasEC',
@@ -321,8 +331,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Remove a Geometry from an collection when the Geometry is in Multiple collections.
+   * @dataProvider versionThreeAndFour
    */
-  public function testRemoveCollection() {
+  public function testRemoveCollection($apiVersion) {
+    $this->_apiVersion = $apiVersion;
     // Create Upper house Geometry
     $collectionParams = [
       'label' => 'Tasmanian Upper House',
@@ -364,8 +376,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test get Geometry Centroid.
+   * @dataProvider versionThreeAndFour
    */
-  public function testGetGeometryCentroid() {
+  public function testGetGeometryCentroid($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create Upper House Geometry Collection
     $collectionParams = [
       'label' => 'Tas Upper House Districts',
@@ -388,8 +402,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $upperHouseDistrict['id']]);
     // Check that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
-    $this->assertContains('147.29234219', $centroid['values']);
-    $this->assertContains('-42.94807285', $centroid['values']);
+    $result = $apiVersion === 4 ? $centroid['values'][0] : $centroid['values'];
+    $this->assertContains('147.29234219', $result);
+    $this->assertContains('-42.94807285', $result);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
@@ -397,8 +412,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test Archiving a Geometry
+   * @dataProvider versionThreeAndFour
    */
-  public function testArchiveGeometry() {
+  public function testArchiveGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create Collection for archiving geometry
     $collectionParams = [
       'label' => 'Queensland Wards',
@@ -430,8 +447,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test Unarchiving a Geometry.
+   * @dataProvider versionThreeAndFour
    */
-  public function testUnArchiveGeometry() {
+  public function testUnArchiveGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection for our wards
     $collectionParams = [
       'label' => 'Queensland Wards',
@@ -471,8 +490,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test get intersection
+   * @dataProvider versionThreeAndFour
    */
-  public function testGetIntersection() {
+  public function testGetIntersection($apiVersion) {
+    $this->_apiVersion = $apiVersion;
     $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
     // Create Queensland state geometry
     $queensland = $this->callAPISuccess('Geometry', 'create', [
@@ -518,8 +539,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test Generating an Overlap Cache.
+   * @dataProvider versionThreeAndFour
    */
-  public function testOverlapGenerationCache() {
+  public function testOverlapGenerationCache($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $queenslandJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'queensland.json');
     // Create Queensland state geometry
     $queensland = $this->callAPISuccess('Geometry', 'create', [
@@ -551,21 +574,22 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_b' => $queensland['id'],
     ]);
     // Check that Sample Queensland Ward only covers 4% of Queensland state.
-    $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
-    $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
+    $this->assertEquals(4, $overlap['values'][$apiVersion == 4 ? 0 : $overlap['id']]['overlap']);
+    $this->assertFalse($overlap['values'][$apiVersion == 4 ? 0 : $overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
     ]);
     // Verify calling the API again gets the same result and the cache has been used.
-    $this->assertEquals(4, $overlap['values'][$overlap['id']]['overlap']);
-    $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
+    $this->assertEquals(4, $overlap['values'][$apiVersion === 4 ? 0 : $overlap['id']]['overlap']);
+    $this->assertTrue($overlap['values'][$apiVersion === 4 ? 0 : $overlap['id']]['cache_used']);
     // Check that when we supply a minimum overlap to be returned that it correctly filters results.
     $cacheResutlMinOverlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $cairns['id'],
       'geometry_id_b' => $queensland['id'],
       'overlap' => 10,
     ]);
+    print_r($cacheResutlMinOverlap);
     $this->assertTrue(empty($cacheResutlMinOverlap['values']));
     $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
@@ -575,8 +599,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test Generating an Overlap between 2 specific geometries is within 97 and 100%
+   * @dataProvider versionThreeAndFour
    */
-  public function testOverlapGeneration() {
+  public function testOverlapGeneration($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry
     $sa1 = $this->callAPISuccess('Geometry', 'create', [
@@ -609,16 +635,16 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_b' => $nswWard['id'],
     ]);
     // MariaDB and MySQL will do these calculations slightly differently but it should be in a 3% range between 100% and 97%.
-    $this->assertGreaterThan(97, $overlap['values'][$overlap['id']]['overlap']);
-    $this->assertLessThanOrEqual(100, $overlap['values'][$overlap['id']]['overlap']);
+    $this->assertGreaterThan(97, $overlap['values'][$apiVersion === 4 ? 0 : $overlap['id']]['overlap']);
+    $this->assertLessThanOrEqual(100, $overlap['values'][$apiVersion === 4 ? 0 : $overlap['id']]['overlap']);
     // Assert that the cache is not warmed up at all
-    $this->assertFalse($overlap['values'][$overlap['id']]['cache_used']);
+    $this->assertFalse($overlap['values'][$apiVersion === 4 ? 0 : $overlap['id']]['cache_used']);
     $overlap = $this->callAPISuccess('Geometry', 'getoverlap', [
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $nswWard['id'],
     ]);
     // Check that the result came from the cache for performance reasons.
-    $this->assertTrue($overlap['values'][$overlap['id']]['cache_used']);
+    $this->assertTrue($overlap['values'][$apiVersion === 4 ? 0 : $overlap['id']]['cache_used']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $sa1['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $nswWard['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
@@ -627,8 +653,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test Generating an Overlap between 2 specific geometries is within 97 and 100%
+   * @dataProvider versionThreeAndFour
    */
-  public function test0OverlapGeneration() {
+  public function test0OverlapGeneration($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry
     $sa1 = $this->callAPISuccess('Geometry', 'create', [
@@ -659,7 +687,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id_a' => $sa1['id'],
       'geometry_id_b' => $cairns['id'],
     ]);
-    $this->assertEquals(0, $overlapResult['values'][$overlapResult['id']]['overlap']);
+    $this->assertEquals(0, $overlapResult['values'][$apiVersion === 4 ? 0 : $overlapResult['id']]['overlap']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $sa1['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);
@@ -669,19 +697,24 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   /**
    * Test getting a distance
    * @note Postgres reported 2,202 metres here however MySQL5.7 using native functions returned 2,197
+   * @dataProvider versionThreeAndFour
    */
-  public function testGetDistance() {
+  public function testGetDistance($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $result = $this->callAPISuccess('Geometry', 'getdistance', [
       'geometry_a' => 'POINT(147.2687833 -42.9771098)',
       'geometry_b' => 'POINT(147.243 -42.983)',
     ]);
-    $this->assertEquals('2197', (int) $result['values']);
+    $checkResult = (int) ($apiVersion === 4 ? $result['values'][0] : $result['values']);
+    $this->assertEquals('2197', $checkResult);
   }
 
   /**
    * Test returning spatial properties for a geometry
+   * @dataProvider versionThreeAndFour
    */
-  public function testSpatialDataProperties() {
+  public function testSpatialDataProperties($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $collectionParams = [
       'label' => 'NSW Branches',
@@ -707,23 +740,23 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     // Test Accuracy of spatical data.
     // The envelopeBounds come from PostgresSQL instance
     $envelopeBounds = explode(',', '151.126707616 -33.853568996,151.126707616 -33.778527002,151.268936992 -33.778527002,151.268936992 -33.853568996,151.126707616 -33.853568996');
-    $envelopeBoundsFromDB = explode(',', substr($spatialData['values'][$geometry['id']]['ST_Envelope'], 9, -2));
+    $envelopeBoundsFromDB = explode(',', substr($spatialData['values'][$apiVersion === 4 ? 0 : $geometry['id']]['ST_Envelope'], 9, -2));
     // For Some reason the 2nd and 4th set of bounds are orded differently depending on PostGres or MySQL/MariaDB
     $this->assertEquals($envelopeBounds[0], $envelopeBoundsFromDB[0]);
     $this->assertEquals($envelopeBounds[3], $envelopeBoundsFromDB[1]);
     $this->assertEquals($envelopeBounds[2], $envelopeBoundsFromDB[2]);
     $this->assertEquals($envelopeBounds[1], $envelopeBoundsFromDB[3]);
     $this->assertEquals($envelopeBounds[4], $envelopeBoundsFromDB[4]);
-    $centriodInformation = explode(' ', substr($spatialData['values'][$geometry['id']]['ST_Centroid'], 6, -1));
+    $centriodInformation = explode(' ', substr($spatialData['values'][$apiVersion === 4 ? 0 : $geometry['id']]['ST_Centroid'], 6, -1));
     $this->assertEquals('151.195994', substr($centriodInformation[0], 0, 10));
     $this->assertEquals('-33.8176881', substr($centriodInformation[1], 0, 11));
     // PostGres reported area of 57.749 Square KM
     // MariaDB and MySQL 5.7 reported 56.236
     // Note the difference is that the Postgres query worked on the Goemetry Plain SRID 4326 where as at present
     // MySQL and MariaDB work on just SRID of 0 for their ST_area calculations
-    $this->assertEquals('56.236', $spatialData['values'][$geometry['id']]['square_km']);
+    $this->assertEquals('56.236', $spatialData['values'][$apiVersion === 4 ? 0 : $geometry['id']]['square_km']);
     $bounds = $this->callAPISuccess('Geometry', 'getbounds', ['id' => $geometry['id']]);
-    $this->assertEquals(['left_bound' => '151.126707616', 'bottom_bound' => '-33.853568996', 'top_bound' => '-33.778527002', 'right_bound' => '151.268936992'], $bounds['values'][$geometry['id']]);
+    $this->assertEquals(['left_bound' => '151.126707616', 'bottom_bound' => '-33.853568996', 'top_bound' => '-33.778527002', 'right_bound' => '151.268936992'], $bounds['values'][$apiVersion === 4 ? 0 : $geometry['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $branchGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $NSWBranchesCollection['id']]);
@@ -731,8 +764,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test returning geometry in KML format
+   * @dataProvider versionThreeAndFour
    */
-  public function testCustomOutputFormat() {
+  public function testCustomOutputFormat($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     $geometry = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'sample_sa1_geometry',
@@ -748,8 +783,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test that requesting only specific parameters you only get those paremters back
+   * @dataProvider versionThreeAndFour
    */
-  public function testGeometryReturnParams() {
+  public function testGeometryReturnParams($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $geometryJSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     $geometry = $this->callAPISuccess('Geometry', 'create', [
       'label' => 'sample_sa1_geometry',
@@ -772,8 +809,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   /**
    * Verify that MySQL/MariaDB is not using the Minimum Bounding Rectangle rather using the actual geometry
    * when determining if a point is withing the geometry
+   * @dataProvider versionThreeAndFour
    */
-  public function testGeometryAddressStorage() {
+  public function testGeometryAddressStorage($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $UHCollectionParams = [
       'label' => 'Tasmanian Upper House',
@@ -814,6 +853,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_b' => 'POINT(' . $address['values'][$address['id']]['geo_code_2'] . ' ' . $address['values'][$address['id']]['geo_code_1'] . ')',
     ]);
     // Process The Geometry Queue.
+    $this->_apiversion = 3;
     $this->callAPISuccess('Geometry', 'runqueue', []);
     $getResult = $this->callAPISuccess('Address', 'getgeometries', [
       'address_id' => $address['id'],
@@ -825,6 +865,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'address_id' => $address['id'],
       'skip_cache' => 1,
     ]);
+    $this->_apiversion = $apiVersion;
     $this->assertEquals(array_values($result['values']), array_values(CRM_Utils_Array::collect('geometry_id', $nonCacheResult['values'])));
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id'], 'skip_undelete' => 1]);
     $this->callAPISuccess('Contact', 'delete', ['id' => $contact, 'skip_undelete' => 1]);
@@ -835,8 +876,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test being able return a list of Adddresses for a Geometry, tested using a single address
+   * @dataProvider versionThreeAndFour
    */
-  public function testgetAddressGeometry() {
+  public function testgetAddressGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $timestart = microtime(TRUE);
     // Create a collection
     $UHCollectionParams = [
@@ -875,6 +918,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geo_code_2' => '147.2687833',
     ]);
     // Process The Geometry Queue.
+    $this->_apiversion = 3;
     $this->callAPISuccess('Geometry', 'runqueue', []);
     // Return address IDs for which are in this specific geometry
     $result = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
@@ -884,12 +928,15 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $this->assertEquals($address['id'], $result['values'][$result['id']]['entity_id']);
     $this->assertEquals($upperHouseDistrict['id'], $entityResult['values'][$entityResult['id']]['geometry_id']);
+    $this->_apiversion = $apiVersion;
     // Ensure that all records for a geometry are removed when it is archived
     $this->callAPISuccess('geometry', 'archive', ['id' => $upperHouseDistrict['id']]);
+    $this->_apiversion = 3;
     $result2 = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id']]);
     $this->assertEquals(0, $result2['count']);
     // Esure that when we pass skip cache that we still return information back even if the geometry is archived.
     $nonCacheResult = $this->callAPISuccess('Address', 'getgeometries', ['geometry_id' => $upperHouseDistrict['id'], 'skip_cache' => 1]);
+    $this->_apiversion = $apiVersion;
     $this->assertEquals(1, $nonCacheResult['count']);
     $this->assertEquals($upperHouseDistrict['id'], $nonCacheResult['values'][0]['geometry_id']);
     $this->callAPISuccess('Address', 'delete', ['id' => $address['id']]);
@@ -906,8 +953,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
    *
    * This is similar to testgetAddressGeometry but tests against multiple addresses to ensure the
    * new iterator based getAddresses introduced PR #39 works as intended.
+   * @dataProvider versionThreeAndFour
    */
-  public function testMultipleGetAddressGeometry() {
+  public function testMultipleGetAddressGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $timestart = microtime(TRUE);
     // Create a collection
     $UHCollectionParams = [
@@ -964,6 +1013,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     }
 
     // Process The Geometry Queue.
+    $this->_apiversion = 3;
     $this->callAPISuccess('Geometry', 'runqueue', []);
 
     // Return the geometry,address entity relationships for geometry via Address api
@@ -971,7 +1021,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_id' => $upperHouseDistrict['id'],
       'sequential' => 1,
     ]);
-
+    $this->_apiversion = $apiVersion;
     $this->assertNotEmpty($addressApiGetGeometriesResult['values']);
 
     // Re-index to use entity_id as the key
@@ -1029,8 +1079,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test being able return a list of Addresses for a Geometry
+   * @dataProvider versionThreeAndFour
    */
-  public function testAddressGeometryCacheisUpdatedAfterGeometryisCreated() {
+  public function testAddressGeometryCacheisUpdatedAfterGeometryisCreated($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $UHCollectionParams = [
       'label' => 'Tasmanian Upper House',
@@ -1058,7 +1110,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     // Return Geometry IDs for which this point from the address is in
     // At present that should be 0 because there is no geometries in the system
+    $this->_apiversion = 3;
     $result = $this->callAPISuccess('Address', 'getgeometries', ['address_id' => $address['id']]);
+    $this->_apiversion = $apiVersion;
     $this->assertEquals(0, $result['count']);
     // upperHouseDistrict is a Tasmanian Upperhouse District as of November 2018
     // It is specifically used as its a smallish area and also has some interesting geometry which makes for showing up
@@ -1072,10 +1126,12 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry' => trim($upperHouseDistrictJSON),
     ]);
     // Process The Geometry Queue.
+    $this->_apiversion = 3;
     $this->callAPISuccess('Geometry', 'runqueue', []);
     // Now that we have geometries in the system confirm that the cache table has been properly populated
     $result = $this->callAPISuccess('Address', 'getgeometries', ['address_id' => $address['id']]);
     // Ensure that editing an address does not cause a db error.
+    $this->_apiversion = $apiVersion;
     $testUpdateAddress = $this->callAPISuccess('Address', 'create', [
       'skip_geocode' => 1,
       'id' => $address['id'],
@@ -1092,8 +1148,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test Creating an Entity Relationship between a contact and Geometry.
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateRelationshipBetweenContactAndGeometry() {
+  public function testCreateRelationshipBetweenContactAndGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $UHCollectionParams = [
       'label' => 'Tasmanian Upper House',
@@ -1116,7 +1174,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $contact = $this->individualCreate();
     $this->callAPISuccess('Geometry', 'createEntity', ['entity_id' => $contact, 'entity_table' => 'civicrm_contact', 'geometry_id' => $upperHouseDistrict['id']]);
     $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
-    $this->assertEquals($contact, $result['values'][$result['id']]['entity_id']);
+    $this->assertEquals($contact, $result['values'][$apiVersion === 4 ? 0 : $result['id']]['entity_id']);
     // Test that we can delete the geometry entity relationship using the id of the table
     $this->callAPISuccess('Geometry', 'deleteentity', ['id' => $result['id']]);
     $result = $this->callAPISuccess('Geometry', 'getEntity', ['geometry_id' => $upperHouseDistrict['id']]);
@@ -1139,8 +1197,10 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
 
   /**
    * Test finding geometry ids that are within 5 KM of the a specific point
+   * @dataProvider versionThreeAndFour
    */
-  public function testGetNearestGeometry() {
+  public function testGetNearestGeometry($apiVersion) {
+    $this->_apiversion = $apiVersion;
     // Create a collection
     $collectionParams = [
       'label' => 'NSW Branches',

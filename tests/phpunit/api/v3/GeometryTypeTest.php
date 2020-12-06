@@ -40,8 +40,10 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
 
   /**
    * Tests that we can createa a Geometry Type
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometryType() {
+  public function testCreateGeometryType($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'State Lower House Districts',
       'description' => 'Geometry Representing the State Lower House Districts around Australia',
@@ -52,8 +54,10 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
   /**
    * Test that we cannot create duplicate types.
    * Uniqueness is defined by label being unique.
+   * @dataProvider versionThreeAndFour
    */
-  public function testNoDuplicateTypes() {
+  public function testNoDuplicateTypes($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'State Lower House Districts',
       'description' => 'Geometry Representing the State Lower House Districts around Australia',

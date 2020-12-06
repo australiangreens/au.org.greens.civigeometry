@@ -12,6 +12,7 @@ class CRM_CiviGeometry_Upgrader extends CRM_CiviGeometry_Upgrader_Base {
    * Example: Run an external SQL script when the module is installed.
    */
   public function install() {
+    $this->executeSql("DROP FUNCTION IF EXISTS earth_circle_distance");
     $this->executeSql("
 CREATE FUNCTION earth_circle_distance(point1 point, point2 point) RETURNS double
     DETERMINISTIC

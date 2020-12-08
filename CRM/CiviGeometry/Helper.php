@@ -8,7 +8,7 @@ class CRM_CiviGeometry_Helper {
   const QUEUE_NAME = 'au.org.greens.civigeometry.queue';
 
   /**
-   * @var CRM_CiviGeometry_Helper();
+   * @var CRM_CiviGeometry_Helper
    */
   private $queue;
 

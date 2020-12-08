@@ -40,8 +40,10 @@ class api_v3_GeometryCollectionTypeTest extends \PHPUnit\Framework\TestCase impl
 
   /**
    * Test creating a Geometry Collection Type.
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometryCollectionType() {
+  public function testCreateGeometryCollectionType($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'External',
       'description' => 'Externally created Geometry Collection',
@@ -51,8 +53,10 @@ class api_v3_GeometryCollectionTypeTest extends \PHPUnit\Framework\TestCase impl
 
   /**
    * Test create Geometry Collection Type without description.
+   * @dataProvider versionThreeAndFour
    */
-  public function testGeometryCollectionTypeNoDescription() {
+  public function testGeometryCollectionTypeNoDescription($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'External',
     ];
@@ -61,8 +65,10 @@ class api_v3_GeometryCollectionTypeTest extends \PHPUnit\Framework\TestCase impl
 
   /**
    * Test that you cannot create duplicate Collection Types.
+   * @dataProvider versionThreeAndFour
    */
-  public function testNoDuplicateGeometryCollectionTypes() {
+  public function testNoDuplicateGeometryCollectionTypes($apiVersion) {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'Internal',
     ];

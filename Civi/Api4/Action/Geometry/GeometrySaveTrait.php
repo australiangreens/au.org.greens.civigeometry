@@ -6,7 +6,7 @@ use CRM_CiviGeometry_ExtensionUtil as E;
 
 trait GeometrySaveTrait {
 
-  public function preapreGeometryParams($params) {
+  public function prepareGeometryParams($params) {
     $this->fillDefaults($params);
     $objectsToWrite = [];
     $format = $this->getFormat();

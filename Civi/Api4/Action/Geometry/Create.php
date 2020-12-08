@@ -28,7 +28,7 @@ class Create extends \Civi\Api4\Generic\DAOCreateAction {
     $this->validateValues();
     $params = $this->values;
     $this->fillDefaults($params);
-    $objectsToWrite = $this->preapreGeometryParams($params);
+    $objectsToWrite = $this->prepareGeometryParams($params);
     $resultArray = $this->writeObjects($objectsToWrite);
     $result->exchangeArray($resultArray);
   }

@@ -41,7 +41,7 @@ class Update extends \Civi\Api4\Generic\DAOUpdateAction {
     // Update a single record by ID unless select requires more than id
     if ($this->getSelect() === ['id'] && count($this->where) === 1 && $this->where[0][0] === 'id' && $this->where[0][1] === '=' && !empty($this->where[0][2])) {
       $this->values['id'] = $this->where[0][2];
-      $objectsToWrite = $this->preapreGeometryParams($this->values);
+      $objectsToWrite = $this->prepareGeometryParams($this->values);
       $result->exchangeArray($this->writeObjects($objectsToWrite));
       return;
     }

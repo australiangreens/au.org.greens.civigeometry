@@ -24,7 +24,7 @@ class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\Test
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp(): void {
     // Create a collection type for external collections
     $collectionTypeParams = [
       'label' => 'External',
@@ -57,7 +57,7 @@ class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\Test
     parent::setUp();
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $this->stateGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $this->statesCollection['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $this->sa1GeometryType['id']]);
@@ -71,7 +71,7 @@ class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\Test
    *
    * Note how the function name begins with the word "test".
    */
-  public function testExpiredJob() {
+  public function testExpiredJob(): void {
     // Load geoJSON file and create a geometry
     $sa1JSON = file_get_contents(\CRM_Utils_File::addTrailingSlash($this->jsonDirectoryStore) . 'sample_sa1_geometry.json');
     // Create SA1 Geometry

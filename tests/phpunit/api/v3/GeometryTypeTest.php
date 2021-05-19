@@ -30,11 +30,11 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
     parent::tearDown();
   }
 
@@ -42,7 +42,7 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
    * Tests that we can createa a Geometry Type
    * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometryType($apiVersion) {
+  public function testCreateGeometryType($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'State Lower House Districts',
@@ -56,7 +56,7 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
    * Uniqueness is defined by label being unique.
    * @dataProvider versionThreeAndFour
    */
-  public function testNoDuplicateTypes($apiVersion) {
+  public function testNoDuplicateTypes($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'State Lower House Districts',

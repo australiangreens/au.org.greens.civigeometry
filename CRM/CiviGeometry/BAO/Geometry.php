@@ -363,7 +363,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @param array $params
    * @return string
    */
-  public function calculateDistance($params) {
+  public static function calculateDistance($params) {
     // We use SRID 4326 or WGS84 (SRID 4326) This is the standard projection used in google maps etc
     $result = CRM_Core_DAO::singleValueQuery("SELECT earth_circle_distance(ST_GeomFromText(%1, 4326), ST_GeomFromText(%2, 4326))", [
       1 => [$params['geometry_a'], 'String'],
@@ -538,7 +538,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    *   - keep_temp_table: Boolean. Default FALSE.
    *   - precheck_relationships: Boolean. Default TRUE.
    */
-  public function getAddresses($geometry_id, $params = []) {
+  public static function getAddresses($geometry_id, $params = []) {
     $defaultParams = [
       'batch_size' => 100,
       'keep_temp_table' => FALSE,

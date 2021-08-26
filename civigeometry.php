@@ -10,6 +10,7 @@ use CRM_Civigeometry_ExtensionUtil as E;
  */
 function civigeometry_civicrm_config(&$config) {
   _civigeometry_civix_civicrm_config($config);
+  Civi::service('dispatcher')->addListener('hook_civicrm_post', 'civigeometry_symfony_civicrm_post', -99);
 }
 
 /**
@@ -169,4 +170,73 @@ function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$
   $permissions['geometry_type']['create'] = $permissions['geometry_type']['delete'] = array(array('administer geometry', 'administer civicrm'));
   $permissions['geometry_type']['default'] = array('access geometry');
   $permissions['geometry_collection_type'] = $permissions['geometry_type'];
+}
+
+/**
+ * Implements hook_civicrm_post().
+ *
+ * This adds records to civigeometry_address_geometry when:
+ * 1. Whenever an address is updated or created
+ * 2. Whenever a geometry is created
+ *
+ * Removes any records from the civigeomety_address_geometry table when:
+ * 1. A geometry gets archived.
+ */
+function civigeometry_symfony_civicrm_post($event) {
+  $hookValues = $event->getHookValues();
+  // Hook value keys are
+  // 0 = op
+  // 1 = objectName
+  // 2 = objectId
+  // 3 = objectREf
+  if ($hookValues[0] !== 'delete' && $hookValues[0] !== 'geoplace' && $hookValues[1] == 'Address') {
+    $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
+    $id = $hookValues[2];
+    $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];
+    if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
+      $task = new CRM_Queue_Task(
+        ['CRM_CiviGeometry_Tasks', 'geoplaceAddress'],
+        [$id]
+      );
+      $queue->createItem($task);
+    }
+  }
+  // If a geometry has been archived ensure that all address records of it in the GeometryEntity table are removed.
+  if ($hookValues[0] == 'archive' && $hookValues[1] == 'Geometry') {
+    $id = $hookValues[2];
+    $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
+    $dao->geometry_id = $id;
+    $dao->entity_table = 'civicrm_address';
+    if ($dao->find()) {
+      while ($dao->fetch()) {
+        $dao->delete();
+      }
+    }
+  }
+  if ($hookValues[0] == 'create' && $hookValues[1] == 'Geometry') {
+    $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
+    $task = new CRM_Queue_Task(
+        ['CRM_CiviGeometry_Tasks', 'buildGeometryRelationships'],
+        [$hookValues[2]]
+    );
+    $queue->createItem($task);
+  }
+}
+
+/**
+ * Implements hook_civicrm_merge().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_merge/
+ */
+function civigeometry_civicrm_merge($type, &$data, $mainId = NULL, $otherId = NULL, $tables = NULL) {
+  switch ($type) {
+    case 'eidRefs':
+      $data['civigeometry_geometry_entity'] = ['entity_table' => 'entity_id'];
+      break;
+
+    case 'sqls':
+      $data[] = "DELETE FROM civigeometry_geometry_entity WHERE entity_id NOT IN (SELECT id FROM civicrm_address) AND entity_table = 'civicrm_address'";
+      break;
+
+  }
 }

@@ -1,25 +1,9 @@
 -- +--------------------------------------------------------------------+
--- | CiviCRM version 5                                                  |
--- +--------------------------------------------------------------------+
--- | Copyright CiviCRM LLC (c) 2004-2019                                |
--- +--------------------------------------------------------------------+
--- | This file is a part of CiviCRM.                                    |
+-- | Copyright CiviCRM LLC. All rights reserved.                        |
 -- |                                                                    |
--- | CiviCRM is free software; you can copy, modify, and distribute it  |
--- | under the terms of the GNU Affero General Public License           |
--- | Version 3, 19 November 2007 and the CiviCRM Licensing Exception.   |
--- |                                                                    |
--- | CiviCRM is distributed in the hope that it will be useful, but     |
--- | WITHOUT ANY WARRANTY; without even the implied warranty of         |
--- | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               |
--- | See the GNU Affero General Public License for more details.        |
--- |                                                                    |
--- | You should have received a copy of the GNU Affero General Public   |
--- | License and the CiviCRM Licensing Exception along                  |
--- | with this program; if not, contact CiviCRM LLC                     |
--- | at info[AT]civicrm[DOT]org. If you have questions about the        |
--- | GNU Affero General Public License or the licensing of CiviCRM,     |
--- | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
+-- | This work is published under the GNU AGPLv3 license with some      |
+-- | permitted exceptions and without any warranty. For full license    |
+-- | and copyright information, see https://civicrm.org/licensing       |
 -- +--------------------------------------------------------------------+
 --
 -- Generated from schema.tpl
@@ -28,27 +12,11 @@
 
 
 -- +--------------------------------------------------------------------+
--- | CiviCRM version 5                                                  |
--- +--------------------------------------------------------------------+
--- | Copyright CiviCRM LLC (c) 2004-2019                                |
--- +--------------------------------------------------------------------+
--- | This file is a part of CiviCRM.                                    |
+-- | Copyright CiviCRM LLC. All rights reserved.                        |
 -- |                                                                    |
--- | CiviCRM is free software; you can copy, modify, and distribute it  |
--- | under the terms of the GNU Affero General Public License           |
--- | Version 3, 19 November 2007 and the CiviCRM Licensing Exception.   |
--- |                                                                    |
--- | CiviCRM is distributed in the hope that it will be useful, but     |
--- | WITHOUT ANY WARRANTY; without even the implied warranty of         |
--- | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.               |
--- | See the GNU Affero General Public License for more details.        |
--- |                                                                    |
--- | You should have received a copy of the GNU Affero General Public   |
--- | License and the CiviCRM Licensing Exception along                  |
--- | with this program; if not, contact CiviCRM LLC                     |
--- | at info[AT]civicrm[DOT]org. If you have questions about the        |
--- | GNU Affero General Public License or the licensing of CiviCRM,     |
--- | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
+-- | This work is published under the GNU AGPLv3 license with some      |
+-- | permitted exceptions and without any warranty. For full license    |
+-- | and copyright information, see https://civicrm.org/licensing       |
 -- +--------------------------------------------------------------------+
 --
 -- Generated from drop.tpl
@@ -63,6 +31,7 @@
 SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS `civigeometry_geometry_overlap_cache`;
+DROP TABLE IF EXISTS `civigeometry_geometry_entity`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection`;
 DROP TABLE IF EXISTS `civigeometry_geometry`;
@@ -142,9 +111,10 @@ CREATE TABLE `civigeometry_geometry` (
 ,
         PRIMARY KEY (`id`)
  
-    ,     UNIQUE INDEX `index_geometry_type_label`(
+    ,     INDEX `index_geometry_type_label_is_archived`(
         geometry_type_id
       , label
+      , is_archived
   )
   
 ,          CONSTRAINT FK_civigeometry_geometry_geometry_type_id FOREIGN KEY (`geometry_type_id`) REFERENCES `civigeometry_geometry_type`(`id`) ON DELETE CASCADE  
@@ -200,6 +170,36 @@ CREATE TABLE `civigeometry_geometry_collection_geometry` (
   )
   
 ,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,          CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_id FOREIGN KEY (`collection_id`) REFERENCES `civigeometry_geometry_collection`(`id`) ON DELETE CASCADE  
+)    ;
+
+-- /*******************************************************
+-- *
+-- * civigeometry_geometry_entity
+-- *
+-- * Holds a static cache of geometry ids an address is within
+-- *
+-- *******************************************************/
+CREATE TABLE `civigeometry_geometry_entity` (
+
+
+     `id` int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'Unique GeometryEntity ID',
+     `entity_id` int unsigned NOT NULL   COMMENT 'entity id that is associated with this geometry',
+     `entity_table` varchar(255) NOT NULL   COMMENT 'entity table that is associated with this geometry',
+     `geometry_id` int unsigned NOT NULL   COMMENT 'FK to Geometry Table',
+     `expiry_date` timestamp NULL  DEFAULT NULL COMMENT 'When Should this geometry entity relationship expire' 
+,
+        PRIMARY KEY (`id`)
+ 
+    ,     UNIQUE INDEX `UI_geometry_id_entity_id_entity_table`(
+        geometry_id
+      , entity_id
+      , entity_table
+  )
+  ,     INDEX `index_expiry_date`(
+        expiry_date
+  )
+  
+,          CONSTRAINT FK_civigeometry_geometry_entity_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE  
 )    ;
 
 -- /*******************************************************

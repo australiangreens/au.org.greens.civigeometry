@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/CiviGeometry</base>
+  <class>GeometryEntity</class>
+  <name>civigeometry_geometry_entity</name>
+  <comment>Holds a static cache of geometry ids an address is within</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique GeometryEntity ID</comment>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>entity_id</name>
+    <type>int unsigned</type>
+    <comment>entity id that is associated with this geometry</comment>
+    <required>true</required>
+  </field>
+    <field>
+    <name>entity_table</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>entity table that is associated with this geometry</comment>
+    <required>true</required>
+  </field>
+  <field>
+    <name>geometry_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Geometry Table</comment>
+    <required>true</required>
+  </field>
+  <foreignKey>
+    <name>geometry_id</name>
+    <table>civigeometry_geometry</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <index>
+    <name>UI_geometry_id_entity_id_entity_table</name>
+    <fieldName>geometry_id</fieldName>
+    <fieldName>entity_id</fieldName>
+    <fieldName>entity_table</fieldName>
+    <unique>true</unique>
+  </index>
+  <field>
+    <name>expiry_date</name>
+    <type>timestamp</type>
+    <comment>When Should this geometry entity relationship expire</comment>
+    <required>false</required>
+    <default>NULL</default>
+  </field>
+  <index>
+     <name>index_expiry_date</name>
+     <fieldName>expiry_date</fieldName>
+  </index>
+</table>

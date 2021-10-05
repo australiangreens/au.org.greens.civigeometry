@@ -44,10 +44,10 @@
     <onDelete>CASCADE</onDelete>
   </foreignKey>
   <index>
-    <name>UI_geometry_id_entity_id_entity_table</name>
+    <name>index_entity_table_geometry_id_entity_id</name>
+    <fieldName>entity_table</fieldName>
     <fieldName>geometry_id</fieldName>
     <fieldName>entity_id</fieldName>
-    <fieldName>entity_table</fieldName>
     <unique>true</unique>
   </index>
   <field>

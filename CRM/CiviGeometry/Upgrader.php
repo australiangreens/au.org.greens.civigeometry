@@ -156,7 +156,7 @@ end
    * @throws Exception
    */
   public function upgrade_4205() {
-    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP INDEX UI_geometry_id_entity_id_entity_table(geometry_id,entity_id,entity_table)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP INDEX UI_geometry_id_entity_id_entity_table");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD UNIQUE INDEX index_entity_table_geometry_id_entity_id(entity_table,geometry_id,entity_id)");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_collection_type DROP INDEX UI_label");
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_collection_type ADD UNIQUE INDEX index_label(label)");

@@ -59,9 +59,9 @@
     <onDelete>CASCADE</onDelete>
   </foreignKey>
   <index>
-    <name>index_geometry_id_collection_id</name>
-    <fieldName>geometry_id</fieldName>
+    <name>index_collection_id_geometry_id</name>
     <fieldName>collection_id</fieldName>
+    <fieldName>geometry_id</fieldName>
     <unique>true</unique>
   </index>
 </table>

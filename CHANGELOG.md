@@ -1,6 +1,15 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.8.1] - 2021-10-06
+### Fixed
+ - Reordered field order for composite indexes
+ - Renamed indexes to apply naming consistency
+
+## [1.8.0] - 2020-12-08
+### Added
+ - API v4 entities and methods
+
 ## [1.7.0] - 2020-11-17
 ### Added
  - Optional expiry date added to geometry-entity relationships

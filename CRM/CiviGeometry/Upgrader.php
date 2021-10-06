@@ -140,7 +140,7 @@ end
 
   /**
    * Add in expiry date column onto the geometry_entity table
-   * @return TRUE on succes
+   * @return TRUE on success
    * @throws Exception
    */
   public function upgrade_4204() {
@@ -150,54 +150,22 @@ end
   }
 
   /**
-   * Example: Run a slow upgrade process by breaking it up into smaller chunk.
-   *
+   * Modify existing indexes to apply consistent naming
+   * and improve composite index performance
    * @return TRUE on success
    * @throws Exception
    */
-  //public function upgrade_4202() {
-  //  $this->ctx->log->info('Planning update 4202'); // PEAR Log interface
-
-  //  $this->addTask(E::ts('Process first step'), 'processPart1', $arg1, $arg2);
-  //  $this->addTask(E::ts('Process second step'), 'processPart2', $arg3, $arg4);
-  //  $this->addTask(E::ts('Process second step'), 'processPart3', $arg5);
-  //  return TRUE;
-  //}
-  //public function processPart1($arg1, $arg2) { sleep(10); return TRUE; }
-  //public function processPart2($arg3, $arg4) { sleep(10); return TRUE; }
-  //public function processPart3($arg5) { sleep(10); return TRUE; }
-  //
-
-
-  /**
-   * Example: Run an upgrade with a query that touches many (potentially
-   * millions) of records by breaking it up into smaller chunks.
-   *
-   * @return TRUE on success
-   * @throws Exception
-   */
-  //public function upgrade_4203() {
-  //  $this->ctx->log->info('Planning update 4203'); // PEAR Log interface
-
-  //  $minId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(min(id),0) FROM civicrm_contribution');
-  //  $maxId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(max(id),0) FROM civicrm_contribution');
-  //  for ($startId = $minId; $startId <= $maxId; $startId += self::BATCH_SIZE) {
-  //    $endId = $startId + self::BATCH_SIZE - 1;
-  //    $title = E::ts('Upgrade Batch (%1 => %2)', array(
-  //      1 => $startId,
-  //      2 => $endId,
-  //    ));
-  //    $sql = '
-  //      UPDATE civicrm_contribution SET foobar = whiz(wonky()+wanker)
-  //      WHERE id BETWEEN %1 and %2
-  //    ';
-  //    $params = array(
-  //      1 => array($startId, 'Integer'),
-  //      2 => array($endId, 'Integer'),
-  //    );
-  //    $this->addTask($title, 'executeSql', $sql, $params);
-  //  }
-  //  return TRUE;
-  //}
+  public function upgrade_4205() {
+    $this->ctx->log->info('Applying update 4205 - Refactor indexes on several tables');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP FOREIGN KEY FK_civigeometry_geometry_entity_geometry_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP INDEX UI_geometry_id_entity_id_entity_table");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD UNIQUE INDEX index_entity_table_geometry_id_entity_id(entity_table,geometry_id,entity_id)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD FOREIGN KEY FK_civigeometry_geometry_entity_geometry_id (geometry_id) REFERENCES civigeometry_geometry (id) ON DELETE CASCADE");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_collection_type DROP INDEX UI_label");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_collection_type ADD UNIQUE INDEX index_label(label)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP INDEX index_geometry_type_label_is_archived");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD INDEX index_is_archived_geometry_type_label(is_archived,geometry_type_id,label)");
+    return TRUE;
+  }
 
 }

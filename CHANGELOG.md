@@ -1,6 +1,11 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.8.2] - 2021-10-18
+### Changed
+ - wrap queries involving spatial functions in transactions. Added in response to
+   a critical bug in MariaDB 10.4.X involving spatial indexes and table locking
+
 ## [1.8.1] - 2021-10-06
 ### Fixed
  - Reordered field order for composite indexes

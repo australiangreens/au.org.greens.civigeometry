@@ -171,7 +171,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       }
     }
 
-    $res = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $queryParams);
+    CRM_Core_Transaction::create()->run(function($tx) {
+      $res = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $queryParams);
+    });
 
     return array_column($res->fetchAll(), 'id');
   }

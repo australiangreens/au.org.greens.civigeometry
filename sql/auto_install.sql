@@ -142,7 +142,7 @@ CREATE TABLE `civigeometry_geometry_entity` (
   UNIQUE INDEX `index_entity_table_geometry_id_entity_id`(
     entity_table,
     geometry_id,
-    entity_id,
+    entity_id
   ),
   INDEX `index_expiry_date`(expiry_date),
   CONSTRAINT FK_civigeometry_geometry_entity_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE

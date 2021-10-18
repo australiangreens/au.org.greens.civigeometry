@@ -1,6 +1,13 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.8.2] - 2021-10-18
+### Changed
+ - Modified SELECT queries involving spatial data to end with 'FOR UPDATE'. Added
+   in response to a critical bug in MariaDB (across several versions) involving
+   spatial indexes and table locking.
+   cf. https://jira.mariadb.org/browse/MDEV-26123
+
 ## [1.8.1] - 2021-10-06
 ### Fixed
  - Reordered field order for composite indexes

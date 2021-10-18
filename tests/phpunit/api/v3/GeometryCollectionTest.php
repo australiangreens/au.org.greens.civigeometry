@@ -33,7 +33,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
     $internalCollectionTypeParams = [
       'label' => 'Internal',
@@ -45,7 +45,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     $this->externalCollectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $externalCollectionTypeParams);
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
     parent::tearDown();
   }
 
@@ -53,7 +53,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
    * Test Create GeometryCollection.
    * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometryCollection($apiVersion) {
+  public function testCreateGeometryCollection($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
@@ -68,7 +68,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
    * Test that we can create multiple geometry collections of the same type
    * @dataProvider versionThreeAndFour
    */
-  public function testMultipleGeometryCollectionsSameType($apiVersion) {
+  public function testMultipleGeometryCollectionsSameType($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params1 = [
       'label' => 'NSW State LH',
@@ -91,7 +91,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
    * A duplicate is understood in terms of identical types and labels
    * @dataProvider versionThreeAndFour
    */
-  public function testNoDuplicateGeometryCollections($apiVersion) {
+  public function testNoDuplicateGeometryCollections($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
@@ -107,7 +107,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
    * Test Archiving a Geometry collection
    * @dataProvider versionThreeAndFour
    */
-  public function testArchivingCollection($apiVersion) {
+  public function testArchivingCollection($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
@@ -126,7 +126,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
    * Test Unarchiving a geometry collection
    * @dataProvider versionThreeAndFour
    */
-  public function testUnArchivingCollection($apiVersion) {
+  public function testUnArchivingCollection($apiVersion): void {
     $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',

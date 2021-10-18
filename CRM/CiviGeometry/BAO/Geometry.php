@@ -116,9 +116,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ];
     }
 
-    CRM_Core_Transaction::create()->run(function($tx) {
-      $result = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $sqlParams);
-    });
+    $tx = new CRM_Core_Transaction();
+    $result = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $sqlParams);
 
     // The above query will return a single result if both geoms exist, 0 results if one does not
     return $result->fetch()
@@ -173,9 +172,8 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       }
     }
 
-    CRM_Core_Transaction::create()->run(function($tx) {
-      $res = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $queryParams);
-    });
+    $tx = new CRM_Core_Transaction();
+    $res = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr", $queryParams);
 
     return array_column($res->fetchAll(), 'id');
   }
@@ -269,12 +267,11 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       else {
         $query_params[1] = [$params['geometry_a'], 'Positive'];
       }
-      CRM_Core_Transaction::create()->run(function($tx) {
-        $geometries = CRM_Core_DAO::executeQuery("SELECT {$select_table}.id
-          FROM civigeometry_geometry {$where_table}, civigeometry_geometry as {$select_table}
-          INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = {$select_table}.id
-          WHERE {$where_table}.id = %1 AND cgc.collection_id = %2 AND ST_Intersects(a.geometry, b.geometry) != 0", $query_params)->fetchAll();
-      });
+      $tx = new CRM_Core_Transaction();
+      $geometries = CRM_Core_DAO::executeQuery("SELECT {$select_table}.id
+        FROM civigeometry_geometry {$where_table}, civigeometry_geometry as {$select_table}
+        INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = {$select_table}.id
+        WHERE {$where_table}.id = %1 AND cgc.collection_id = %2 AND ST_Intersects(a.geometry, b.geometry) != 0", $query_params)->fetchAll();
       foreach ($geometries as $geometry_id) {
         if ($select_table === 'a') {
           $values[] = [
@@ -291,14 +288,13 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       }
     }
     else {
-      CRM_Core_Transaction::create()->run(function($tx) {
-        $intersection = CRM_Core_DAO::singleValueQuery("SELECT ST_Intersects(a.geometry, b.geometry)
-          FROM civigeometry_geometry a, civigeometry_geometry b
-          WHERE a.id = %1 AND b.id = %2", [
-            1 => [$params['geometry_a'], 'Positive'],
-            2 => [$params['geometry_b'], 'Positive'],
-          ]);
-      });
+      $tx = new CRM_Core_Transaction();
+      $intersection = CRM_Core_DAO::singleValueQuery("SELECT ST_Intersects(a.geometry, b.geometry)
+        FROM civigeometry_geometry a, civigeometry_geometry b
+        WHERE a.id = %1 AND b.id = %2", [
+          1 => [$params['geometry_a'], 'Positive'],
+          2 => [$params['geometry_b'], 'Positive'],
+        ]);
       if ($intersection) {
         $values[] = [
           'geometry_a' => $params['geometry_a'],
@@ -335,15 +331,14 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
         return [];
       }
     }
-    CRM_Core_Transaction::create()->run(function($tx) {
-      $intersectionArea = CRM_Core_DAO::executeQuery("
-        SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
-        FROM civigeometry_geometry a, civigeometry_geometry b
-        WHERE a.id = %1 AND b.id = %2", [
-          1 => [$params['geometry_id_a'], 'Positive'],
-          2 => [$params['geometry_id_b'], 'Positive'],
-        ]);
-    });
+    $tx = new CRM_Core_Transaction();
+    $intersectionArea = CRM_Core_DAO::executeQuery("
+      SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
+      FROM civigeometry_geometry a, civigeometry_geometry b
+      WHERE a.id = %1 AND b.id = %2", [
+        1 => [$params['geometry_id_a'], 'Positive'],
+        2 => [$params['geometry_id_b'], 'Positive'],
+      ]);
     while ($intersectionArea->fetch()) {
       $overlap = (int) (100.0 * $intersectionArea->intersection_area / $intersectionArea->area);
     }
@@ -375,12 +370,11 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    */
   public function calculateDistance($params) {
     // We use SRID 4326 or WGS84 (SRID 4326) This is the standard projection used in google maps etc
-    CRM_Core_Transaction::create()->run(function($tx) {
-      $result = CRM_Core_DAO::singleValueQuery("SELECT earth_circle_distance(ST_GeomFromText(%1, 4326), ST_GeomFromText(%2, 4326))", [
-        1 => [$params['geometry_a'], 'String'],
-        2 => [$params['geometry_b'], 'String'],
-      ]);
-    });
+    $tx = new CRM_Core_Transaction();
+    $result = CRM_Core_DAO::singleValueQuery("SELECT earth_circle_distance(ST_GeomFromText(%1, 4326), ST_GeomFromText(%2, 4326))", [
+      1 => [$params['geometry_a'], 'String'],
+      2 => [$params['geometry_b'], 'String'],
+    ]);
     $metres = (float) $result * 1000;
     return $metres;
   }
@@ -518,17 +512,16 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
       ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
       ->where("ca.id = #address_id", ['address_id' => $addressId]);
-    CRM_Core_Transaction::create()->run(function($tx) {
-      $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
-      $result = CRM_Core_DAO::singleValueQuery("
-        SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
-        FROM civicrm_address ca, $geomTableName g
-        WHERE g.id = %1 AND ca.id = %2
-      ", [
-        1 => [$geometryId, 'Integer'],
-        2 => [$addressId, 'Integer'],
-      ]);
-    });
+    $tx = new CRM_Core_Transaction();
+    $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+    $result = CRM_Core_DAO::singleValueQuery("
+      SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
+      FROM civicrm_address ca, $geomTableName g
+      WHERE g.id = %1 AND ca.id = %2
+    ", [
+      1 => [$geometryId, 'Integer'],
+      2 => [$addressId, 'Integer'],
+    ]);
 
     return boolval($result);
   }

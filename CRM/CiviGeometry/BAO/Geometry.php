@@ -518,7 +518,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within")
       ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
       ->where("ca.id = #address_id", ['address_id' => $addressId]);
-    CRM_Core_Transaction::create()->run(function($tx) {CRM_Core_Transaction::create()->run(function($tx) {
+    CRM_Core_Transaction::create()->run(function($tx) {
       $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
       $result = CRM_Core_DAO::singleValueQuery("
         SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))

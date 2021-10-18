@@ -1,6 +1,14 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.8.3] - 2021-10-18
+### Changed
+ - Made tests phpunit8 compatible
+
+### Fixed
+ - Declare functions statically
+ - Removed redundant DB query
+
 ## [1.8.2] - 2021-10-18
 ### Changed
  - Modified SELECT queries involving spatial data to end with 'FOR UPDATE'. Added
@@ -33,8 +41,6 @@ All notable changes for the CiviGeometry extension will be noted here.
    performant.
 
 ## [1.5.2] - 2020-09-29
-### Added
-
 ### Changed
  - Removed overlap cache expiry of 1 month. Overlaps should only expire when the geometries change
 

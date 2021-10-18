@@ -11,10 +11,11 @@
 --
 -- /*******************************************************
 -- *
--- * Clean up the exisiting tables
+-- * Clean up the existing tables - this section generated from drop.tpl
 -- *
 -- *******************************************************/
-SET FOREIGN_KEY_CHECKS = 0;
+
+SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS `civigeometry_geometry_overlap_cache`;
 DROP TABLE IF EXISTS `civigeometry_geometry_entity`;
@@ -24,13 +25,13 @@ DROP TABLE IF EXISTS `civigeometry_geometry`;
 DROP TABLE IF EXISTS `civigeometry_geometry_type`;
 DROP TABLE IF EXISTS `civigeometry_geometry_collection_type`;
 
-SET FOREIGN_KEY_CHECKS = 1;
-
+SET FOREIGN_KEY_CHECKS=1;
 -- /*******************************************************
 -- *
 -- * Create new tables
 -- *
 -- *******************************************************/
+
 -- /*******************************************************
 -- *
 -- * civigeometry_geometry_collection_type
@@ -43,8 +44,9 @@ CREATE TABLE `civigeometry_geometry_collection_type` (
   `label` varchar(255) NOT NULL COMMENT 'Title of the Geometry Collection Type',
   `description` varchar(255) DEFAULT NULL COMMENT 'Title of the Geometry Collection Type',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_label`(label)
-);
+  UNIQUE INDEX `UI_label`(label)
+)
+ENGINE=InnoDB;
 
 -- /*******************************************************
 -- *
@@ -59,7 +61,8 @@ CREATE TABLE `civigeometry_geometry_type` (
   `description` varchar(255) DEFAULT true COMMENT 'The description of the Geometry Type',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `index_label`(label)
-);
+)
+ENGINE=InnoDB;
 
 -- /*******************************************************
 -- *
@@ -77,13 +80,10 @@ CREATE TABLE `civigeometry_geometry` (
   `archived_date` timestamp NULL DEFAULT NULL COMMENT 'The Title of this geometry',
   `geometry` geometry NOT NULL COMMENT 'The Spatial data for this geometry',
   PRIMARY KEY (`id`),
-  INDEX `index_is_archived_geometry_type_label`(
-    is_archived,
-    geometry_type_id,
-    label
-  ),
+  INDEX `index_is_archived_geometry_type_label`(is_archived, geometry_type_id, label),
   CONSTRAINT FK_civigeometry_geometry_geometry_type_id FOREIGN KEY (`geometry_type_id`) REFERENCES `civigeometry_geometry_type`(`id`) ON DELETE CASCADE
-);
+)
+ENGINE=InnoDB;
 
 -- /*******************************************************
 -- *
@@ -101,12 +101,10 @@ CREATE TABLE `civigeometry_geometry_collection` (
   `is_archived` tinyint DEFAULT 0 COMMENT 'Is this Geometry Collection archived',
   `archived_date` timestamp NULL DEFAULT NULL COMMENT 'When was this Geometry Collection archived',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_type_id_label`(
-    geometry_collection_type_id,
-    label
-  ),
+  UNIQUE INDEX `index_type_id_label`(geometry_collection_type_id, label),
   CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_type_id FOREIGN KEY (`geometry_collection_type_id`) REFERENCES `civigeometry_geometry_collection_type`(`id`) ON DELETE CASCADE
-);
+)
+ENGINE=InnoDB;
 
 -- /*******************************************************
 -- *
@@ -123,7 +121,8 @@ CREATE TABLE `civigeometry_geometry_collection_geometry` (
   UNIQUE INDEX `index_collection_id_geometry_id`(collection_id, geometry_id),
   CONSTRAINT FK_civigeometry_geometry_collection_geometry_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,
   CONSTRAINT FK_civigeometry_geometry_collection_geometry_collection_id FOREIGN KEY (`collection_id`) REFERENCES `civigeometry_geometry_collection`(`id`) ON DELETE CASCADE
-);
+)
+ENGINE=InnoDB;
 
 -- /*******************************************************
 -- *
@@ -139,14 +138,11 @@ CREATE TABLE `civigeometry_geometry_entity` (
   `geometry_id` int unsigned NOT NULL COMMENT 'FK to Geometry Table',
   `expiry_date` timestamp NULL DEFAULT NULL COMMENT 'When Should this geometry entity relationship expire',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_entity_table_geometry_id_entity_id`(
-    entity_table,
-    geometry_id,
-    entity_id,
-  ),
+  UNIQUE INDEX `index_entity_table_geometry_id_entity_id`(entity_table, geometry_id, entity_id),
   INDEX `index_expiry_date`(expiry_date),
   CONSTRAINT FK_civigeometry_geometry_entity_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE
-);
+)
+ENGINE=InnoDB;
 
 -- /*******************************************************
 -- *
@@ -162,10 +158,8 @@ CREATE TABLE `civigeometry_geometry_overlap_cache` (
   `overlap` int NOT NULL DEFAULT 0 COMMENT 'Overlap % that Geometry A is within Geometry B',
   `cache_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP() COMMENT 'When was this overlap last re-generated',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_geometry_id_a_geometry_id_b`(
-    geometry_id_a,
-    geometry_id_b
-  ),
+  UNIQUE INDEX `index_geometry_id_a_geometry_id_b`(geometry_id_a, geometry_id_b),
   CONSTRAINT FK_civigeometry_geometry_overlap_cache_geometry_id_a FOREIGN KEY (`geometry_id_a`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE,
   CONSTRAINT FK_civigeometry_geometry_overlap_cache_geometry_id_b FOREIGN KEY (`geometry_id_b`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE
-);
+)
+ENGINE=InnoDB;

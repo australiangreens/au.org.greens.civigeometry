@@ -168,4 +168,16 @@ end
     return TRUE;
   }
 
+  /**
+   * Add index to geometry_entity table
+   * (using update number 5184 to reflect Civi major version and extension major/minor/patch)
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_5184() {
+    $this->ctx->log->info('Applying update 5184 - Adding index on civigeometry_geometry_entity table');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD INDEX index_entity_table_entity_id(entity_table,entity_id)");
+    return TRUE;
+  }
 }
+

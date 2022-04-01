@@ -61,4 +61,9 @@
      <name>index_expiry_date</name>
      <fieldName>expiry_date</fieldName>
   </index>
+  <index>
+    <name>index_entity_table_entity_id</name>
+    <fieldName>entity_table</fieldName>
+    <fieldName>entity_id</fieldName>
+  </index>
 </table>

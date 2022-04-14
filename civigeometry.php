@@ -200,7 +200,7 @@ function _civigeometry_geoplaceAddress($objectId) {
  */
 function _civigeometry_archiveGeometry($objectId) {
   $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
-  $dao->whereAdd(CRM_Core_DAO::composeQuery('geometry_id = %1', ['%1' => $objectId]));
+  $dao->whereAdd(CRM_Core_DAO::composeQuery('geometry_id = %1', [1 => [$objectId, 'Positive']]));
   $dao->whereAdd("entity_table = 'civicrm_address'");
   $dao->delete(true);
 }

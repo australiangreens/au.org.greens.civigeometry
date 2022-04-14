@@ -202,12 +202,12 @@ function _civigeometry_archiveGeometry($objectId) {
   $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
   $dao->whereAdd(CRM_Core_DAO::composeQuery('geometry_id = %1', [1 => [$objectId, 'Positive']]));
   $dao->whereAdd("entity_table = 'civicrm_address'");
-  $dao->delete(true);
+  $dao->delete(TRUE);
 }
 
 /**
  *
- * Callback function for enqueuing new geometry relationships tasks 
+ * Callback function for enqueuing new geometry relationships tasks
  *
  * @param int $objectId
  *

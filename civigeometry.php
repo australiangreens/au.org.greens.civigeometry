@@ -173,6 +173,55 @@ function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$
 }
 
 /**
+ *
+ * Callback function for enqueuing new geoplaceAddress tasks
+ *
+ * @param int $objectId
+ *
+ */
+function _civigeometry_geoplaceAddress($objectId) {
+  $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
+  $address = civicrm_api3('Address', 'get', ['id' => $objectId])['values'][$objectId];
+  if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
+    $task = new CRM_Queue_Task(
+      ['CRM_CiviGeometry_Tasks', 'geoplaceAddress'],
+      [$objectId]
+    );
+    $queue->createItem($task);
+  }
+}
+
+/**
+ *
+ * Callback function for enqueuing new archive geometry cleanup tasks
+ *
+ * @param int $objectId
+ *
+ */
+function _civigeometry_archiveGeometry($objectId) {
+  $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
+  $dao->whereAdd(CRM_Core_DAO::composeQuery('geometry_id = %1', [1 => [$objectId, 'Positive']]));
+  $dao->whereAdd("entity_table = 'civicrm_address'");
+  $dao->delete(TRUE);
+}
+
+/**
+ *
+ * Callback function for enqueuing new geometry relationships tasks
+ *
+ * @param int $objectId
+ *
+ */
+function _civigeometry_buildGeometryRelationships($objectId) {
+  $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
+  $task = new CRM_Queue_Task(
+      ['CRM_CiviGeometry_Tasks', 'buildGeometryRelationships'],
+      [$objectId]
+  );
+  $queue->createItem($task);
+}
+
+/**
  * Implements hook_civicrm_post().
  *
  * This adds records to civigeometry_address_geometry when:
@@ -190,36 +239,35 @@ function civigeometry_symfony_civicrm_post($event) {
   // 2 = objectId
   // 3 = objectREf
   if ($hookValues[0] !== 'delete' && $hookValues[0] !== 'geoplace' && $hookValues[1] == 'Address') {
-    $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
-    $id = $hookValues[2];
-    $address = civicrm_api3('Address', 'get', ['id' => $id])['values'][$id];
-    if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
-      $task = new CRM_Queue_Task(
-        ['CRM_CiviGeometry_Tasks', 'geoplaceAddress'],
-        [$id]
+    if (CRM_Core_Transaction::isActive()) {
+      CRM_Core_Transaction::addCallback(CRM_Core_Transaction::PHASE_POST_COMMIT,
+        '_civigeometry_geoplaceAddress', [$hookValues[2]]
       );
-      $queue->createItem($task);
+    }
+    else {
+      _civigeometry_geoplaceAddress($hookValues[2]);
     }
   }
   // If a geometry has been archived ensure that all address records of it in the GeometryEntity table are removed.
   if ($hookValues[0] == 'archive' && $hookValues[1] == 'Geometry') {
-    $id = $hookValues[2];
-    $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
-    $dao->geometry_id = $id;
-    $dao->entity_table = 'civicrm_address';
-    if ($dao->find()) {
-      while ($dao->fetch()) {
-        $dao->delete();
-      }
+    if (CRM_Core_Transaction::isActive()) {
+      CRM_Core_Transaction::addCallback(CRM_Core_Transaction::PHASE_POST_COMMIT,
+        '_civigeometry_archiveGeometry', [$hookValues[2]]
+      );
+    }
+    else {
+      _civigeometry_archiveGeometry($hookValues[2]);
     }
   }
   if ($hookValues[0] == 'create' && $hookValues[1] == 'Geometry') {
-    $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
-    $task = new CRM_Queue_Task(
-        ['CRM_CiviGeometry_Tasks', 'buildGeometryRelationships'],
-        [$hookValues[2]]
-    );
-    $queue->createItem($task);
+    if (CRM_Core_Transaction::isActive()) {
+      CRM_Core_Transaction::addCallback(CRM_Core_Transaction::PHASE_POST_COMMIT,
+        '_civigeometry_buildGeometryRelationships', [$hookValues[2]]
+      );
+    }
+    else {
+      _civigeometry_buildGeometryRelationships($hookValues[2]);
+    }
   }
 }
 
@@ -235,7 +283,9 @@ function civigeometry_civicrm_merge($type, &$data, $mainId = NULL, $otherId = NU
       break;
 
     case 'sqls':
-      $data[] = "DELETE FROM civigeometry_geometry_entity WHERE entity_id NOT IN (SELECT id FROM civicrm_address) AND entity_table = 'civicrm_address'";
+      $data[] = "DELETE cge FROM civigeometry_geometry_entity cge
+                 INNER JOIN civicrm_address ca ON ca.id = cge.entity_id AND cge.entity_table = 'civicrm_address'
+                 WHERE ca.contact_id = {$otherId}";
       break;
 
   }

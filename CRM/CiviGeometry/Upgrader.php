@@ -179,5 +179,5 @@ end
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD INDEX index_entity_table_entity_id(entity_table,entity_id)");
     return TRUE;
   }
-}
 
+}

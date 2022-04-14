@@ -200,13 +200,9 @@ function _civigeometry_geoplaceAddress($objectId) {
  */
 function _civigeometry_archiveGeometry($objectId) {
   $dao = new CRM_CiviGeometry_DAO_GeometryEntity();
-  $dao->geometry_id = $objectId;
-  $dao->entity_table = 'civicrm_address';
-  if ($dao->find()) {
-    while ($dao->fetch()) {
-      $dao->delete();
-    }
-  }
+  $dao->whereAdd("geometry_id = %1", ['%1' => $objectId]);
+  $dao->whereAdd("entity_table = 'civicrm_address'");
+  $dao->delete(true);
 }
 
 /**

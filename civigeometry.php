@@ -287,7 +287,7 @@ function civigeometry_civicrm_merge($type, &$data, $mainId = NULL, $otherId = NU
       break;
 
     case 'sqls':
-      $data[] = "DELETE FROM civigeometry_address_geometry cge
+      $data[] = "DELETE cge FROM civigeometry_geometry_entity cge
                  INNER JOIN civicrm_address ca ON ca.id = cge.entity_id AND cge.entity_table = 'civicrm_address'
                  WHERE ca.contact_id = {$otherId}";
       break;

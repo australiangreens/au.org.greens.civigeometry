@@ -1,10 +1,16 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
-## [1.8.5] - 2022-04-20
+## [1.8.6] - 2022-04-20
 ### Changed
  - Changed CiviCRM Queue implementation from Sql to SqlParallel
 
+## [1.8.5] - 2022-04-14
+### Changed
+ - Geometry-entity relationship calculations now occur as queued tasks only
+   rather than real-time within hook_civicrm_post. This improves the performance
+   of online contributions, event registrations, etc., that collect address info
+   that can trigger the calculations.
 ## [1.8.4] - 2022-04-01
 ### Added
  - Index on civigeometry_geometry_entity table to improve performance

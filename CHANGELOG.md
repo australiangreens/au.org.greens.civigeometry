@@ -1,6 +1,14 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.8.5] - 2022-04-20
+### Changed
+ - Changed CiviCRM Queue implementation from Sql to SqlParallel
+
+## [1.8.4] - 2022-04-01
+### Added
+ - Index on civigeometry_geometry_entity table to improve performance
+
 ## [1.8.3] - 2021-10-18
 ### Changed
  - Made tests phpunit8 compatible

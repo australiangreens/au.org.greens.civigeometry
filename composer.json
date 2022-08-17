@@ -18,5 +18,10 @@
   ],
   "require": {
     "composer/installers": "^1.6"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true
+    }
   }
 }

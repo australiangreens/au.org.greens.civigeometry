@@ -33,7 +33,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
       ->apply();
   }
 
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
     $internalCollectionTypeParams = [
       'label' => 'Internal',
@@ -45,14 +45,16 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     $this->externalCollectionType = $this->callAPISuccess('GeometryCollectionType', 'create', $externalCollectionTypeParams);
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
     parent::tearDown();
   }
 
   /**
    * Test Create GeometryCollection.
+   * @dataProvider versionThreeAndFour
    */
-  public function testCreateGeometryCollection() {
+  public function testCreateGeometryCollection($apiVersion): void {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
       'description' => 'NSW State Lower House Elecroates',
@@ -64,8 +66,10 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
 
   /**
    * Test that we can create multiple geometry collections of the same type
+   * @dataProvider versionThreeAndFour
    */
-  public function testMultipleGeometryCollectionsSameType() {
+  public function testMultipleGeometryCollectionsSameType($apiVersion): void {
+    $this->_apiversion = $apiVersion;
     $params1 = [
       'label' => 'NSW State LH',
       'description' => 'NSW State Lower House Elecroates',
@@ -85,8 +89,10 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
   /**
    * Test that no duplicate Collections can be created
    * A duplicate is understood in terms of identical types and labels
+   * @dataProvider versionThreeAndFour
    */
-  public function testNoDuplicateGeometryCollections() {
+  public function testNoDuplicateGeometryCollections($apiVersion): void {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
       'description' => 'NSW State Lower House Elecroates',
@@ -99,8 +105,10 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
 
   /**
    * Test Archiving a Geometry collection
+   * @dataProvider versionThreeAndFour
    */
-  public function testArchivingCollection() {
+  public function testArchivingCollection($apiVersion): void {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
       'description' => 'NSW State Lower House Elecroates',
@@ -109,14 +117,17 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     ];
     $collection = $this->callAPISuccess('GeometryCollection', 'create', $params);
     $collection = $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
-    $this->assertEquals(1, $collection['values'][$collection['id']]['is_archived']);
-    $this->assertEquals(date('Ymdhis'), $collection['values'][$collection['id']]['archived_date']);
+    $key = $apiVersion === 3 ? $collection['id'] : 0;
+    $this->assertEquals(1, $collection['values'][$key]['is_archived']);
+    $this->assertEquals(date('Ymdhis'), $collection['values'][$key]['archived_date']);
   }
 
   /**
    * Test Unarchiving a geometry collection
+   * @dataProvider versionThreeAndFour
    */
-  public function testUnArchivingCollection() {
+  public function testUnArchivingCollection($apiVersion): void {
+    $this->_apiversion = $apiVersion;
     $params = [
       'label' => 'NSW State LH',
       'description' => 'NSW State Lower House Elecroates',
@@ -128,7 +139,8 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
     $this->callAPIFailure('GeometryCollection', 'unarchive', ['id' => $collection['id']]);
     $this->callAPISuccess('GeometryCollection', 'archive', ['id' => $collection['id']]);
     $collection = $this->callAPISuccess('GeometryCollection', 'unarchive', ['id' => $collection['id']]);
-    $this->assertEquals(0, $collection['values'][$collection['id']]['is_archived']);
+    $key = $apiVersion === 3 ? $collection['id'] : 0;
+    $this->assertEquals(0, $collection['values'][$key]['is_archived']);
   }
 
 }

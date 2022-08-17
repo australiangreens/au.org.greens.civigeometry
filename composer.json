@@ -4,8 +4,12 @@
   "type": "civicrm-ext",
   "authors": [
     {
+      "name": "Anthony Blond",
+      "email": "anthony.blond@greens.org.au"
+    },
+    {
       "name": "Seamus Lee",
-      "email": "seamus.lee@greens.org.au"
+      "email": "seamuslee001@gmail.com"
     },
     {
       "name": "John Twyman",

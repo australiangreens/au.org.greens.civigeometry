@@ -12,6 +12,7 @@ class CRM_CiviGeometry_Upgrader extends CRM_CiviGeometry_Upgrader_Base {
    * Example: Run an external SQL script when the module is installed.
    */
   public function install() {
+    $this->executeSql("DROP FUNCTION IF EXISTS earth_circle_distance");
     $this->executeSql("
 CREATE FUNCTION earth_circle_distance(point1 point, point2 point) RETURNS double
     DETERMINISTIC
@@ -90,6 +91,32 @@ end
     return TRUE;
   }
 
+  /**
+   * Add in AddressGeometry Table
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_4201() {
+    $this->ctx->log->info('Applying update 4201 - Adding in AddressGeometry Table');
+    $this->executeSqlFile('sql/address_geometry.sql');
+    return TRUE;
+  }
+
+  /**
+   * Alter index on civigeoemtry
+   *
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_4202() {
+    $this->ctx->log->info('Applying update 4202 - Alter index on civigeometry_geometry to include is_archived column and not be unique');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP CONSTRAINT FK_civigeometry_geometry_geometry_type_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP INDEX index_geometry_type_label");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD INDEX index_geometry_type_label_is_archived (`label`, `geometry_type_id`, `is_archived`)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD CONSTRAINT FK_civigeometry_geometry_geometry_type_id FOREIGN KEY (`geometry_type_id`) REFERENCES `civigeometry_geometry_type`(`id`) ON DELETE CASCADE");
+    return TRUE;
+  }
 
   /**
    * Example: Run an external SQL script.
@@ -97,63 +124,60 @@ end
    * @return TRUE on success
    * @throws Exception
    */
-  //public function upgrade_4201() {
-  //  $this->ctx->log->info('Applying update 4201');
-  //  // this path is relative to the extension base dir
-  //  $this->executeSqlFile('sql/upgrade_4201.sql');
-  //  return TRUE;
-  //}
-
+  public function upgrade_4203() {
+    $this->ctx->log->info('Applying update 4203 - Rename civigeometry_address_geometry table as civigeometry_geometry_entity and add in entity_table column and rename address_id as entity_id');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_address_geometry RENAME civigeometry_geometry_entity");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP CONSTRAINT FK_civigeometry_address_geometry_address_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP CONSTRAINT FK_civigeometry_address_geometry_geometry_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP INDEX UI_geometry_id_address_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity CHANGE address_id entity_id int unsigned NOT NULL COMMENT 'entity id that is associated with this geometry'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD COLUMN entity_table varchar(255) NOT NULL COMMENT 'entity table that is associated with this geometry'");
+    CRM_Core_DAO::executeQuery("UPDATE civigeometry_geometry_entity SET entity_table = 'civicrm_address'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD UNIQUE INDEX UI_geometry_id_entity_id_entity_table(geometry_id,entity_id,entity_table)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD CONSTRAINT FK_civigeometry_geometry_entity_geometry_id FOREIGN KEY (`geometry_id`) REFERENCES `civigeometry_geometry`(`id`) ON DELETE CASCADE");
+    return TRUE;
+  }
 
   /**
-   * Example: Run a slow upgrade process by breaking it up into smaller chunk.
-   *
+   * Add in expiry date column onto the geometry_entity table
    * @return TRUE on success
    * @throws Exception
    */
-  //public function upgrade_4202() {
-  //  $this->ctx->log->info('Planning update 4202'); // PEAR Log interface
-
-  //  $this->addTask(E::ts('Process first step'), 'processPart1', $arg1, $arg2);
-  //  $this->addTask(E::ts('Process second step'), 'processPart2', $arg3, $arg4);
-  //  $this->addTask(E::ts('Process second step'), 'processPart3', $arg5);
-  //  return TRUE;
-  //}
-  //public function processPart1($arg1, $arg2) { sleep(10); return TRUE; }
-  //public function processPart2($arg3, $arg4) { sleep(10); return TRUE; }
-  //public function processPart3($arg5) { sleep(10); return TRUE; }
-  //
-
+  public function upgrade_4204() {
+    $this->ctx->log->info('Applying update 4204 - Add in expiry_date column onto the geometry entity table');
+    $this->executeSqlFile('sql/geometry_entity_expiry_date.sql');
+    return TRUE;
+  }
 
   /**
-   * Example: Run an upgrade with a query that touches many (potentially
-   * millions) of records by breaking it up into smaller chunks.
-   *
+   * Modify existing indexes to apply consistent naming
+   * and improve composite index performance
    * @return TRUE on success
    * @throws Exception
    */
-  //public function upgrade_4203() {
-  //  $this->ctx->log->info('Planning update 4203'); // PEAR Log interface
+  public function upgrade_4205() {
+    $this->ctx->log->info('Applying update 4205 - Refactor indexes on several tables');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP FOREIGN KEY FK_civigeometry_geometry_entity_geometry_id");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity DROP INDEX UI_geometry_id_entity_id_entity_table");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD UNIQUE INDEX index_entity_table_geometry_id_entity_id(entity_table,geometry_id,entity_id)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD FOREIGN KEY FK_civigeometry_geometry_entity_geometry_id (geometry_id) REFERENCES civigeometry_geometry (id) ON DELETE CASCADE");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_collection_type DROP INDEX UI_label");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_collection_type ADD UNIQUE INDEX index_label(label)");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry DROP INDEX index_geometry_type_label_is_archived");
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry ADD INDEX index_is_archived_geometry_type_label(is_archived,geometry_type_id,label)");
+    return TRUE;
+  }
 
-  //  $minId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(min(id),0) FROM civicrm_contribution');
-  //  $maxId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(max(id),0) FROM civicrm_contribution');
-  //  for ($startId = $minId; $startId <= $maxId; $startId += self::BATCH_SIZE) {
-  //    $endId = $startId + self::BATCH_SIZE - 1;
-  //    $title = E::ts('Upgrade Batch (%1 => %2)', array(
-  //      1 => $startId,
-  //      2 => $endId,
-  //    ));
-  //    $sql = '
-  //      UPDATE civicrm_contribution SET foobar = whiz(wonky()+wanker)
-  //      WHERE id BETWEEN %1 and %2
-  //    ';
-  //    $params = array(
-  //      1 => array($startId, 'Integer'),
-  //      2 => array($endId, 'Integer'),
-  //    );
-  //    $this->addTask($title, 'executeSql', $sql, $params);
-  //  }
-  //  return TRUE;
-  //}
+  /**
+   * Add index to geometry_entity table
+   * (using update number 5184 to reflect Civi major version and extension major/minor/patch)
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_5184() {
+    $this->ctx->log->info('Applying update 5184 - Adding index on civigeometry_geometry_entity table');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD INDEX index_entity_table_entity_id(entity_table,entity_id)");
+    return TRUE;
+  }
 
 }

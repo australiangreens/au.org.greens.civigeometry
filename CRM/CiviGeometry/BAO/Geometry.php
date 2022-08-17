@@ -81,63 +81,99 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
-   * Use ST_Contains to determine if geometry b is within geometry.
-   * @param array $params
-   * @return string|array
+   * Checks if the geometry with id $geomAId contains $geomB.
+   *
+   * @param  integer $geomAId
+   *   The id of the outer geometry.
+   *
+   * @param  integer|string $geomB
+   *   Either the id of a geometry, or WKT representation of a geometry, which will be handled as
+   *   SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an id is
+   *   provided and the geometry is archived, results will always be empty.
+   *
+   * @return boolean
+   *   true if $geomB is within $geomAId, otherwise false.
    */
-  public static function contains($params) {
-    $multipleResult = [];
-    $duleIntegerSQL = "SELECT ST_Contains(a.geometry, b.geometry)
-      FROM civigeometry_geometry a, civigeometry_geometry b
-      WHERE a.id = %1, and b.id = %2";
-    $singleIntergerSQL = "SELECT ST_Contains(geometry, GeomFromText(%1, 4326))
-      FROM civigeometry_geometry
-      WHERE id = %2";
-    if ($params['geometry_a'] == 0) {
-      $geometryParams = [
-        'is_active' => 1,
-        'options' => ['limit' => 0],
-        'return' => ['id'],
-      ];
-      if (!empty($params['geometry_a_collection_id'])) {
-        $geometryParams['collection_id'] = $params['geometry_a_collection_id'];
-      }
-      $geometries = civicrm_api3('Geometry', 'get', $geometryParams);
-      foreach ($geometries['values'] as $geometry) {
-        if (is_numeric($params['geometry_b'])) {
-          $res = CRM_Core_DAO::singleValueQuery($duleIntegerSQL, [
-            1 => [$geometry['id'], 'Positive'],
-            2 => [$params['geometry_b'], 'Positive'],
-          ]);
-        }
-        else {
-          $res = CRM_Core_DAO::singleValueQuery($singleIntergerSQL, [
-            1 => [$params['geometry_b'], 'String'],
-            2 => [$geometry['id'], 'Positive'],
-          ]);
-        }
-        if (!empty($res)) {
-          $multipleResult[] = $geometry['id'];
-        }
-      }
-      return $multipleResult;
-    }
-    if (is_numeric($params['geometry_b'])) {
-      $sql = $duleIntegerSQL;
-      $sql_params = [
-        1 => [$params['geometry_a'], 'Positive'],
-        2 => [$params['geometry_b'], 'Positive'],
+  public static function contains($geomAId, $geomB) {
+    if (is_numeric($geomB)) {
+      $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, cg_b.geometry) AS contains_result";
+      $fromStr = "civigeometry_geometry cg_a, civigeometry_geometry cg_b";
+      $whereStr = "cg_a.id = %1 AND cg_b.id = %2 AND cg_a.is_archived = 0 AND cg_b.is_archived = 0";
+
+      $sqlParams = [
+        1 => [$geomAId, 'Positive'],
+        2 => [$geomB, 'Positive'],
       ];
     }
     else {
-      $sql = $singleIntergerSQL;
-      $sql_params = [
-        1 => [$params['geometry_b'], 'String'],
-        2 => [$params['geometry_a'], 'Positive'],
+      $selectStr = "cg_a.id, ST_Contains(cg_a.geometry, GeomFromText(%1, 4326)) AS contains_result";
+      $fromStr = "civigeometry_geometry cg_a";
+      $whereStr = "cg_a.is_archived = 0 AND cg_a.id = %2";
+
+      $sqlParams = [
+        1 => [$geomB, 'String'],
+        2 => [$geomAId, 'Positive'],
       ];
     }
-    $result = CRM_Core_DAO::singleValueQuery($sql, $sql_params);
-    return $result;
+
+    $result = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr FOR UPDATE", $sqlParams);
+
+    // The above query will return a single result if both geoms exist, 0 results if one does not
+    return $result->fetch()
+      ? $result->contains_result == '1'
+      : FALSE;
+  }
+
+  /**
+   * Find all geometries containing $innerGeom.
+   *
+   * @param  integer|string $innerGeom
+   *   Either the id of a geometry, or WKT representation of a geometry, which will be handled as
+   *   SRID 4326 (i.e WGS84 lng lat coordinates). E.g. 'POINT(116.2635729 -33.6583798)'. If an id is
+   *   provided and the geometry is archived, results will always be empty.
+   *
+   * @param  integer|null $geometryCollectionId
+   *   Optional. If specified, must be the id of a geometry collection. Will only find geometries
+   *   containing $innerGeom that have a matching geometry_collection_id.
+   *
+   * @return array<string>
+   *   The ids of geometries containing $innerGeom, optionally filtered by $geometryCollectionId.
+   */
+  public static function geometriesContaining($innerGeom, $geometryCollectionId = NULL) {
+    $selectStr = "cg_outer.id";
+
+    if (is_numeric($innerGeom)) {
+      $fromStr = "civigeometry_geometry cg_outer, civigeometry_geometry cg_inner";
+      $whereStr = "ST_Contains(cg_outer.geometry, cg_inner.geometry) AND cg_inner.id = %1 AND cg_outer.is_archived = 0 AND cg_inner.is_archived = 0";
+
+      $queryParams = [
+        1 => [$innerGeom, 'Positive'],
+      ];
+
+      if ($geometryCollectionId !== NULL) {
+        $fromStr .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg_outer.id";
+        $whereStr .= " AND cgc.collection_id = %2";
+        $queryParams[2] = [$geometryCollectionId, 'Positive'];
+      }
+    }
+    else {
+      $fromStr = "civigeometry_geometry cg_outer";
+      $whereStr = "ST_Contains(cg_outer.geometry, GeomFromText(%1, 4326)) AND cg_outer.is_archived = 0";
+
+      $queryParams = [
+        1 => [$innerGeom, 'String'],
+      ];
+
+      if ($geometryCollectionId !== NULL) {
+        $fromStr .= " INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = cg_outer.id";
+        $whereStr .= " AND cgc.collection_id = %2";
+        $queryParams[2] = [$geometryCollectionId, 'Positive'];
+      }
+    }
+
+    $res = CRM_Core_DAO::executeQuery("SELECT $selectStr FROM $fromStr WHERE $whereStr FOR UPDATE", $queryParams);
+
+    return array_column($res->fetchAll(), 'id');
   }
 
   /**
@@ -206,6 +242,67 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
+   * Check if geometry pair intersects or get all the geometries in the specified collection that intersects
+   * @param array $params
+   * @return array
+   *   - Array of geometries that intersect
+   *   - geometry_a
+   *   - geometry_b
+   */
+  public static function getGeometryIntersection($params) {
+    $values = [];
+    if (!empty($params['collection_id'])) {
+      $select_table = 'b';
+      $where_table = 'a';
+      if (!empty($params['geometry_b']) && empty($params['geometry_a'])) {
+        $select_table = 'a';
+        $where_table = 'b';
+      }
+      $query_params = [2 => [$params['collection_id'], 'Positive']];
+      if ($select_table === 'a') {
+        $query_params[1] = [$params['geometry_b'], 'Positive'];
+      }
+      else {
+        $query_params[1] = [$params['geometry_a'], 'Positive'];
+      }
+      $geometries = CRM_Core_DAO::executeQuery("SELECT {$select_table}.id
+        FROM civigeometry_geometry {$where_table}, civigeometry_geometry as {$select_table}
+        INNER JOIN civigeometry_geometry_collection_geometry cgc ON cgc.geometry_id = {$select_table}.id
+        WHERE {$where_table}.id = %1 AND cgc.collection_id = %2 AND ST_Intersects(a.geometry, b.geometry) != 0
+        FOR UPDATE", $query_params)->fetchAll();
+      foreach ($geometries as $geometry_id) {
+        if ($select_table === 'a') {
+          $values[] = [
+            'geometry_a' => $geometry_id['id'],
+            'geometry_b' => $params['geometry_b'],
+          ];
+        }
+        else {
+          $values[] = [
+            'geometry_a' => $params['geometry_a'],
+            'geometry_b' => $geometry_id['id'],
+          ];
+        }
+      }
+    }
+    else {
+      $intersection = CRM_Core_DAO::singleValueQuery("SELECT ST_Intersects(a.geometry, b.geometry)
+        FROM civigeometry_geometry a, civigeometry_geometry b
+        WHERE a.id = %1 AND b.id = %2 FOR UPDATE", [
+          1 => [$params['geometry_a'], 'Positive'],
+          2 => [$params['geometry_b'], 'Positive'],
+        ]);
+      if ($intersection) {
+        $values[] = [
+          'geometry_a' => $params['geometry_a'],
+          'geometry_b' => $params['geometry_b'],
+        ];
+      }
+    }
+    return $values;
+  }
+
+  /**
    * Calculate Overlap between two geometries
    * @param array $params
    * @return array|bool
@@ -215,38 +312,31 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $checkCache = new CRM_CiviGeometry_DAO_GeometryOverlapCache();
     $checkCache->geometry_id_a = $params['geometry_id_a'];
     $checkCache->geometry_id_b = $params['geometry_id_b'];
-    $checkCache->addWhere("cache_date >= DATE_SUB(NOW(), INTERVAL 1 Month)");
     $checkCache->find();
     if ($checkCache->N == 1) {
       while ($checkCache->fetch()) {
-        return [
-          'id' => $checkCache->id,
-          'geometry_id_a' => $checkCache->geometry_id_a,
-          'geometry_id_b' => $checkCache->geometry_id_b,
-          'overlap' => $checkCache->overlap,
-          'cache_used' => TRUE,
-        ];
+        $overlap = (int) $checkCache->overlap;
+        if (empty($params['overlap']) || (!empty($params['overlap']) && $overlap >= (int) $params['overlap'])) {
+          return [
+            'id' => $checkCache->id,
+            'geometry_id_a' => $checkCache->geometry_id_a,
+            'geometry_id_b' => $checkCache->geometry_id_b,
+            'overlap' => $checkCache->overlap,
+            'cache_used' => TRUE,
+          ];
+        }
+        return [];
       }
     }
-    $checkIfIntesects = CRM_Core_DAO::singleValueQuery("
-      SELECT ST_Intersects(a.geometry, b.geometry)
-      FROM civigeometry_geometry a, civigeometry_geometry b
-      WHERE a.id = %1 AND b.id = %2", [
-        1 => [$params['geometry_id_a'], 'Positive'],
-        2 => [$params['geometry_id_b'], 'Positive'],
-      ]);
-    if (empty($checkIfIntesects)) {
-      $overlap = (int) 0;
-    }
-    $intersections = CRM_Core_DAO::executeQuery("
+    $intersectionArea = CRM_Core_DAO::executeQuery("
       SELECT ST_Area(a.geometry) as area, ST_Area(ST_Intersection(a.geometry, b.geometry)) as intersection_area
       FROM civigeometry_geometry a, civigeometry_geometry b
-      WHERE a.id = %1 AND b.id = %2", [
+      WHERE a.id = %1 AND b.id = %2 FOR UPDATE", [
         1 => [$params['geometry_id_a'], 'Positive'],
         2 => [$params['geometry_id_b'], 'Positive'],
       ]);
-    while ($intersections->fetch()) {
-      $overlap = (int) (100.0 * $intersections->intersection_area / $intersections->area);
+    while ($intersectionArea->fetch()) {
+      $overlap = (int) (100.0 * $intersectionArea->intersection_area / $intersectionArea->area);
     }
     $overlapCache = new CRM_CiviGeometry_DAO_GeometryOverlapCache();
     $overlapCache->geometry_id_a = $params['geometry_id_a'];
@@ -257,13 +347,16 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $overlapCache->overlap = $overlap;
     $overlapCache->save();
-    return [
-      'id' => $overlapCache->id,
-      'geometry_id_a' => $params['geometry_id_a'],
-      'geometry_id_b' => $params['geometry_id_b'],
-      'overlap' => $overlap,
-      'cache_used' => FALSE,
-    ];
+    if (empty($params['overlap']) || (!empty($params['overlap']) && (int) $overlap >= (int) $params['overlap'])) {
+      return [
+        'id' => $overlapCache->id,
+        'geometry_id_a' => $params['geometry_id_a'],
+        'geometry_id_b' => $params['geometry_id_b'],
+        'overlap' => $overlap,
+        'cache_used' => FALSE,
+      ];
+    }
+    return [];
   }
 
   /**
@@ -271,9 +364,9 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @param array $params
    * @return string
    */
-  public function calculateDistance($params) {
+  public static function calculateDistance($params) {
     // We use SRID 4326 or WGS84 (SRID 4326) This is the standard projection used in google maps etc
-    $result = CRM_Core_DAO::singleValueQuery("SELECT earth_circle_distance(ST_GeomFromText(%1, 4326), ST_GeomFromText(%2, 4326))", [
+    $result = CRM_Core_DAO::singleValueQuery("SELECT earth_circle_distance(ST_GeomFromText(%1, 4326), ST_GeomFromText(%2, 4326)) FOR UPDATE", [
       1 => [$params['geometry_a'], 'String'],
       2 => [$params['geometry_b'], 'String'],
     ]);
@@ -374,6 +467,199 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $kml .= '</MultiGeometry>';
     return $kml;
+  }
+
+  /**
+   * Helper method for getAddresses. Fetches set of address_id values from $candidateTable
+   *
+   * @param  string $candidateTable The name of the table holding the candidate ids
+   * @param  integer $offset        Current offset
+   * @param  integer $batchSize     The batch size
+   * @return array                  The next batch of civicrm_address ids
+   */
+  protected static function getAddressesFetchCandidateBatch($candidateTable, $offset, $batchSize) {
+    $dao = CRM_Core_DAO::executeQuery("
+      SELECT ct.address_id
+      FROM $candidateTable ct
+      ORDER BY address_id
+      LIMIT %1
+      OFFSET %2
+    ", [
+      1 => [$batchSize, 'Integer'],
+      2 => [$offset, 'Integer'],
+    ]);
+
+    $results = $dao->fetchAll();
+
+    return $results;
+  }
+
+  /**
+   * Helper method for getAddresses. Checks if specified geometry contains civicrm_address with id.
+   *
+   * @param  integer $geometryId    Id of the geometry to check against
+   * @param  integer $addressId     Id of the civicrm_address
+   * @return boolean
+   */
+  protected static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
+    $geomTableName = self::getTableName();
+    $result = CRM_Core_DAO::singleValueQuery("
+      SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
+      FROM civicrm_address ca, $geomTableName g
+      WHERE g.id = %1 AND ca.id = %2
+      FOR UPDATE
+    ", [
+      1 => [$geometryId, 'Integer'],
+      2 => [$addressId, 'Integer'],
+    ]);
+
+    return boolval($result);
+  }
+
+  /**
+   * Get an Iterator that provides the address ids that are contained by a specific geometry_id.
+   *
+   * Uses the geometry bounds to generate a list of candidates before doing a more detailed
+   * ST_Contains confirmation.
+   *
+   * By default if a civicrm_address already has an entry in civigeometry_geometry_entity against
+   * the specified geometry, it will be skipped over. This is controlled by the
+   * precheck_relationships key in $params.
+   *
+   * @param  integer $geometry_id
+   *   The id of the geometry
+   *
+   * @param  array $params
+   *   - batch_size: Integer. Default 100
+   *   - keep_temp_table: Boolean. Default FALSE.
+   *   - precheck_relationships: Boolean. Default TRUE.
+   */
+  public static function getAddresses($geometry_id, $params = []) {
+    $defaultParams = [
+      'batch_size' => 100,
+      'keep_temp_table' => FALSE,
+      'precheck_relationships' => TRUE,
+    ];
+    $params = $params + $defaultParams;
+
+    // Step 1. Find all the candidate addresses within the bounds of the geometry Use a table to
+    // store a potentially very large number of addresses
+    $bounds = civicrm_api3('Geometry', 'getbounds', ['id' => $geometry_id])['values'][$geometry_id];
+    $tmpTbl = CRM_Utils_SQL_TempTable::build();
+    if ($params['keep_temp_table']) {
+      $tmpTbl->setDurable();
+    }
+    else {
+      $tmpTbl->setAutodrop(TRUE);
+    }
+    $tmpTbl->createWithColumns('address_id INT');
+
+    $tempTableName = $tmpTbl->getName();
+    if ($params['precheck_relationships']) {
+      CRM_Core_DAO::executeQuery("
+        INSERT INTO $tempTableName (address_id)
+        SELECT ca.id
+        FROM
+          civicrm_address ca
+        WHERE
+              ca.geo_code_2 >= %1
+          AND ca.geo_code_2 <= %2
+          AND ca.geo_code_1 <= %3
+          AND ca.geo_code_1 >= %4
+          AND NOT EXISTS (
+            SELECT *
+            FROM civigeometry_geometry_entity cge
+            WHERE
+              cge.entity_id = ca.id
+              AND cge.geometry_id = %5
+              AND cge.entity_table = 'civicrm_address'
+          )
+        ORDER BY ca.id
+      ", [
+        1 => [$bounds['left_bound'], 'Float'],
+        2 => [$bounds['right_bound'], 'Float'],
+        3 => [$bounds['top_bound'], 'Float'],
+        4 => [$bounds['bottom_bound'], 'Float'],
+        5 => [$geometry_id, 'Integer'],
+      ]);
+    }
+    else {
+      CRM_Core_DAO::executeQuery("
+        INSERT INTO $tempTableName (address_id)
+        SELECT ca.id
+        FROM civicrm_address ca
+        WHERE
+              ca.geo_code_2 >= %1
+          AND ca.geo_code_2 <= %2
+          AND ca.geo_code_1 <= %3
+          AND ca.geo_code_1 >= %4
+        ORDER BY ca.id
+      ", [
+        1 => [$bounds['left_bound'], 'Float'],
+        2 => [$bounds['right_bound'], 'Float'],
+        3 => [$bounds['top_bound'], 'Float'],
+        4 => [$bounds['bottom_bound'], 'Float'],
+      ]);
+    }
+
+    $numCandidates = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $tempTableName");
+
+    $numBatches = ceil($numCandidates / $params['batch_size']);
+    $offset = 0;
+    for ($batchN = 1; $batchN <= $numBatches; $batchN++) {
+      $candidates = self::getAddressesFetchCandidateBatch($tempTableName, $offset, $params['batch_size']);
+
+      if (count($candidates)) {
+        foreach ($candidates as $candidate) {
+          if (self::getAddressesGeometryContainsCandidate($geometry_id, $candidate['address_id'])) {
+            yield ['geometry_id' => $geometry_id, 'address_id' => $candidate['address_id']];
+          }
+        }
+
+        $offset += $params['batch_size'];
+      }
+      else {
+        throw new CRM_Core_Exception(E::ts("No candidate addresses, but batches still remaining to process. That doesn't make any sense."));
+      }
+    }
+  }
+
+  /**
+   * Get Geometries that are within a specified distance
+   * We use the centroid of geometries in an effort to ensure that we have a stable point to check the distance against
+   * ST_Distance in MySQL is not as perfect as in PostGis
+   * @param array $params
+   * @return array
+   */
+  public static function getNearestGeometries($params) {
+    $select = CRM_Utils_SQL_Select::from(self::getTableName() . ' g')
+      ->select("g.id")
+      ->where("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326)) <= #distance", [
+        'point' => $params['point'],
+        'distance' => $params['distance'],
+      ])
+      ->orderBy("earth_circle_distance(ST_GeomFromText(@point, 4326), ST_GeomFromText(ST_AsText(ST_Centroid(g.geometry)), 4326))", [
+        'point' => $params['point'],
+      ]);
+    if (!empty($params['collection_id'])) {
+      $select->join("gcg", 'INNER JOIN civigeoemtry_geometry_collection_geometry cgc ON cgc.geometry_id = g.id');
+      $select->where('gcg.collection_id = #collection_id', ['collection_id' => $params['collection_id']]);
+    }
+    if (!empty($params['geometry_id'])) {
+      $value = $params['geometry_id'];
+      $operator = is_array($value) ? \CRM_Utils_Array::first(array_keys($value)) : NULL;
+      if (!in_array($operator, \CRM_Core_DAO::acceptedSQLOperators(), TRUE)) {
+        $value = ['=' => $value];
+      }
+      $select->where(CRM_Core_DAO::createSQLFilter('g.id', $value));
+    }
+    $options = _civicrm_api3_get_options_from_params($params);
+    $select->limit($options['limit'], $options['offset']);
+    $results = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
+    if (!empty($results)) {
+      return $results;
+    }
+    return [];
   }
 
 }

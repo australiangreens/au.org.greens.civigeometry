@@ -49,10 +49,10 @@
     <required>true</required>
   </field>
   <index>
-    <name>index_geometry_type_label</name>
+    <name>index_is_archived_geometry_type_label</name>
+    <fieldName>is_archived</fieldName>
     <fieldName>geometry_type_id</fieldName>
     <fieldName>label</fieldName>
-    <unique>true</unique>
   </index>
   <field>
     <name>description</name>

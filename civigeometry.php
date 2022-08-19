@@ -162,13 +162,14 @@ function civigeometry_civicrm_permission(&$permissions) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_permission/
  */
 function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
-  $permissions['geometry']['create'] = $permissions['geometry']['delete'] = array(array('administer geometry', 'administer civicrm'));
+  $permissions['address']['geogeometries'] = [['access civicrm', 'access AJAX API']];
+  $permissions['geometry']['create'] = $permissions['geometry']['delete'] = [['administer geometry', 'administer civicrm']];
   $permissions['geometry']['default'] = array('access geometry');
-  $permissions['geometry_collection']['create'] = array(array('administer geometry', 'administer civicrm'));
-  $permissions['geometry_collection']['default'] = array('access geometry');
+  $permissions['geometry_collection']['create'] = [['administer geometry', 'administer civicrm']];
+  $permissions['geometry_collection']['default'] = ['access geometry'];
   $permissions['geometry_collection']['unarchive'] = $permissions['geometry_collection']['archive'] = $permissions['geometry_collection']['delete'] = $permissions['geometry_collection']['create'];
-  $permissions['geometry_type']['create'] = $permissions['geometry_type']['delete'] = array(array('administer geometry', 'administer civicrm'));
-  $permissions['geometry_type']['default'] = array('access geometry');
+  $permissions['geometry_type']['create'] = $permissions['geometry_type']['delete'] = [['administer geometry', 'administer civicrm']];
+  $permissions['geometry_type']['default'] = ['access geometry'];
   $permissions['geometry_collection_type'] = $permissions['geometry_type'];
 }
 

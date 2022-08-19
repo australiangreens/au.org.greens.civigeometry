@@ -162,7 +162,7 @@ function civigeometry_civicrm_permission(&$permissions) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_permission/
  */
 function civigeometry_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
-  $permissions['address']['geogeometries'] = [['access civicrm', 'access AJAX API']];
+  $permissions['address']['getgeometries'] = [['access civicrm', 'access AJAX API']];
   $permissions['geometry']['create'] = $permissions['geometry']['delete'] = [['administer geometry', 'administer civicrm']];
   $permissions['geometry']['default'] = array('access geometry');
   $permissions['geometry_collection']['create'] = [['administer geometry', 'administer civicrm']];

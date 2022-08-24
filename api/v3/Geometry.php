@@ -577,7 +577,7 @@ function civicrm_api3_geometry_getcachedoverlaps($params) {
   if (!empty($overlapGeometries)) {
     $results = $overlapGeometries;
   }
-  return $overlapGeometries;
+  return civicrm_api3_create_success($overlapGeometries);
 }
 
 /**

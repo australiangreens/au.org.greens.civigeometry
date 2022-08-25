@@ -314,15 +314,15 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     }
     $geometry_id_filter = \CRM_Core_DAO::createSQLFilter('geometry_id_b', $params['geometry_id']);
     $overlap = isset($params['overlap']) ? $params['overlap'] : 0;
-    $inner_geometries = CRM_Core_DAO::executeQuery("
+    $overlapping_geometries = CRM_Core_DAO::executeQuery("
       SELECT id, geometry_id_a AS geometry_id, overlap
       FROM civigeometry_geometry_overlap_cache
       WHERE $geometry_id_filter AND overlap >= %1", [
         1 => [$overlap, 'Positive'],
       ]); 
     $results = [];
-    while ($inner_geometries->fetch()) {
-      $results[$inner_geometries->id] = $inner_geometries->geometry_id;
+    while ($overlapping_geometries->fetch()) {
+      $results[$overlapping_geometries->id] = $overlapping_geometries->geometry_id;
     }
     return $results;
   }

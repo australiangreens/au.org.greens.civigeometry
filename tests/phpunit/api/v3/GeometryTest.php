@@ -592,6 +592,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertTrue(empty($cacheResutlMinOverlap['values']));
     $getCachedOverlaps = $this->callAPISuccess('Geometry', 'getcachedoverlaps', ['geometry_id' => $queensland['id']]);
     $cachedKey = key($getCachedOverlaps['values']);
+    var_dump($getCachedOverlaps);
     $this->assertEquals($cairns['id'], $getCachedOverlaps['values'][$cachedKey]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);

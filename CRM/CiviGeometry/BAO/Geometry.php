@@ -308,14 +308,17 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    * @return array|bool
    */
   public static function getCachedOverlappingGeometries($params) {
-    $outer_geometry= $params['geometry_id'];
+    $operator = is_array($params['geometry_id']) ? \CRM_Utils_Array::first(array_keys($params['geometry_id'])) : NULL;
+    if (!in_array($operator, \CRM_Core_DAO::acceptedSQLOperators(), TRUE)) {
+      $params['geometry_id'] = ['=' => $params['geometry_id']];
+    }
+    $geometry_id_filter = \CRM_Core_DAO::createSQLFilter('geometry_id_b', $params['geometry_id']);
     $overlap = isset($params['overlap']) ? $params['overlap'] : 0;
     $inner_geometries = CRM_Core_DAO::executeQuery("
       SELECT id, geometry_id_a AS geometry_id, overlap
       FROM civigeometry_geometry_overlap_cache
-      WHERE geometry_id_b = %1 AND overlap >= %2", [
-        1 => [$outer_geometry, 'Positive'],
-        2 => [$overlap, 'Positive'],
+      WHERE $geometry_id_filter AND overlap >= %1", [
+        1 => [$overlap, 'Positive'],
       ]); 
     $results = [];
     while ($inner_geometries->fetch()) {

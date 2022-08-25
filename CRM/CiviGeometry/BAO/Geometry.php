@@ -319,7 +319,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       FROM civigeometry_geometry_overlap_cache
       WHERE $geometry_id_filter AND overlap >= %1", [
         1 => [$overlap, 'Positive'],
-      ]); 
+      ]);
     $results = [];
     while ($overlapping_geometries->fetch()) {
       $results[$overlapping_geometries->id] = $overlapping_geometries->geometry_id;

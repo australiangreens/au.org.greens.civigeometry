@@ -84,6 +84,7 @@ Avaliable Entities and methods
     - `getBounds` - Return the min/max X and Y points of a geometry
     - `getDistance` - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`
     - `getOverlap` - Determine the overlap between two geometry shapes. Returned as a percentage
+    - `getCachedOverlaps` - Returna list of all geometries that overlap the supplied geometry (with optional minimum overlap percentage)
     - `runqueue` - Runs the queued up address placement and geometry - address relationship creation jobs stored in the Geometry extension queue. 
     - `getentity` - Get relationships between geometries and associated entities, must supply either a `geometry_id` or the combination of entity_id and entity_table. The purpose of the relationships is to assist where entities may need to have a definition that is based on geometry or similar. E.g. An electorate in Australia is defined by the geographical area it covers.
     - `createentity` - Create a relationship between a geometry and an enttiy, must supply an `entity_id`, `entity_table` = match to MySQL table name and a `geometry_id`.

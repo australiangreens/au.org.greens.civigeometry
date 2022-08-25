@@ -1,6 +1,9 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.9.0] - 2022-08-26
+### Added
+ - Geometry.getcachedoverlaps method to retrieve all geometries that overlap with input geometry
 ## [1.8.7] - 2022-08-24
 ### Changed
  - Added 'access AJAX API' permission to defaults for API entity get methods

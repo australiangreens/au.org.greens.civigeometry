@@ -28,4 +28,14 @@ class GeometryCollection extends Generic\DAOEntity {
       ->setCheckPermissions($checkPermissions);
   }
 
+  public static function permissions() {
+    return [
+      'create' => [['administer geometry', 'administer civicrm']],
+      'archive' => [['administer geometry', 'administer civicrm']],
+      'unarchive' => [['administer geometry', 'administer civicrm']],
+      'delete' => [['administer geometry', 'administer civicrm']],
+      'default' => ['access geometry'],
+    ];
+  }
+
 }

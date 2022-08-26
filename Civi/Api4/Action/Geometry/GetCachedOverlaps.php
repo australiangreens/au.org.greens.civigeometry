@@ -32,7 +32,10 @@ class GetCachedOverlaps extends \Civi\Api4\Generic\AbstractAction {
       'geometry_id' => $this->geometry_id,
       'overlap' => $this->overlap,
     ];
-    return \CRM_CiviGeometry_BAO_Geometry::getCachedOverlappingGeometries($params);
+    $dbResult = \CRM_CiviGeometry_BAO_Geometry::getCachedOverlappingGeometries($params);
+    foreach ($dbResult as $res) {
+      $result[] = $res;
+    }
   }
 
 }

@@ -514,7 +514,7 @@ function _civicrm_api3_geometry_getintersection_spec(&$spec) {
 }
 
 /**
- * Geomety.getOverlap
+ * Geometry.getOverlap
  *
  * @param array $params
  * @return array API result descriptor
@@ -546,6 +546,38 @@ function _civicrm_api3_geometry_getoverlap_spec(&$spec) {
   $spec['geometry_id_b']['type'] = CRM_Utils_Type::T_INT;
   $spec['overlap']['title'] = E::ts('Minimum overlap');
   $spec['overlap']['type'] = CRM_Utils_Type::T_INT;
+}
+
+/**
+ * Geometry.getcachedoverlaps API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRMDOC/API+Architecture+Standards
+ */
+function _civicrm_api3_geometry_getcachedoverlaps_spec(&$spec) {
+  $spec['geometry_id']['title'] = E::ts('Geometry ID');
+  $spec['geometry_id']['api.required'] = 1;
+  $spec['geometry_id']['type'] = CRM_Utils_Type::T_INT;
+  $spec['overlap']['title'] = E::ts('Minimum overlap');
+  $spec['overlap']['type'] = CRM_Utils_Type::T_INT;
+}
+
+/**
+ * Geometry.getCachedOverlaps
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_geometry_getcachedoverlaps($params) {
+  $results = [];
+  $overlapGeometries = CRM_CiviGeometry_BAO_Geometry::getCachedOverlappingGeometries($params);
+  if (!empty($overlapGeometries)) {
+    $results = $overlapGeometries;
+  }
+  return civicrm_api3_create_success($overlapGeometries);
 }
 
 /**

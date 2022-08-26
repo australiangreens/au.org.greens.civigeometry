@@ -120,6 +120,15 @@ class Geometry extends Generic\DAOEntity {
 
   /**
    * @param bool $checkPermissions
+   * @return Action\Geometry\GetOverlap
+   */
+  public static function getcachedoverlaps($checkPermissions = TRUE) {
+    return (new Action\Geometry\GetCachedOverlaps(__CLASS__, __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
+  /**
+   * @param bool $checkPermissions
    * @return Action\Geometry\GetBounds
    */
   public static function getbounds($checkPermissions = TRUE) {
@@ -179,6 +188,14 @@ class Geometry extends Generic\DAOEntity {
   public static function getnearest($checkPermissions = TRUE) {
     return (new Action\Geometry\GetNearest(__CLASS__, __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
+  }
+
+  public static function permissions() {
+    return [
+      'default' => ['access geometry'],
+      'create' => [['administer geometry', 'administer civicrm']],
+      'delete' => [['administer geometry', 'administer civicrm']],
+    ];
   }
 
 }

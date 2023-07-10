@@ -59,7 +59,7 @@ class GetGeometries extends \Civi\Api4\Generic\AbstractAction {
         ->execute();
       while ($geometries->fetch()) {
         $result[] = [
-          'id' => $geometries=>id,
+          'id' => $geometries->id,
           'entity_id' => $geometries->entity_id,
           'entity_table' =>'civicrm_address',
           'geometry_id' => $geometries->geometry_id,

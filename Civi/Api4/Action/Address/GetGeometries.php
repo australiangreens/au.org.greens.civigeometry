@@ -52,7 +52,7 @@ class GetGeometries extends \Civi\Api4\Generic\AbstractAction {
       }
     }
     else {
-      $geometries = \Civi\Api4\Geometry:getEntity(FALSE)
+      $geometries = \Civi\Api4\Geometry::getEntity(FALSE)
         ->addSelect('geometry_id')
         ->addWhere('entity_table', '=', 'civicrm_address')
         ->addWhere('entity_id', '=', $this->address_id)

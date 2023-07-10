@@ -41,7 +41,7 @@ function _civicrm_api3_address_getgeometries_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_address_getgeometries($params) {
-  CRM_Core_Error::depractedFunctionWarning('The address.getgeometries api is unsupported. Use the APIv4 Geometry.getEntity instead.');
+  CRM_Core_Error::deprecatedFunctionWarning('The address.getgeometries api is unsupported. Use the APIv4 Geometry.getEntity instead.');
   civicrm_api3_verify_one_mandatory($params, NULL, ['address_id', 'geometry_id']);
   if (!empty($params['skip_cache'])) {
     if (!empty($params['address_id'])) {

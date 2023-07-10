@@ -57,12 +57,12 @@ class GetGeometries extends \Civi\Api4\Generic\AbstractAction {
         ->addWhere('entity_table', '=', 'civicrm_address')
         ->addWhere('entity_id', '=', $this->address_id)
         ->execute();
-      while ($geometries->fetch()) {
+      foreach ($geometries as $geometry) {
         $result[] = [
-          'id' => $geometries->id,
-          'entity_id' => $geometries->entity_id,
+          'id' => $geometry['id'],
+          'entity_id' => $geometry['entity_id'],
           'entity_table' =>'civicrm_address',
-          'geometry_id' => $geometries->geometry_id,
+          'geometry_id' => $geometry['geometry_id'],
         ];
       }
     }

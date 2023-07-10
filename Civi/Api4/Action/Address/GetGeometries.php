@@ -18,12 +18,6 @@ class GetGeometries extends \Civi\Api4\Generic\AbstractAction {
   protected $address_id;
 
   /**
-   * Geometry Id
-   * @var int
-   */
-  protected $geometry_id;
-
-  /**
    * Skip cache
    * @var bool
    */

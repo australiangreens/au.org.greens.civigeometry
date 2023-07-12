@@ -7,7 +7,7 @@ use CRM_CiviGeometry_ExtensionUtil as E;
 /**
  * Get GeometryEntity Records
  */
-class GetEntity extends \Civi\Api4\Generic\AbstractGetAction {
+class GetEntity extends \Civi\Api4\Generic\DAOGetAction {
 
   public function _run(Result $result) {
     $whereClauses = $this->getWhere();

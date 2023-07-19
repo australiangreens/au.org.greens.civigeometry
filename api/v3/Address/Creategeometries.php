@@ -29,6 +29,8 @@ function _civicrm_api3_address_creategeometries_spec(&$spec) {
 /**
  * Address.creategeometries API
  *
+ * @deprecated
+ *
  * @param array $params
  * @return array API result descriptor
  * @see civicrm_api3_create_success
@@ -36,6 +38,7 @@ function _civicrm_api3_address_creategeometries_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_address_creategeometries($params) {
+  CRM_Core_Error::deprecatedFunctionWarning('The address.creategeometries api is unsupported. Use APIv4 Geometry.createEntity instead');
   $params['entity_id'] = $params['address_id'];
   $params['entity_table'] = 'civicrm_address';
   return _civicrm_api3_basic_create('CRM_CiviGeometry_DAO_GeometryEntity', $params);

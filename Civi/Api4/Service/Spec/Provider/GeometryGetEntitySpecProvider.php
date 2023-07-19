@@ -17,7 +17,7 @@ class GeometryGetEntitySpecProvider implements Generic\SpecProviderInterface {
       ->setDescription('Entity ID that is linked to the geometry')
       ->setRequired(FALSE);
     $spec->addFieldSpec($entity_id);
-    $entity_table = new FieldSpec('entity_table', 'GeometryEntity', 'Integer');
+    $entity_table = new FieldSpec('entity_table', 'GeometryEntity', 'String');
     $entity_table->setTitle('Entity Table')
       ->setDescription('Entity Table for the entity that is linked to the geometry')
       ->setRequired(FALSE);

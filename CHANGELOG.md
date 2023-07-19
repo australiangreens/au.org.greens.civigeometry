@@ -1,6 +1,14 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.10.1] - 2023-07-19
+### Added
+ - Address.getgeometries APIv4 method
+### Changed
+ - Marked Address.getgeometries APIv3 method as deprecated
+### Fixed
+ - Bug in APIv3 call
+
 ## [1.9.0] - 2022-08-26
 ### Added
  - Geometry.getcachedoverlaps method to retrieve all geometries that overlap with input geometry

@@ -22,7 +22,7 @@ class GetEntity extends \Civi\Api4\Generic\DAOGetAction {
         if (!empty($where)) {
           $where .= ' AND ';
         }
-        $where .= $whereClause[0] . $whereClause[1] . $value;
+        $where = \CRM_Contact_BAO_Query::buildClause($whereClause[0], $whereClause[1], $whereClause[2]);
       }
     }
     if (!empty($where)) {

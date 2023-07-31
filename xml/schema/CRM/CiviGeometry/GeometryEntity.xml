@@ -66,4 +66,14 @@
     <fieldName>entity_table</fieldName>
     <fieldName>entity_id</fieldName>
   </index>
+  <field>
+    <name>reason</name>
+    <type>varchar</type>
+    <comment>The reason for the relationship between the geometry and entity</comment>
+    <required>FALSE</required>
+    <pseudoconstant>
+      <optionGroupName>OptionGroup_geom_entity_relationship_reason</optionGroupName>
+    </pseudoconstant>
+    <default>NULL</default>
+  </field>
 </table>

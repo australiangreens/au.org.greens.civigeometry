@@ -1,6 +1,12 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.11.0] - 2023-07-28
+### Added
+ - GeometryEntity APIv4 entity with basic CRUD methods
+### Fixed
+ - Bug in parsing of where clauses in APIv4 Geometry.getentity code
+
 ## [1.10.1] - 2023-07-19
 ### Added
  - Address.getgeometries APIv4 method

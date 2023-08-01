@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps.
  */
-class CRM_CiviGeometry_Upgrader extends CRM_CiviGeometry_Upgrader_Base {
+class CRM_CiviGeometry_Upgrader extends CRM_Extension_Upgrader_Base {
 
   // By convention, functions that look like "function upgrade_NNNN()" are
   // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
@@ -177,6 +177,12 @@ end
   public function upgrade_5184() {
     $this->ctx->log->info('Applying update 5184 - Adding index on civigeometry_geometry_entity table');
     CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD INDEX index_entity_table_entity_id(entity_table,entity_id)");
+    return TRUE;
+  }
+
+  public function upgrade_5200() {
+    $this->ctx->log->info('Applying update 5200 - Adding reason field to civigeometry_geometry_entity table');
+    CRM_Core_DAO::executeQuery("ALTER TABLE civigeometry_geometry_entity ADD COLUMN reason varchar(64) DEFAULT NULL COMMENT 'Reason for relationship between geometry and entity'");
     return TRUE;
   }
 

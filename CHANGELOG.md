@@ -1,6 +1,12 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.12.0] - 2023-08-01
+### Added
+ - Geometry.getcachedoverlaps APIv4 method
+ - `reason` field for Geometry-Entity relationship table (`civigeometry_geometry_entity`)
+ - Managed Entity Option Group for the `reason` field
+
 ## [1.11.0] - 2023-07-28
 ### Added
  - GeometryEntity APIv4 entity with basic CRUD methods

@@ -61,7 +61,7 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
       'origin' => 'NSW Electoral Commission',
       'geometry_collection_type_id' => $this->externalCollectionType['id'],
     ];
-    $this->callAPIAndDocument('GeometryCollection', 'create', $params, __FUNCTION__, __FILE__);
+    $this->callAPISuccess('GeometryCollection', 'create', $params);
   }
 
   /**

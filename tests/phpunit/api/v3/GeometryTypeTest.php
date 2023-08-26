@@ -48,7 +48,7 @@ class api_v3_GeometryTypeTest extends \PHPUnit\Framework\TestCase implements Hea
       'label' => 'State Lower House Districts',
       'description' => 'Geometry Representing the State Lower House Districts around Australia',
     ];
-    $this->callAPIAndDocument('GeometryType', 'create', $params, __FUNCTION__, __FILE__);
+    $this->callAPISuccess('GeometryType', 'create', $params);
   }
 
   /**

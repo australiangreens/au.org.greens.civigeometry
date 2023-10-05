@@ -137,6 +137,7 @@ CREATE TABLE `civigeometry_geometry_entity` (
   `entity_table` varchar(255) NOT NULL COMMENT 'entity table that is associated with this geometry',
   `geometry_id` int unsigned NOT NULL COMMENT 'FK to Geometry Table',
   `expiry_date` timestamp NULL DEFAULT NULL COMMENT 'When Should this geometry entity relationship expire',
+  `reason` varchar(64) NULL DEFAULT NULL COMMENT 'The reason for the relationship between the geometry and entity',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `index_entity_table_geometry_id_entity_id`(entity_table, geometry_id, entity_id),
   INDEX `index_expiry_date`(expiry_date),

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.0] - 2023-11-30
+### Changed
+ - Moved from _post to _postCommit hook function to improve DB transaction performance
+
 ## [1.12.0] - 2023-08-01
 ### Added
  - Geometry.getcachedoverlaps APIv4 method

@@ -10,7 +10,7 @@ use CRM_Civigeometry_ExtensionUtil as E;
  */
 function civigeometry_civicrm_config(&$config) {
   _civigeometry_civix_civicrm_config($config);
-  Civi::service('dispatcher')->addListener('hook_civicrm_post', 'civigeometry_symfony_civicrm_post', -99);
+  Civi::service('dispatcher')->addListener('hook_civicrm_postCommit', 'civigeometry_symfony_civicrm_postCommit', -99);
 }
 
 /**
@@ -119,7 +119,7 @@ function _civigeometry_buildGeometryRelationships($objectId) {
 }
 
 /**
- * Implements hook_civicrm_post().
+ * Implements hook_civicrm_postCommit().
  *
  * This adds records to civigeometry_address_geometry when:
  * 1. Whenever an address is updated or created
@@ -128,7 +128,7 @@ function _civigeometry_buildGeometryRelationships($objectId) {
  * Removes any records from the civigeomety_address_geometry table when:
  * 1. A geometry gets archived.
  */
-function civigeometry_symfony_civicrm_post($event) {
+function civigeometry_symfony_civicrm_postCommit($event) {
   $hookValues = $event->getHookValues();
   // Hook value keys are
   // 0 = op

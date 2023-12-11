@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.0] - 2023-12-12
+### Changed
+ - geoplaceAddress task refactored to use APIv4 calls instead of APIv3
+
 ## [1.12.0] - 2023-08-01
 ### Added
  - Geometry.getcachedoverlaps APIv4 method

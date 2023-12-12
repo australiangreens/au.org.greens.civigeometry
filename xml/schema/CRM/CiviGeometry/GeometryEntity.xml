@@ -61,4 +61,20 @@
      <name>index_expiry_date</name>
      <fieldName>expiry_date</fieldName>
   </index>
+  <index>
+    <name>index_entity_table_entity_id</name>
+    <fieldName>entity_table</fieldName>
+    <fieldName>entity_id</fieldName>
+  </index>
+  <field>
+    <name>reason</name>
+    <type>varchar</type>
+    <length>64</length>
+    <comment>The reason for the relationship between the geometry and entity</comment>
+    <required>false</required>
+    <pseudoconstant>
+      <optionGroupName>OptionGroup_geom_entity_relationship_reason</optionGroupName>
+    </pseudoconstant>
+    <default>NULL</default>
+  </field>
 </table>

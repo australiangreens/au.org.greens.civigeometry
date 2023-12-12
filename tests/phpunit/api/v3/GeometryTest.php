@@ -403,8 +403,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $centroid = $this->callAPISuccess('Geometry', 'getcentroid', ['id' => $upperHouseDistrict['id']]);
     // Check that the expected points can be found in the array. MariaDB and MySQL each print the array in a different order.
     $result = $apiVersion === 4 ? $centroid['values'][0] : $centroid['values'];
-    $this->assertContains('147.29234219', $result);
-    $this->assertContains('-42.94807285', $result);
+    $this->assertStringContainsString('147.29234219', $result);
+    $this->assertStringContainsString('-42.94807285', $result);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
@@ -438,7 +438,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $this->callAPISuccess('Geometry', 'archive', ['id' => $geometry['id']]);
     $geometry = $this->callAPISuccess('Geometry', 'get', ['id' => $geometry['id']]);
-    $this->assertEquals(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archived_date']);
+    $this->assertEqualsWithDelta(date('Y-m-d h:i:s'), $geometry['values'][$geometry['id']]['archived_date'], 1);
     $this->assertEquals(1, $geometry['values'][$geometry['id']]['is_archived']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $geometry['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
@@ -590,6 +590,9 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'overlap' => 10,
     ]);
     $this->assertTrue(empty($cacheResutlMinOverlap['values']));
+    $getCachedOverlaps = $this->callAPISuccess('Geometry', 'getcachedoverlaps', ['geometry_id' => $queensland['id']]);
+    $cachedKey = key($getCachedOverlaps['values']);
+    $this->assertEquals($cairns['id'], $getCachedOverlaps['values'][$cachedKey]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $cairns['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $queensland['id']]);
     $this->callAPISuccess('GeometryType', 'delete', ['id' => $wardGeometryType['id']]);

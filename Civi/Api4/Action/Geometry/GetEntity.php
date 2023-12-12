@@ -7,7 +7,7 @@ use CRM_CiviGeometry_ExtensionUtil as E;
 /**
  * Get GeometryEntity Records
  */
-class GetEntity extends \Civi\Api4\Generic\AbstractGetAction {
+class GetEntity extends \Civi\Api4\Generic\DAOGetAction {
 
   public function _run(Result $result) {
     $whereClauses = $this->getWhere();
@@ -22,7 +22,7 @@ class GetEntity extends \Civi\Api4\Generic\AbstractGetAction {
         if (!empty($where)) {
           $where .= ' AND ';
         }
-        $where .= $whereClause[0] . $whereClause[1] . $value;
+        $where = \CRM_Contact_BAO_Query::buildClause($whereClause[0], $whereClause[1], $whereClause[2]);
       }
     }
     if (!empty($where)) {

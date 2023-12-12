@@ -303,6 +303,31 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
+   * Get all cached overlapping geometries
+   * @param array $params
+   * @return array|bool
+   */
+  public static function getCachedOverlappingGeometries($params) {
+    $operator = is_array($params['geometry_id']) ? \CRM_Utils_Array::first(array_keys($params['geometry_id'])) : NULL;
+    if (!in_array($operator, \CRM_Core_DAO::acceptedSQLOperators(), TRUE)) {
+      $params['geometry_id'] = ['=' => $params['geometry_id']];
+    }
+    $geometry_id_filter = \CRM_Core_DAO::createSQLFilter('geometry_id_b', $params['geometry_id']);
+    $overlap = isset($params['overlap']) ? $params['overlap'] : 0;
+    $overlapping_geometries = CRM_Core_DAO::executeQuery("
+      SELECT id, geometry_id_a AS geometry_id, overlap
+      FROM civigeometry_geometry_overlap_cache
+      WHERE $geometry_id_filter AND overlap >= %1", [
+        1 => [$overlap, 'Positive'],
+      ]);
+    $results = [];
+    while ($overlapping_geometries->fetch()) {
+      $results[$overlapping_geometries->id] = $overlapping_geometries->geometry_id;
+    }
+    return $results;
+  }
+
+  /**
    * Calculate Overlap between two geometries
    * @param array $params
    * @return array|bool
@@ -503,11 +528,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
    */
   protected static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
     $geomTableName = self::getTableName();
-    $select = CRM_Utils_SQL_Select::from($geomTableName . ' g, civicrm_address ca')
-      ->select("ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326)) AS is_within FOR UPDATE")
-      ->where("g.id = #geometry_id", ['geometry_id' => $geometryId])
-      ->where("ca.id = #address_id", ['address_id' => $addressId]);
-    $result = CRM_Core_DAO::executeQuery($select->toSQL())->fetchAll();
     $result = CRM_Core_DAO::singleValueQuery("
       SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
       FROM civicrm_address ca, $geomTableName g

@@ -1,6 +1,59 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.0] - 2023-12-12
+### Changed
+ - geoplaceAddress task refactored to use APIv4 calls instead of APIv3
+
+## [1.12.0] - 2023-08-01
+### Added
+ - Geometry.getcachedoverlaps APIv4 method
+ - `reason` field for Geometry-Entity relationship table (`civigeometry_geometry_entity`)
+ - Managed Entity Option Group for the `reason` field
+
+## [1.11.0] - 2023-07-28
+### Added
+ - GeometryEntity APIv4 entity with basic CRUD methods
+### Fixed
+ - Bug in parsing of where clauses in APIv4 Geometry.getentity code
+
+## [1.10.1] - 2023-07-19
+### Added
+ - Address.getgeometries APIv4 method
+### Changed
+ - Marked Address.getgeometries APIv3 method as deprecated
+### Fixed
+ - Bug in APIv3 call
+
+## [1.9.0] - 2022-08-26
+### Added
+ - Geometry.getcachedoverlaps method to retrieve all geometries that overlap with input geometry
+## [1.8.7] - 2022-08-24
+### Changed
+ - Added 'access AJAX API' permission to defaults for API entity get methods
+
+## [1.8.6] - 2022-04-20
+### Changed
+ - Changed CiviCRM Queue implementation from Sql to SqlParallel
+
+## [1.8.5] - 2022-04-14
+### Changed
+ - Geometry-entity relationship calculations now occur as queued tasks only
+   rather than real-time within hook_civicrm_post. This improves the performance
+   of online contributions, event registrations, etc., that collect address info
+   that can trigger the calculations.
+## [1.8.4] - 2022-04-01
+### Added
+ - Index on civigeometry_geometry_entity table to improve performance
+
+## [1.8.3] - 2021-10-18
+### Changed
+ - Made tests phpunit8 compatible
+
+### Fixed
+ - Declare functions statically
+ - Removed redundant DB query
+
 ## [1.8.2] - 2021-10-18
 ### Changed
  - Modified SELECT queries involving spatial data to end with 'FOR UPDATE'. Added
@@ -33,8 +86,6 @@ All notable changes for the CiviGeometry extension will be noted here.
    performant.
 
 ## [1.5.2] - 2020-09-29
-### Added
-
 ### Changed
  - Removed overlap cache expiry of 1 month. Overlaps should only expire when the geometries change
 

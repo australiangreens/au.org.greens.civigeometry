@@ -29,10 +29,11 @@ class CRM_CiviGeometry_Tasks {
       ])['values'];
       if (!empty($geometry_ids)) {
         foreach ($geometry_ids as $geometry_id) {
-          civicrm_api3('Address', 'creategeometries', [
-            'address_id' => $address['id'],
-            'geometry_id' => $geometry_id,
-          ]);
+          \Civi\Api4\Geometry::createEntity(FALSE)
+            ->setEntity_id($address['id'])
+            ->setEntity_table('civicrm_address')
+            ->setGeometry_id($geometry_id)
+            ->execute();
         }
       }
       $addressObject = new CRM_Core_BAO_Address();
@@ -49,10 +50,11 @@ class CRM_CiviGeometry_Tasks {
    */
   public static function buildGeometryRelationships(CRM_Queue_TaskContext $ctx, $geometry_id) {
     foreach (CRM_CiviGeometry_BAO_Geometry::getAddresses($geometry_id) as $match) {
-      civicrm_api3('Address', 'creategeometries', [
-        'geometry_id' => $match['geometry_id'],
-        'address_id' => $match['address_id'],
-      ]);
+      \Civi\Api4\Geometry::createEntity(FALSE)
+        ->setEntity_id($match['address_id'])
+        ->setEntity_table('civicrm_address')
+        ->setGeometry_id($match['geometry_id'])
+        ->execute();
     }
     return TRUE;
   }

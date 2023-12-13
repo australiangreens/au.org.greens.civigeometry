@@ -435,7 +435,7 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $envelope = CRM_Core_DAO::singleValueQuery("SELECT ST_AsText(ST_Envelope(geometry)) FROM " . self::getTableName() . " WHERE id = %1", [
       1 => [$geometryID, 'Positive'],
     ]);
-    $envelopePieces = explode(',', substr($envelope, 9, -2));
+    $envelopePieces = explode(',', substr(($envelope ?? ''), 9, -2));
     $leftBound = $rightBound = $topBound = $bottomBound = 0;
     foreach ($envelopePieces as $key => $piece) {
       if ($key == 0 || $key == 2) {

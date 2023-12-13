@@ -272,8 +272,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
     $this->assertEquals(2, $results['count']);
-    var_dump($results['values']);
-    $this->assertContains($upperHouseDistrict['id'], $results['values']);
+    $this->assertContains($upperHouseDistrict['id'], $results['values'], $upperHouseDistrict['id'] . ' Not found in ' . json_encode($results['values']));
     $this->assertContains($upperHouseDistrictMBR['id'], $results['values']);
     // Check that when we specify a collection that only contains the non MBR geometry that that is the only geometry returned
     $resultWithCollection = $this->callAPISuccess('Geometry', 'contains', [

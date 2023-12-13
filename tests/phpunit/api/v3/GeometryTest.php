@@ -19,7 +19,6 @@ use Civi\Test\HookInterface;
  */
 class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
 
-  use \Civi\Test\Api3DocTrait;
   use \Civi\Test\GenericAssertionsTrait;
   use \Civi\Test\ContactTestTrait;
 

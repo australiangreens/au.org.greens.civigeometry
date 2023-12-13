@@ -20,8 +20,6 @@ use Civi\Test\TransactionalInterface;
  */
 class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
-  use Civi\Test\Api3DocTrait;
-
   private $internalCollectionType;
   private $externalCollectionType;
 

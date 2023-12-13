@@ -292,7 +292,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertContains($upperHouseDistrictMBR['id'], $resultGeometryIdB['values']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
-    $this->callAPISuccess('GeometryType', 'delete', ['id' => $UHGeometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);
 
     // Check that providing an id for either geometry that doesn't exist fails
@@ -374,7 +373,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'collection_id' => [$collection2['id']],
     ]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
-    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection2['id']]);
   }
@@ -406,7 +404,6 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     $this->assertStringContainsString('147.29234219', $result);
     $this->assertStringContainsString('-42.94807285', $result);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
-    $this->callAPISuccess('GeometryType', 'delete', ['id' => $geometryType['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $collection['id']]);
   }
 

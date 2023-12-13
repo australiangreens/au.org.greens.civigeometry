@@ -47,6 +47,8 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
 
   public function tearDown(): void {
     parent::tearDown();
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->internalCollectionType['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->externalCollectionType['id']]);
   }
 
   /**

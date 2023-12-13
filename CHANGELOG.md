@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.1] - 2023-12-13
+### Removed
+ - Removed all APIv3 examples (thanks to coleman for this PR)
+
 ## [1.13.0] - 2023-12-12
 ### Changed
  - geoplaceAddress task refactored to use APIv4 calls instead of APIv3

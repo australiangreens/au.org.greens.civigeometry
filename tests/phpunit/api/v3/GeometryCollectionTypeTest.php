@@ -48,7 +48,7 @@ class api_v3_GeometryCollectionTypeTest extends \PHPUnit\Framework\TestCase impl
       'label' => 'External',
       'description' => 'Externally created Geometry Collection',
     ];
-    $this->callAPIAndDocument('GeometryCollectionType', 'create', $params, __FUNCTION__, __FILE__);
+    $this->callAPISuccess('GeometryCollectionType', 'create', $params);
   }
 
   /**

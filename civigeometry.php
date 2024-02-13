@@ -41,11 +41,11 @@ function civigeometry_civicrm_enable() {
 function civigeometry_civicrm_permission(&$permissions) {
   $prefix = E::ts('CiviCRM Geometry Extension: ');
   $permissions['administer geometry'] = [
-    'title' => $prefix . E::ts('Administer Geometry'),
+    'label' => $prefix . E::ts('Administer Geometry'),
     'description' => E::ts('Create and Update Geometries and Geometry Collections in the System'),
   ];
   $permissions['access geometry'] = [
-    'title' => $prefix . E::ts('Access Geometry'),
+    'label' => $prefix . E::ts('Access Geometry'),
     'description' => E::ts('Access Geometries and their collections'),
   ];
 }

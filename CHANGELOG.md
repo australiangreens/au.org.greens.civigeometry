@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.3] - 2024-02-13
+### Fixed
+ - Unit tests updated so they work with latest PHP builds, etc.
+
 ## [1.13.2] - 2024-02-13
 ### Changed
  - Switch from deprecated format for declaring new permissions

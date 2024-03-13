@@ -33,6 +33,8 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
   private $upperHouseGeometryType;
   private $lgaWardsGeometryType;
 
+  public $_apiVersion;
+
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().
     // See: https://docs.civicrm.org/dev/en/latest/testing/phpunit/#civitest

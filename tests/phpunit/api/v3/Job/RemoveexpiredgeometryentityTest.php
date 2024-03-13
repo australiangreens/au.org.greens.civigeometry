@@ -15,6 +15,11 @@ class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\Test
   use \Civi\Test\ContactTestTrait;
 
   private $jsonDirectoryStore = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'load';
+  private $externalCollectionType;
+  private $statesCollection;
+  private $stateGeometryType;
+  private $sa1Collection;
+  private $sa1GeometryType;
 
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().

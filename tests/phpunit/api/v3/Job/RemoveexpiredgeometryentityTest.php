@@ -10,11 +10,16 @@ use Civi\Test\HookInterface;
  */
 class api_v3_Job_RemoveexpiredgeometryentityTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
 
-  use \Civi\Test\Api3DocTrait;
+  use \Civi\Test\Api3TestTrait;
   use \Civi\Test\GenericAssertionsTrait;
   use \Civi\Test\ContactTestTrait;
 
   private $jsonDirectoryStore = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'load';
+  private $externalCollectionType;
+  private $statesCollection;
+  private $stateGeometryType;
+  private $sa1Collection;
+  private $sa1GeometryType;
 
   public function setUpHeadless() {
     // Civi\Test has many helpers, like install(), uninstall(), sql(), and sqlFile().

@@ -20,7 +20,7 @@ use Civi\Test\TransactionalInterface;
  */
 class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
-  use Civi\Test\Api3DocTrait;
+  use Civi\Test\Api3TestTrait;
 
   private $internalCollectionType;
   private $externalCollectionType;
@@ -47,6 +47,8 @@ class api_v3_GeometryCollectionTest extends \PHPUnit\Framework\TestCase implemen
 
   public function tearDown(): void {
     parent::tearDown();
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->internalCollectionType['id']]);
+    $this->callAPISuccess('GeometryCollectionType', 'delete', ['id' => $this->externalCollectionType['id']]);
   }
 
   /**

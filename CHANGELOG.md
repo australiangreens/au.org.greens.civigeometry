@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.2] - 2024-02-13
+### Changed
+ - Switch from deprecated format for declaring new permissions
+
 ## [1.13.1] - 2023-12-13
 ### Removed
  - Removed all APIv3 examples (thanks to coleman for this PR)

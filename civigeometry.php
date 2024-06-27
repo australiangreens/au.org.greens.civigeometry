@@ -82,7 +82,8 @@ function _civigeometry_geoplaceAddress($objectId) {
   if (!empty($address['geo_code_2']) && !empty($address['geo_code_1'])) {
     $task = new CRM_Queue_Task(
       ['CRM_CiviGeometry_Tasks', 'geoplaceAddress'],
-      [$objectId]
+      [$objectId],
+      sprintf('Geoplace Address %s', $objectId)
     );
     $queue->createItem($task);
   }
@@ -114,6 +115,7 @@ function _civigeometry_buildGeometryRelationships($objectId) {
   $task = new CRM_Queue_Task(
       ['CRM_CiviGeometry_Tasks', 'buildGeometryRelationships'],
       [$objectId]
+      sprintf('Build Geometry Relationships for Geometry %s', $objectId)
   );
   $queue->createItem($task);
 }

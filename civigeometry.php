@@ -114,7 +114,7 @@ function _civigeometry_buildGeometryRelationships($objectId) {
   $queue = CRM_CiviGeometry_Helper::singleton()->getQueue();
   $task = new CRM_Queue_Task(
       ['CRM_CiviGeometry_Tasks', 'buildGeometryRelationships'],
-      [$objectId]
+      [$objectId],
       sprintf('Build Geometry Relationships for Geometry %s', $objectId)
   );
   $queue->createItem($task);

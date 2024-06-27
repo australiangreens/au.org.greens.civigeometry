@@ -83,7 +83,7 @@ function _civigeometry_geoplaceAddress($objectId) {
     $task = new CRM_Queue_Task(
       ['CRM_CiviGeometry_Tasks', 'geoplaceAddress'],
       [$objectId],
-      sprintf('Geoplace Address %s', $objectId)
+      sprintf('CiviGeometry Geoplace Address %s', $objectId)
     );
     $queue->createItem($task);
   }

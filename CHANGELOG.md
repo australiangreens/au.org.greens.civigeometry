@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.13.4] - 2024-06-28
+### Changed
+ - Added title to Queue Tasks for greater clarity in logs
+
 ## [1.13.3] - 2024-02-13
 ### Fixed
  - Unit tests updated so they work with latest PHP builds, etc.

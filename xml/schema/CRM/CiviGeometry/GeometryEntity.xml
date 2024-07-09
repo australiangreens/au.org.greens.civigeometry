@@ -24,11 +24,18 @@
     <comment>entity id that is associated with this geometry</comment>
     <required>true</required>
   </field>
-    <field>
+  <dynamicForeignKey>
+    <idColumn>entity_id</idColumn>
+    <typeColumn>entity_table</typeColumn>
+  </dynamicForeignKey>
+  <field>
     <name>entity_table</name>
     <type>varchar</type>
     <length>255</length>
     <comment>entity table that is associated with this geometry</comment>
+    <pseudoconstant>
+      <callback>CRM_CiviGeometry_Utils::getSupportedEntities</callback>
+    </pseudoconstant>
     <required>true</required>
   </field>
   <field>

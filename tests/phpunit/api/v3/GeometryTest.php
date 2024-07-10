@@ -275,7 +275,7 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
     ]);
     $this->assertEquals(2, $results['count']);
     $this->assertContains((string) $upperHouseDistrict['id'], $results['values'], $upperHouseDistrict['id'] . ' Not found in ' . json_encode($results['values']));
-    $this->assertContains($upperHouseDistrictMBR['id'], $results['values']);
+    $this->assertContains((string) $upperHouseDistrictMBR['id'], $results['values']);
     // Check that when we specify a collection that only contains the non MBR geometry that that is the only geometry returned
     $resultWithCollection = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => 0,
@@ -283,15 +283,15 @@ class api_v3_GeometryTest extends \PHPUnit\Framework\TestCase implements Headles
       'geometry_b' => 'POINT(147.2687833 -42.9771098)',
     ]);
     $this->assertEquals(1, $resultWithCollection['count']);
-    $this->assertContains($upperHouseDistrict['id'], $resultWithCollection['values']);
+    $this->assertContains((string) $upperHouseDistrict['id'], $resultWithCollection['values']);
     // Assert that the non MBR geometry contains its self and MBR
     $resultGeometryIdB = $this->callAPISuccess('Geometry', 'contains', [
       'geometry_a' => 0,
       'geometry_b' => $upperHouseDistrict['id'],
     ]);
     $this->assertEquals(2, $resultGeometryIdB['count']);
-    $this->assertContains($upperHouseDistrict['id'], $resultGeometryIdB['values']);
-    $this->assertContains($upperHouseDistrictMBR['id'], $resultGeometryIdB['values']);
+    $this->assertContains((string) $upperHouseDistrict['id'], $resultGeometryIdB['values']);
+    $this->assertContains((string) $upperHouseDistrictMBR['id'], $resultGeometryIdB['values']);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrict['id']]);
     $this->callAPISuccess('Geometry', 'delete', ['id' => $upperHouseDistrictMBR['id']]);
     $this->callAPISuccess('GeometryCollection', 'delete', ['id' => $UHCollection['id']]);

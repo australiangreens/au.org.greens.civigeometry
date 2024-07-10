@@ -7,7 +7,7 @@ The extension is licensed under [AGPL-3.0](LICENSE.txt).
 ## Requirements
 
 * PHP v5.4+
-* CiviCRM (5.13.x)
+* CiviCRM (5.51+)
 * MySQL version 5.7 or MariaDB version 10.2
 
 ## Installation (Web UI)
@@ -75,7 +75,7 @@ Avaliable Entities and methods
   - To create a Geometry you need to specify at least one collection and you need to pass it in an array e.g. `collection_id => [1]`
   - Operations
     - CRUD
-      - When requesting or creating geometry the default format is GeoJSON. You can specify alternate output formats via the parameter format. Acceptable output formats are json (ie. GeoJSON), kml and wkt. 
+      - When requesting or creating geometry the default format is GeoJSON. You can specify alternate output formats via the parameter format. Acceptable output formats are json (ie. GeoJSON), kml and wkt.
       - When you create a geometry a job is added to the queue to generate all the relationships between geocoded addresses (i.e. have a latitude and longditude) and the geometry polygon.
       - You can also specify an input format when creating a geometry. GeoJSOa (default), gzipped GeoJSON (`gzip`) and (server-side) file references (`file`) are acceptable input formats.
     - `archive`/`unarchive` - Archive or unarchive a single geometry
@@ -85,7 +85,7 @@ Avaliable Entities and methods
     - `getDistance` - Return the distance specified between two points. The points need to be specified in string format in the format of `POINT(x, y)`
     - `getOverlap` - Determine the overlap between two geometry shapes. Returned as a percentage
     - `getCachedOverlaps` - Returna list of all geometries that overlap the supplied geometry (with optional minimum overlap percentage)
-    - `runqueue` - Runs the queued up address placement and geometry - address relationship creation jobs stored in the Geometry extension queue. 
+    - `runqueue` - Runs the queued up address placement and geometry - address relationship creation jobs stored in the Geometry extension queue.
     - `getentity` - Get relationships between geometries and associated entities, must supply either a `geometry_id` or the combination of entity_id and entity_table. The purpose of the relationships is to assist where entities may need to have a definition that is based on geometry or similar. E.g. An electorate in Australia is defined by the geographical area it covers.
     - `createentity` - Create a relationship between a geometry and an enttiy, must supply an `entity_id`, `entity_table` = match to MySQL table name and a `geometry_id`.
     - `deleteentity` - Delete a relationship between a geoemtry and an entity either the id of the civigeometry_geoemtry_entity table or a combination of `entity_id`, `entity_table`, `geometry_id`.

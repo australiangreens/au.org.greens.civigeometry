@@ -1,6 +1,10 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [1.14.1] - 2024-07-11
+### Fixed
+- Unit tests now work properly with PHPUnit 9
+
 ## [1.14.0] - 2024-07-11
 ### Added
 - GeometryEntity entity now permits joins to Address and Contact entities in SearchKit

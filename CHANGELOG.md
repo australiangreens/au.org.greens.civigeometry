@@ -1,6 +1,13 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [2.0.0] - 2024-10-08
+### Changed
+- BREAKING: The extension now uses Entity Framework version 2. This limits use of
+  the extension to more recent versions of CiviCRM. The minimum supported version (5.51)
+  was already higher than what EFv2 dictates (5.44) but the change guarantees that lower
+  versions of CiviCRM will be unable to install and use the extension at all.
+
 ## [1.14.1] - 2024-07-11
 ### Fixed
 - Unit tests now work properly with PHPUnit 9

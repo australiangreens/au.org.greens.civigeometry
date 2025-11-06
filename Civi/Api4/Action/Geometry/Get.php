@@ -52,22 +52,42 @@ class Get extends \Civi\Api4\Generic\DAOGetAction {
     $this->setDefaultWhereClause();
     $this->expandSelectClauseWildcards();
     $this->getObjects($result);
-    foreach ($result as $key => $res) {
-      $kml = FALSE;
+
+    $select = $this->getSelect();
+    // Only proceed if geometry field is requested
+    if (empty($select) || in_array('geometry', $select) || in_array('*', $select)) {
+      $geomIDs = array_keys($result->getArrayCopy());
+
+      if (empty($geomIDs)) {
+        return;
+      }
+
       $mySQLFunction = 'ST_AsGeoJSON';
+      $isKml = false;
       if ($this->format && in_array($this->format, ['kml', 'wkt'])) {
         $mySQLFunction = 'ST_AsText';
         if ($this->format === 'kml') {
-          $kml = TRUE;
+          $isKml = TRUE;
         }
       }
-      $select = $this->getSelect();
-      if (empty($select) || in_array('geometry', $select) || in_array('*', $select)) {
-        $geometry = \CRM_Core_DAO::singleValueQuery("SELECT {$mySQLFunction}(geometry) FROM civigeometry_geometry WHERE id = %1", [1 => [$res['id'], 'Positive']]);
-        if ($kml) {
-          $geometry = \CRM_CiviGeometry_BAO_Geometry::wkt2kml($geometry);
+
+      $geometries = [];
+      $batchSize = 500;
+
+      foreach (array_chunk($geomIDs, $batchSize) as $idBatch) {
+        $dao = \CRM_Core_DAO::executeQuery(
+          "SELECT id, {$mySQLFunction}(geometry) as geom FROM civigeometry_geometry WHERE id IN (%1)",
+          [1 => [implode(',', $idBatch), 'CommaSeparatedIntegers']]
+        );
+        while ($dao->fetch()) {
+          $geometries[$dao->id] = $isKml ? \CRM_CiviGeometry_BAO_Geometry::wkt2kml($dao->geom) : $dao->geom;
         }
-        $result[$key]['geometry'] = $geometry;
+      }
+
+      foreach ($result as $key => $res) {
+        if (isset($geometries[$res['id']])) {
+          $result[$key]['geometry'] = $geometries[$res['id']];
+        }
       }
     }
   }

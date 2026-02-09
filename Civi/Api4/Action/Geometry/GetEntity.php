@@ -14,7 +14,7 @@ class GetEntity extends \Civi\Api4\Generic\DAOGetAction {
     $query = 'SELECT * FROM ' . \CRM_CiviGeometry_DAO_GeometryEntity::getTableName();
     $where = '';
     foreach ($whereClauses as $whereClause) {
-      if (in_array($whereClause[0], ['entity_id', 'entity_Table', 'geometry_id', 'expiry_date'])) {
+      if (in_array($whereClause[0], ['entity_id', 'entity_table', 'geometry_id', 'expiry_date'])) {
         $value = $whereClause[2];
         if ($whereClause[0] === 'expiry_date') {
           $value = \CRM_Utils_Date::isoToMysql($value);
@@ -22,7 +22,7 @@ class GetEntity extends \Civi\Api4\Generic\DAOGetAction {
         if (!empty($where)) {
           $where .= ' AND ';
         }
-        $where = \CRM_Contact_BAO_Query::buildClause($whereClause[0], $whereClause[1], $whereClause[2]);
+        $where .= \CRM_Contact_BAO_Query::buildClause($whereClause[0], $whereClause[1], $whereClause[2]);
       }
     }
     if (!empty($where)) {

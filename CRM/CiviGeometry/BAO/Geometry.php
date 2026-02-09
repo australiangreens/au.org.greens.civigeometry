@@ -454,6 +454,37 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
   }
 
   /**
+   * Find all addresses contained by a geometry and insert relationships in bulk.
+   *
+   * Uses the geometry's bounding box to pre-filter candidates before ST_Contains,
+   * and INSERT IGNORE to skip any existing relationships.
+   *
+   * @param int $geometry_id
+   *   The id of the geometry to build relationships for.
+   */
+  public static function buildAddressRelationshipsBatch($geometry_id) {
+    $bounds = self::generateBounds($geometry_id);
+    CRM_Core_DAO::executeQuery("
+      INSERT IGNORE INTO civigeometry_geometry_entity (entity_id, entity_table, geometry_id)
+      SELECT ca.id, 'civicrm_address', g.id
+      FROM civicrm_address ca
+      INNER JOIN civigeometry_geometry g ON g.id = %1
+      WHERE ca.geo_code_1 IS NOT NULL
+        AND ca.geo_code_2 IS NOT NULL
+        AND ca.geo_code_2 >= %2 AND ca.geo_code_2 <= %3
+        AND ca.geo_code_1 >= %4 AND ca.geo_code_1 <= %5
+        AND ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
+      FOR UPDATE
+    ", [
+      1 => [$geometry_id, 'Positive'],
+      2 => [$bounds['left_bound'], 'Float'],
+      3 => [$bounds['right_bound'], 'Float'],
+      4 => [$bounds['bottom_bound'], 'Float'],
+      5 => [$bounds['top_bound'], 'Float'],
+    ]);
+  }
+
+  /**
    * Convert Wkt Geoemtry to KML
    * @param string $wkt
    * @see http://blog.mastermaps.com/2008/03/wkt-to-kml-transformation.html
@@ -517,28 +548,6 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
     $results = $dao->fetchAll();
 
     return $results;
-  }
-
-  /**
-   * Helper method for getAddresses. Checks if specified geometry contains civicrm_address with id.
-   *
-   * @param  integer $geometryId    Id of the geometry to check against
-   * @param  integer $addressId     Id of the civicrm_address
-   * @return boolean
-   */
-  protected static function getAddressesGeometryContainsCandidate($geometryId, $addressId) {
-    $geomTableName = self::getTableName();
-    $result = CRM_Core_DAO::singleValueQuery("
-      SELECT ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
-      FROM civicrm_address ca, $geomTableName g
-      WHERE g.id = %1 AND ca.id = %2
-      FOR UPDATE
-    ", [
-      1 => [$geometryId, 'Integer'],
-      2 => [$addressId, 'Integer'],
-    ]);
-
-    return boolval($result);
   }
 
   /**
@@ -635,10 +644,21 @@ class CRM_CiviGeometry_BAO_Geometry extends CRM_CiviGeometry_DAO_Geometry {
       $candidates = self::getAddressesFetchCandidateBatch($tempTableName, $offset, $params['batch_size']);
 
       if (count($candidates)) {
-        foreach ($candidates as $candidate) {
-          if (self::getAddressesGeometryContainsCandidate($geometry_id, $candidate['address_id'])) {
-            yield ['geometry_id' => $geometry_id, 'address_id' => $candidate['address_id']];
-          }
+        $candidateIds = array_column($candidates, 'address_id');
+        $idList = implode(',', array_map('intval', $candidateIds));
+        $geomTableName = self::getTableName();
+        $dao = CRM_Core_DAO::executeQuery("
+          SELECT ca.id AS address_id
+          FROM civicrm_address ca
+          INNER JOIN $geomTableName g ON g.id = %1
+          WHERE ca.id IN ($idList)
+            AND ST_Contains(g.geometry, ST_GeomFromText(CONCAT('POINT(', ca.geo_code_2, ' ', ca.geo_code_1, ')'), 4326))
+          FOR UPDATE
+        ", [
+          1 => [$geometry_id, 'Integer'],
+        ]);
+        while ($dao->fetch()) {
+          yield ['geometry_id' => $geometry_id, 'address_id' => $dao->address_id];
         }
 
         $offset += $params['batch_size'];

@@ -1,6 +1,13 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [2.1.0] - 2026-02-10
+### Changed
+- the code to find all addresses contained by a geometry now batches its operations
+  to reduce the number of database queries the code makes.
+- replace chained APIv3 calls to delete geometry-entity relationships with more direct
+  database queries for performance
+
 ## [2.0.0] - 2024-10-08
 ### Changed
 - BREAKING: The extension now uses Entity Framework version 2. This limits use of

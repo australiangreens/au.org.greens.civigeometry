@@ -21,19 +21,28 @@ class CRM_CiviGeometry_Tasks {
       ", [
         1 => [$address['id'], 'Positive'],
       ]);
-      // Find all containing geometries and insert relationships in one query
+      // Find all containing geometries, then insert relationships.
+      // Separated into SELECT + INSERT to avoid shared locks on civigeometry_geometry.
       $point = 'POINT(' . $address['geo_code_2'] . ' ' . $address['geo_code_1'] . ')';
-      CRM_Core_DAO::executeQuery("
-        INSERT IGNORE INTO civigeometry_geometry_entity (entity_id, entity_table, geometry_id)
-        SELECT %1, 'civicrm_address', g.id
+      $dao = CRM_Core_DAO::executeQuery("
+        SELECT SQL_NO_CACHE g.id
         FROM civigeometry_geometry g
         WHERE g.is_archived = 0
-          AND ST_Contains(g.geometry, ST_GeomFromText(%2, 4326))
-        FOR UPDATE
+          AND ST_Contains(g.geometry, ST_GeomFromText(%1, 4326))
       ", [
-        1 => [$address['id'], 'Positive'],
-        2 => [$point, 'String'],
+        1 => [$point, 'String'],
       ]);
+      $geometryIds = array_column($dao->fetchAll(), 'id');
+      if ($geometryIds) {
+        $addressId = (int) $address['id'];
+        $values = [];
+        foreach ($geometryIds as $geometryId) {
+          $values[] = '(' . $addressId . ", 'civicrm_address', " . (int) $geometryId . ')';
+        }
+        CRM_Core_DAO::executeQuery(
+          "INSERT IGNORE INTO civigeometry_geometry_entity (entity_id, entity_table, geometry_id) VALUES " . implode(',', $values)
+        );
+      }
       $addressObject = new CRM_Core_BAO_Address();
       $addressObject->id = $address['id'];
       $addressObject->find(TRUE);

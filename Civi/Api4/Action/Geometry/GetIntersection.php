@@ -26,7 +26,7 @@ class GetIntersection extends \Civi\Api4\Generic\AbstractAction {
    * Geometry Id b
    * @var int
    */
-  protected $geoemtry_b;
+  protected $geometry_b;
 
   /**
    * Geometry B/A Collection ID
@@ -47,7 +47,7 @@ class GetIntersection extends \Civi\Api4\Generic\AbstractAction {
       $test = 'a';
     }
     // Check that we have either the other geometry or a collection id.
-    if (empty($this->geometry_{$test}) && empty($this->collection_id)) {
+    if (empty($this->{'geometry_' . $test}) && empty($this->collection_id)) {
       throw new \API_Exception('Must supply either geometry_' . $test . ' OR collection_id');
     }
     $params = [

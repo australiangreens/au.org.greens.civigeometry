@@ -1,6 +1,11 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [2.0.1] - 2026-06-01
+### Fixed
+- Misnamed protected variable in intersection Api4 action
+- Deprecation of string interpolation
+
 ## [2.0.0] - 2024-10-08
 ### Changed
 - BREAKING: The extension now uses Entity Framework version 2. This limits use of

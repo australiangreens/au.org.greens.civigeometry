@@ -1,6 +1,12 @@
 # Changelog
 All notable changes for the CiviGeometry extension will be noted here.
 
+## [2.0.2] - 2026-08-31
+### Fixed
+- Where clause parsing in APIv4 Geometry.getentity: conditions were overwritten
+  rather than concatenated, the `entity_table` filter was never matched due to a
+  typo, and the ISO-to-MySQL conversion of `expiry_date` values was discarded
+
 ## [2.0.1] - 2026-06-01
 ### Fixed
 - Misnamed protected variable in intersection Api4 action
